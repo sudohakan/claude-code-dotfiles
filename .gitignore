@@ -1,0 +1,34 @@
+# Credentials & secrets
+.credentials.json
+*.credential*
+
+# Session-specific
+history.jsonl
+shell-snapshots/
+session-env/
+paste-cache/
+debug/
+logs/
+cache/
+backups/
+file-history/
+plans/
+ide/
+stats-cache.json
+
+# Plugin downloads (re-installed automatically)
+config/plugins/cache/
+config/plugins/marketplaces/
+config/plugins/installed_plugins.json
+config/plugins/install-counts-cache.json
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,26 @@
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\claude-plugins-official",
+    "lastUpdated": "2026-02-28T22:02:08.003Z"
+  },
+  "claude-code-plugins": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-code"
+    },
+    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\claude-code-plugins",
+    "lastUpdated": "2026-02-28T21:40:12.572Z"
+  },
+  "trailofbits": {
+    "source": {
+      "source": "github",
+      "repo": "trailofbits/skills"
+    },
+    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\trailofbits",
+    "lastUpdated": "2026-02-27T09:00:32.018Z"
+  }
+}

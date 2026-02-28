@@ -1,0 +1,91 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-check-update.js\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/pretooluse-safety.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-context-monitor.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/post-autoformat.js\""
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/post-observability.js\""
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion|Task|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/post-notify.js\""
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-statusline.js\""
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "static-analysis@trailofbits": true,
+    "differential-review@trailofbits": true,
+    "insecure-defaults@trailofbits": true,
+    "sharp-edges@trailofbits": true,
+    "supply-chain-risk-auditor@trailofbits": true,
+    "audit-context-building@trailofbits": true
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "mcpServers": {
+    "container-use": {
+      "command": "C:/Users/Hakan/bin/container-use.exe",
+      "args": [
+        "stdio"
+      ],
+      "startup_timeout_sec": 120
+    }
+  },
+  "model": "opus"
+}
