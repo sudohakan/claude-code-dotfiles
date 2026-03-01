@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * PostToolUse Observability Hook
- * Tüm tool kullanımlarını loglar — agent aktivitesini izlemek için.
- * Log dosyası: ~/.claude/logs/tool-activity-{date}.jsonl
+ * Logs all tool usage — for tracking agent activity.
+ * Log file: ~/.claude/logs/tool-activity-{date}.jsonl
  */
 
 const fs = require('fs');
@@ -29,20 +29,20 @@ process.stdin.on('end', () => {
       timestamp: now.toISOString(),
       session_id: data.session_id || 'unknown',
       tool_name: data.tool_name || 'unknown',
-      // Tool input özeti (büyük veriyi loglamaktan kaçın)
+      // Tool input summary (avoid logging large data)
       input_summary: summarizeInput(data.tool_input),
-      // Tool result özeti
+      // Tool result summary
       result_summary: summarizeResult(data.tool_result),
-      // Agent mı yoksa ana context mi?
+      // Is this a subagent or main context?
       is_subagent: !!(data.session_id && data.parent_session_id),
     };
 
     fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
 
-    // 7 günden eski logları temizle (günde 1 kez)
+    // Clean up logs older than 7 days (once per day)
     cleanOldLogs(logDir, 7);
   } catch (e) {
-    // Silent fail — loglamak tool'u bloke etmemeli
+    // Silent fail — logging must not block the tool
     process.exit(0);
   }
 });
@@ -51,11 +51,11 @@ function summarizeInput(input) {
   if (!input) return null;
   const summary = {};
 
-  // Bash komutu
+  // Bash command
   if (input.command) {
     summary.command = input.command.substring(0, 200);
   }
-  // Dosya yolu
+  // File path
   if (input.file_path) {
     summary.file = input.file_path;
   }
@@ -73,14 +73,14 @@ function summarizeInput(input) {
 
 function summarizeResult(result) {
   if (!result) return null;
-  // Sadece başarı/hata bilgisi
+  // Only success/error info
   if (result.error) return { error: String(result.error).substring(0, 200) };
   return { success: true };
 }
 
 function cleanOldLogs(dir, maxDays) {
   try {
-    // Günde 1 kez çalıştır
+    // Run once per day
     const markerFile = path.join(dir, '.last-cleanup');
     if (fs.existsSync(markerFile)) {
       const stat = fs.statSync(markerFile);

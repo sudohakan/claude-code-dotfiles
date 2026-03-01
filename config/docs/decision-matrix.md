@@ -1,31 +1,31 @@
-# Karar Tablosu + Entegrasyon Matrisi
+# Decision Table + Integration Matrix
 
-## Ana Yönlendirme Tablosu
+## Main Routing Table
 
-| Kullanıcı Ne İstedi? | GSD Akışı | Superpowers | Ralph |
+| What Did the User Ask? | GSD Flow | Superpowers | Ralph |
 |---|---|---|---|
-| Yeni proje / uygulama | `new-project` → full cycle | brainstorming (ZORUNLU) | — |
-| Yeni özellik / modül | `discuss` → `plan` → `execute` → `verify` | writing-plans | — |
-| "Şunu düzelt/ekle/değiştir" | `quick` | verification (ZORUNLU) | — |
-| Hata var, neden? | `debug` | systematic-debugging | Opsiyonel |
-| UI yaz / tasarla | UI/UX Pro Max akışı | — | — |
-| execute-phase sırasında | wave-based execution | TDD + verification | Opsiyonel |
-| Her faz sonu | — | requesting-code-review | — |
-| Araştır / öğren / incele (codebase) | — | Explore agent | — |
-| Araştır / öğren / incele (dış kaynak) | — | WebSearch + Context7 | — |
-| Birden fazla bağımsız görev (GSD dışı) | `dispatching-parallel-agents` skill | — | — |
+| New project / application | `new-project` → full cycle | brainstorming (REQUIRED) | — |
+| New feature / module | `discuss` → `plan` → `execute` → `verify` | writing-plans | — |
+| "Fix/add/change this" | `quick` | verification (REQUIRED) | — |
+| There's a bug, why? | `debug` | systematic-debugging | Optional |
+| Write / design UI | UI/UX Pro Max flow | — | — |
+| During execute-phase | wave-based execution | TDD + verification | Optional |
+| End of each phase | — | requesting-code-review | — |
+| Research / learn / explore (codebase) | — | Explore agent | — |
+| Research / learn / explore (external source) | — | WebSearch + Context7 | — |
+| 2+ independent tasks (outside GSD) | `dispatching-parallel-agents` skill | — | — |
 
-## Araştırma Görevi
+## Research Task
 
-GSD ve commit zorunlu değil. İki tür araştırma akışı:
+GSD and commit are not required. Two types of research flows:
 
-### Codebase araştırması (iç)
-1. Explore agent ile codebase tara (pattern, dosya yapısı, bağımlılık)
-2. Gerekirse Grep/Glob ile spesifik arama
-3. Sonucu yapılandırılmış özet olarak sun
+### Codebase research (internal)
+1. Scan codebase with Explore agent (patterns, file structure, dependencies)
+2. Use Grep/Glob for specific searches if needed
+3. Present result as a structured summary
 
-### Dış araştırma (web/dökümantasyon)
-1. Context7 ile kütüphane/framework dökümantasyonu çek
-2. WebSearch ile güncel bilgi ara
-3. Gerekirse WebFetch ile detay al
-4. Sonucu kaynaklarıyla birlikte özetle
+### External research (web/documentation)
+1. Fetch library/framework documentation with Context7
+2. Search for current information with WebSearch
+3. Get details with WebFetch if needed
+4. Summarize result along with sources

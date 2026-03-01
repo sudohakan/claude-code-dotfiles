@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * PostToolUse Auto-Format Hook
- * Edit/Write sonrası proje bazlı formatter çalıştırır.
- * Sadece proje dizininde formatter config varsa aktif olur.
+ * Runs a project-based formatter after Edit/Write.
+ * Only activates if a formatter config exists in the project directory.
  */
 
 const { execSync } = require('child_process');
@@ -17,12 +17,12 @@ process.stdin.on('end', () => {
     const data = JSON.parse(input);
     const toolName = data.tool_name;
 
-    // Sadece dosya değiştiren tool'larda çalış
+    // Only run for file-modifying tools
     if (!['Edit', 'Write', 'MultiEdit'].includes(toolName)) {
       process.exit(0);
     }
 
-    // Değiştirilen dosya yolunu bul
+    // Find the path of the modified file
     const filePath = data.tool_result?.filePath
       || data.tool_input?.file_path
       || data.tool_input?.filePath;
@@ -31,7 +31,7 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Dosya uzantısına göre formatter seç
+    // Select formatter based on file extension
     const ext = path.extname(filePath).toLowerCase();
     const formattableExts = ['.js', '.jsx', '.ts', '.tsx', '.css', '.scss', '.json', '.html', '.vue', '.svelte', '.md', '.yaml', '.yml'];
 
@@ -39,7 +39,7 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Proje dizinini bul (dosyanın bulunduğu en yakın package.json veya .prettierrc)
+    // Find the project directory (nearest package.json or .prettierrc containing the file)
     let dir = path.dirname(filePath);
     let hasFormatter = false;
     const configFiles = ['.prettierrc', '.prettierrc.json', '.prettierrc.js', 'prettier.config.js', '.eslintrc', '.eslintrc.json', '.eslintrc.js', 'eslint.config.js', 'biome.json'];
@@ -57,12 +57,12 @@ process.stdin.on('end', () => {
       dir = parent;
     }
 
-    // Formatter config yoksa sessizce geç
+    // If no formatter config, skip silently
     if (!hasFormatter) {
       process.exit(0);
     }
 
-    // Formatter'ı çalıştır (prettier > biome > eslint --fix sırası)
+    // Run formatter (prettier > biome > eslint --fix order)
     const formatters = [
       { cmd: 'npx prettier --write', check: '.prettierrc' },
       { cmd: 'npx @biomejs/biome format --write', check: 'biome.json' },
@@ -82,10 +82,10 @@ process.stdin.on('end', () => {
           windowsHide: true,
         });
 
-        // Başarılı format — sessizce tamamla (context token tasarrufu)
+        // Successful format — complete silently (context token savings)
         return;
       } catch (e) {
-        // Formatter hata verdi — sessizce geç
+        // Formatter returned error — skip silently
       }
     }
   } catch (e) {

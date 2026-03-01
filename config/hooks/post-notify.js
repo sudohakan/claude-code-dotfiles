@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * CC Notify — Desktop Notification Hook
- * Claude Code kullanıcı input'u beklediğinde Windows toast notification gönderir.
- * Uzun süren görevlerde (agent'lar, build'ler) faydalıdır.
+ * Sends a Windows toast notification when Claude Code is waiting for user input.
+ * Useful for long-running tasks (agents, builds).
  *
- * Mantık: Eğer bir tool call'dan sonra 'AskUserQuestion' veya session idle ise,
- * Windows notification gönderilir.
+ * Logic: If after a tool call 'AskUserQuestion' fires or the session is idle,
+ * a Windows notification is sent.
  *
- * Ayrıca uzun süren tool'lar (>30s) tamamlandığında bildirir.
+ * Also notifies when long-running tools (>30s) complete.
  */
 
 const { execSync } = require('child_process');
@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const LONG_TASK_THRESHOLD_MS = 30000; // 30 saniye
+const LONG_TASK_THRESHOLD_MS = 30000; // 30 seconds
 
 let input = '';
 process.stdin.setEncoding('utf8');
@@ -26,7 +26,7 @@ process.stdin.on('end', () => {
     const toolName = data.tool_name;
     const sessionId = data.session_id || '';
 
-    // Debounce: 60 saniyede 1 notification
+    // Debounce: 1 notification per 60 seconds
     const tmpDir = os.tmpdir();
     const notifyPath = path.join(tmpDir, `claude-notify-${sessionId}.json`);
 
@@ -43,21 +43,21 @@ process.stdin.on('end', () => {
     let title = 'Claude Code';
     let message = '';
 
-    // Durum 1: AskUserQuestion — kullanıcı input bekliyor
+    // Case 1: AskUserQuestion — waiting for user input
     if (toolName === 'AskUserQuestion') {
       shouldNotify = true;
-      title = 'Claude Code — Input Gerekli';
-      message = 'Claude bir soru soruyor, yanıtını bekliyor.';
+      title = 'Claude Code — Input Required';
+      message = 'Claude is asking a question and waiting for your response.';
     }
 
-    // Durum 2: Uzun süren Task/Bash tamamlandı
+    // Case 2: Long-running Task/Bash completed
     if (['Task', 'Bash'].includes(toolName)) {
       const duration = data.tool_result?.duration_ms;
       if (duration && duration > LONG_TASK_THRESHOLD_MS) {
         shouldNotify = true;
         const secs = Math.round(duration / 1000);
-        title = 'Claude Code — Görev Tamamlandı';
-        message = `${toolName} ${secs}s sürdü: tamamlandı.`;
+        title = 'Claude Code — Task Complete';
+        message = `${toolName} took ${secs}s: completed.`;
       }
     }
 
@@ -68,7 +68,7 @@ process.stdin.on('end', () => {
     // Windows Toast Notification (PowerShell)
     sendWindowsNotification(title, message);
 
-    // Debounce güncelle
+    // Update debounce
     fs.writeFileSync(notifyPath, JSON.stringify({ timestamp: Date.now() }));
   } catch (e) {
     process.exit(0);
@@ -108,6 +108,6 @@ function sendWindowsNotification(title, message) {
       windowsHide: true,
     });
   } catch (e) {
-    // Notification gönderilemezse sessizce geç
+    // If notification cannot be sent, fail silently
   }
 }

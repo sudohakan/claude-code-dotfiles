@@ -1,80 +1,80 @@
-# Gelişmiş Araç Seti
+# Advanced Toolset
 
 ## Claude Squad — Multi-Agent Orchestration
-**TUI:** `cs` komutu ile interaktif agent yönetimi (kullanıcı kullanır).
-**Programmatic spawn:** Agent'lar `cs-spawn.sh` ile izole Claude Code instance'ları başlatabilir.
+**TUI:** Interactive agent management with the `cs` command (used by the user).
+**Programmatic spawn:** Agents can launch isolated Claude Code instances via `cs-spawn.sh`.
 
 ```bash
-cs-spawn.sh --name "security-audit" --prompt "Bu projedeki güvenlik açıklarını tara" --dir /path/to/repo
-cs-spawn.sh --list          # Aktif session'ları listele
-cs-spawn.sh --log "name"    # Session çıktısını oku
-cs-spawn.sh --kill "name"   # Session'ı sonlandır
+cs-spawn.sh --name "security-audit" --prompt "Scan this project for security vulnerabilities" --dir /path/to/repo
+cs-spawn.sh --list          # List active sessions
+cs-spawn.sh --log "name"    # Read session output
+cs-spawn.sh --kill "name"   # Terminate session
 ```
 
-### Claude Squad Tetikleme Kuralları
+### Claude Squad Trigger Rules
 
-| Senaryo | Neden CS | Örnek |
-|---------|----------|-------|
-| 200+ satır değişiklik | Kendi context window'u gerekir | Büyük refactor, migration |
-| Security audit / static analysis | Uzun sürer, background'da çalışmalı | Faz sonu Trail of Bits taraması |
-| 2+ farklı proje dizininde eş zamanlı iş | Her proje kendi session'ında | Frontend + Backend paralel |
-| Kapsamlı test suite (30+ test veya 5+ dk) | Çıktı büyük, ana context'i şişirir | HakanMCP full test, E2E suite |
-| Derin codebase analizi (20+ dosya) | Subagent turn limiti yetmez | Yeni projeye giriş, mimari analiz |
-| GSD research fazı 3+ domain içeriyorsa | Her domain kendi full context'inde | Auth + DB + API paralel araştırma |
+| Scenario | Why CS | Example |
+|----------|--------|---------|
+| 200+ line change | Needs its own context window | Large refactor, migration |
+| Security audit / static analysis | Long-running, should run in background | End-of-phase Trail of Bits scan |
+| Simultaneous work in 2+ different project directories | Each project in its own session | Frontend + Backend parallel |
+| Comprehensive test suite (30+ tests or 5+ min) | Large output, bloats main context | HakanMCP full test, E2E suite |
+| Deep codebase analysis (20+ files) | Subagent turn limit insufficient | Entering new project, architecture analysis |
+| GSD research phase with 3+ domains | Each domain in its own full context | Auth + DB + API parallel research |
 
-### Claude Squad tetiklenmez
-- Tek dosya fix/edit
-- Basit arama/okuma (Explore agent yeter)
-- < 2 dakika sürecek görevler
-- Aynı dizinde çalışan kısa task'lar (Agent tool yeter)
+### Claude Squad is NOT triggered
+- Single file fix/edit
+- Simple search/read (Explore agent is enough)
+- Tasks that take < 2 minutes
+- Short tasks running in the same directory (Agent tool is enough)
 
-Her spawn edilen agent kendi git branch'inde çalışır. Sonuçlar dosyaya yazılır, ana context temiz kalır.
+Each spawned agent works on its own git branch. Results are written to file, main context stays clean.
 
-## ccusage — Token Kullanım Takibi
+## ccusage — Token Usage Tracking
 ```bash
-npx ccusage daily --json              # Günlük kullanım (JSON)
-npx ccusage session --json            # Session bazlı kullanım
-npx ccusage blocks --json             # 5-saatlik billing blokları
+npx ccusage daily --json              # Daily usage (JSON)
+npx ccusage session --json            # Session-based usage
+npx ccusage blocks --json             # 5-hour billing blocks
 ```
 
-## Trail of Bits — Güvenlik Audit
-6 security skill aktif. Otomatik tetiklenir veya açıkça çağrılır:
-- `static-analysis` — CodeQL/Semgrep entegrasyonu
-- `differential-review` — Güvenlik odaklı code review
-- `insecure-defaults` — Güvensiz varsayılan config tespiti
-- `sharp-edges` — Tehlikeli pattern tespiti
-- `supply-chain-risk-auditor` — Bağımlılık güvenlik analizi
-- `audit-context-building` — Derin mimari context oluşturma
+## Trail of Bits — Security Audit
+6 security skills active. Triggered automatically or called explicitly:
+- `static-analysis` — CodeQL/Semgrep integration
+- `differential-review` — Security-focused code review
+- `insecure-defaults` — Insecure default config detection
+- `sharp-edges` — Dangerous pattern detection
+- `supply-chain-risk-auditor` — Dependency security analysis
+- `audit-context-building` — Deep architectural context building
 
-**Fintech projelerde zorunlu:** Her faz sonunda `static-analysis` + `insecure-defaults` çalıştırılır.
+**Required for fintech projects:** `static-analysis` + `insecure-defaults` run after each phase.
 
-## Container Use (Dagger) — Sandbox Ortam
-MCP server olarak bağlı. Agent'lar tool olarak kullanabilir:
-- İzole Docker container'da kod çalıştırma
-- Her agent kendi container + git branch'inde
-- `container-use.exe stdio` üzerinden MCP protokolü
+## Container Use (Dagger) — Sandbox Environment
+Connected as MCP server. Agents can use it as a tool:
+- Run code in isolated Docker container
+- Each agent in its own container + git branch
+- MCP protocol via `container-use.exe stdio`
 
-## PostToolUse Hooks (Otomatik)
-| Hook | Tetikleyici | İşlev |
-|------|------------|-------|
-| `post-autoformat.js` | Edit/Write/MultiEdit | Proje bazlı prettier/biome format |
-| `post-observability.js` | Tüm tool'lar | `~/.claude/logs/tool-activity-{date}.jsonl`'e log |
-| `post-notify.js` | AskUserQuestion/Task/Bash | Windows toast notification (uzun görev + input bekleme) |
+## PostToolUse Hooks (Automatic)
+| Hook | Trigger | Function |
+|------|---------|---------|
+| `post-autoformat.js` | Edit/Write/MultiEdit | Project-based prettier/biome format |
+| `post-observability.js` | All tools | Log to `~/.claude/logs/tool-activity-{date}.jsonl` |
+| `post-notify.js` | AskUserQuestion/Task/Bash | Windows toast notification (long task + waiting for input) |
 
-**Agent log sorgusu:** `cat ~/.claude/logs/tool-activity-$(date +%Y-%m-%d).jsonl | jq '.tool_name'`
+**Agent log query:** `cat ~/.claude/logs/tool-activity-$(date +%Y-%m-%d).jsonl | jq '.tool_name'`
 
-## recall — Session Arama
+## recall — Session Search
 ```bash
-recall search "hata çözümü"    # Tüm session'larda ara
-recall list                     # Son session'ları listele
+recall search "error fix"   # Search across all sessions
+recall list                  # List recent sessions
 ```
 
-## ClaudeCTX — Config Profil Yönetimi
+## ClaudeCTX — Config Profile Management
 ```bash
-claudectx -n finekra-backend   # Mevcut config'den profil oluştur
-claudectx finekra-backend      # Profile geç
-claudectx -l                   # Profilleri listele
-claudectx -                    # Önceki profile dön
+claudectx -n finekra-backend   # Create profile from current config
+claudectx finekra-backend      # Switch to profile
+claudectx -l                   # List profiles
+claudectx -                    # Switch to previous profile
 ```
 
-**Agent kuralı:** Proje değiştiğinde `claudectx <profil>` ile config otomatik değiştirilir.
+**Agent rule:** When project changes, config is automatically switched with `claudectx <profile>`.
