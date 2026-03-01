@@ -10,7 +10,8 @@ Respond in the same language as the user.
 When `claude-code-dotfiles` (`C:\dev\claude-code-dotfiles`) is updated:
 1. Update the `VERSION` file with the new version (semver)
 2. Add an entry to `CHANGELOG.md` in [Keep a Changelog](https://keepachangelog.com) format
-3. Include the `vX.Y.Z` version in the commit message
+3. Update `README.md` to reflect the changes
+4. Include the `vX.Y.Z` version in the commit message
 
 ---
 

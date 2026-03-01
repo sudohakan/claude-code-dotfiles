@@ -8,12 +8,19 @@
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
     <img src="https://img.shields.io/badge/tools-200+-F59E0B?style=flat-square" alt="200+ Tools">
+    <img src="https://img.shields.io/github/v/release/sudohakan/claude-code-dotfiles?label=version&style=flat-square" alt="Version">
   </p>
 </p>
 
 ---
 
 A complete, opinionated Claude Code CLI setup that includes a full project lifecycle workflow (GSD), safety hooks, multi-agent coordination, context engineering rules, and 200+ MCP tools — all installable with a single command.
+
+## Versioning & Releases
+
+This project uses [Semantic Versioning](https://semver.org/). Releases are published automatically on [GitHub Releases](https://github.com/sudohakan/claude-code-dotfiles/releases) when a version tag is pushed.
+
+![Version](https://img.shields.io/github/v/release/sudohakan/claude-code-dotfiles?label=version)
 
 ## What's Included
 
