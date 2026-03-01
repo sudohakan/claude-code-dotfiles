@@ -85,6 +85,13 @@
         "stdio"
       ],
       "startup_timeout_sec": 120
+    },
+    "HakanMCP": {
+      "command": "node",
+      "args": [
+        "C:\\dev\\HakanMCP\\dist\\src\\index.js"
+      ],
+      "cwd": "C:\\dev\\HakanMCP"
     }
   },
   "model": "opus"
