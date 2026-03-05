@@ -29,11 +29,11 @@ This project uses [Semantic Versioning](https://semver.org/). Releases are publi
 | **CLAUDE.md** | 1 | Global instructions: GSD workflow, multi-agent coordination, context engineering, session continuity |
 | **Hooks** | 7 | `pretooluse-safety` (git protection), `gsd-context-monitor`, `gsd-statusline`, `gsd-check-update`, `post-autoformat`, `post-observability`, `post-notify` |
 | **GSD Commands** | 31 | Full Get Shit Done workflow — `/gsd:new-project`, `/gsd:plan-phase`, `/gsd:execute-phase`, `/gsd:debug`, `/gsd:quick`, and 26 more |
-| **Agent Definitions** | 11 | Planner, debugger, executor, researcher, verifier, codebase-mapper, integration-checker, and more |
+| **Agent Definitions** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
 | **Reference Docs** | 5 | Decision matrix, multi-agent protocol, tools reference, UI/UX system, review/Ralph |
 | **Skill Sets** | 3 | `cc-devops-skills`, `trailofbits-security`, `ui-ux-pro-max` |
 | **Plugins** | 13 | 7 official + 6 Trail of Bits security plugins |
-| **Memory System** | 3 files | Cross-project knowledge base: decisions, patterns, solutions |
+| **Memory System** | 6 files | Cross-project knowledge base: decisions, patterns, solutions, session-continuity, auto-checkpoint |
 | **MCP Integration** | 200+ | HakanMCP server support (DB, Git, AI, monitoring, orchestration) |
 
 ## Quick Start
@@ -55,16 +55,16 @@ The install script performs these steps automatically:
 
 | # | Step | Details |
 |---|------|---------|
-| 1 | **Node.js** | Installs via `winget` if not found |
-| 2 | **Git** | Installs via `winget` if not found |
-| 3 | **jq** | Installs via `winget` if not found |
-| 4 | **Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` |
-| 5 | **Config Backup** | Backs up existing `~/.claude/` to `~/.claude.backup-{timestamp}/` |
+| 1 | **Package Manager** | Checks for `winget` availability |
+| 2 | **Dependencies** | Installs Git, Node.js, jq via `winget` if not found |
+| 3 | **Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` |
+| 4 | **Config Backup** | Backs up existing `~/.claude/` to `~/.claude-backup-{timestamp}/` |
+| 5 | **Directory Structure** | Creates required directories under `~/.claude/` |
 | 6 | **Configuration Files** | Copies all config to `~/.claude/` (hooks, commands, agents, skills, docs, GSD runtime) |
 | 7 | **Path Auto-Fix** | Replaces hardcoded username references with current `$env:USERNAME` |
-| 8 | **Home Config** | Installs `.claude.json` to user home directory |
-| 9 | **Memory Templates** | Creates `memory/` directory with template files for cross-project knowledge base |
-| 10 | **Plugins** | Installs all 13 plugins (7 official + 6 security) |
+| 8 | **Memory Templates** | Creates `memory/` directory with template files for cross-project knowledge base |
+| 9 | **HakanMCP** | Clones and builds HakanMCP server to `C:\dev\HakanMCP` (skippable with `-SkipHakanMCP`) |
+| 10 | **Plugins** | Installs all 13 plugins via `claude plugins install` (skippable with `-SkipPlugins`) |
 
 ## Project Structure
 
@@ -72,6 +72,12 @@ The install script performs these steps automatically:
 claude-code-dotfiles/
 ├── install.ps1              # Windows installer
 ├── install.sh               # Linux/macOS installer
+├── CLAUDE.md                # Project-level instructions
+├── VERSION                  # Current version (semver)
+├── CHANGELOG.md             # Release history
+├── SECURITY.md              # Security policy
+├── SETUP.md                 # Detailed setup guide
+├── LICENSE                  # MIT license
 ├── config/
 │   ├── CLAUDE.md            # Global instructions
 │   ├── settings.json        # Claude Code settings
@@ -83,7 +89,13 @@ claude-code-dotfiles/
 │   │   ├── gsd-executor.md
 │   │   ├── gsd-debugger.md
 │   │   ├── gsd-verifier.md
-│   │   └── ... (7 more)
+│   │   ├── gsd-phase-researcher.md
+│   │   ├── gsd-project-researcher.md
+│   │   ├── gsd-plan-checker.md
+│   │   ├── gsd-integration-checker.md
+│   │   ├── gsd-codebase-mapper.md
+│   │   ├── gsd-roadmapper.md
+│   │   └── gsd-research-synthesizer.md
 │   ├── commands/
 │   │   ├── init-hakan.md    # Project initialization
 │   │   └── gsd/             # 31 GSD slash commands
@@ -123,7 +135,6 @@ claude-code-dotfiles/
 │           └── memory/
 ├── home-config/
 │   └── .claude.json         # Home directory config
-├── LICENSE
 └── README.md
 ```
 
@@ -157,7 +168,7 @@ Drop a `.js` file into `config/hooks/`. Hooks are auto-discovered by Claude Code
 Edit the plugin installation section in `install.ps1`. Plugins are installed via:
 
 ```powershell
-claude plugin add "plugin-name"
+claude plugins install "plugin-name"
 ```
 
 ## Key Features
@@ -183,7 +194,7 @@ A full project lifecycle management system with 31 commands covering:
 Structured rules for parallel agent coordination:
 
 - Agent role definitions with clear boundaries
-- DAG scheduling for dependent tasks
+- Dependency-driven eager wave execution for task scheduling
 - Quality gates between agent handoffs
 - Failure protocols and recovery procedures
 
@@ -213,9 +224,10 @@ Token efficiency rules built into every workflow:
 | GSD commands not appearing | Verify `~/.claude/commands/gsd/` directory exists and contains `.md` files |
 | Path errors after install | Re-run `install.ps1` — it auto-fixes paths for your username |
 | Context monitor not working | Ensure `jq` is installed: `jq --version` |
-| Plugin install fails | Run `claude plugin add "plugin-name"` manually. Check network connectivity |
+| Plugin install fails | Run `claude plugins install "plugin-name"` manually. Check network connectivity |
 | `CLAUDE.md` not loading | Must be in `~/.claude/CLAUDE.md` (global) or project root (project-level) |
 | Session continuity missing | Run `/init-hakan` in your project to create the memory structure |
+| HakanMCP failed | Check `C:\dev\HakanMCP` exists and is built. Re-run `install.ps1` or use `-SkipHakanMCP` |
 
 ## Requirements
 

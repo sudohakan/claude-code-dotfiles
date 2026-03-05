@@ -16,7 +16,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 - README.md version badge switched from GitHub Release API (broken on private/no-release repos) to static badge
 - README.md safety hooks section updated with session-based allowlist description
+- README.md fully audited: fixed install steps table (10 steps matching install.ps1), memory system count (3→6), agent list (all 11 named), plugin command syntax, project structure tree (added missing root files), multi-agent section (DAG→eager wave), added HakanMCP troubleshooting entry
 - `.gitignore` expanded with `.claude/`, `node_modules/`, `__pycache__/` exclusions
+- HakanMCP `startup_timeout_sec: 60` added to MCP server config
 
 ## [1.1.3] - 2026-03-05
 
