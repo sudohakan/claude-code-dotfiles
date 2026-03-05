@@ -5,6 +5,16 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.1.3] - 2026-03-05
+
+### Fixed
+- Remove unused `Optional` and `Tuple` imports from PromQL validator (`validate_syntax.py`)
+- Remove unused `os` import from UI/UX design system generator (`design_system.py`)
+
+### Note
+- Jules flagged `sys` in `script_analyzers.py` as unused — verified as false positive (`sys.stderr` used on 3 lines)
+- Jules flagged `readFileSync` in GSD `.cjs` files — these are CLI tools where synchronous I/O is standard practice, not a server context
+
 ## [1.1.2] - 2026-03-02
 
 ### Fixed
