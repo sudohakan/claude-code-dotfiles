@@ -5,7 +5,7 @@ Create executable phase prompts (PLAN.md files) for a roadmap phase with integra
 <required_reading>
 Read all files referenced by the invoking prompt's execution_context before starting.
 
-@./.claude/get-shit-done/references/ui-brand.md
+@$HOME/.claude/get-shit-done/references/ui-brand.md
 </required_reading>
 
 <process>
@@ -15,7 +15,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 Load all context in one call (paths only to minimize orchestrator context):
 
 ```bash
-INIT=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs init plan-phase "$PHASE")
+INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" init plan-phase "$PHASE")
+if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
 Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `nyquist_validation_enabled`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`, `phase_req_ids`.
@@ -42,7 +43,7 @@ mkdir -p ".planning/phases/${padded_phase}-${phase_slug}"
 ## 3. Validate Phase
 
 ```bash
-PHASE_INFO=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs roadmap get-phase "${PHASE}")
+PHASE_INFO=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}")
 ```
 
 **If `found` is false:** Error with available phases. **If `found` is true:** Extract `phase_number`, `phase_name`, `goal` from JSON.
@@ -128,7 +129,7 @@ Generating CONTEXT.md from requirements...
 
 5. Commit:
 ```bash
-node ./.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(${padded_phase}): generate context from PRD" --files "${phase_dir}/${padded_phase}-CONTEXT.md"
+node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): generate context from PRD" --files "${phase_dir}/${padded_phase}-CONTEXT.md"
 ```
 
 6. Set `context_content` to the generated CONTEXT.md content and continue to step 5 (Handle Research).
@@ -157,13 +158,11 @@ If "Run discuss-phase first": Display `/gsd:discuss-phase {X}` and exit workflow
 
 ## 5. Handle Research
 
-**Skip conditions:**
-- `--gaps` flag → skip research
-- `--skip-research` flag → skip research
-- `research_enabled=false` from init → skip research
-- RESEARCH.md already exists AND `--research` flag not set → use existing, skip to Step 6
+**Skip if:** `--gaps` flag, `--skip-research` flag, or `research_enabled` is false (from init) without `--research` override.
 
-**If research needed:**
+**If `has_research` is true (from init) AND no `--research` flag:** Use existing, skip to step 6.
+
+**If RESEARCH.md missing OR `--research` flag:**
 
 Display banner:
 ```
@@ -172,14 +171,15 @@ Display banner:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 5a. Analyze phase complexity to determine research domains
+### 5a. Analyze Phase Complexity
 
-Read CONTEXT.md and REQUIREMENTS.md. Identify distinct research domains based on:
-- Decision areas from CONTEXT.md (each locked decision = potential domain)
+Read CONTEXT.md (`context_path`) and REQUIREMENTS.md (`requirements_path`). Identify distinct research domains based on:
+
+- Decision areas from CONTEXT.md `<decisions>` section (each locked decision category = potential domain)
 - Requirement clusters from REQUIREMENTS.md (grouped by feature area)
 - Technical areas that need library/pattern research
 
-Categorize domains. Examples:
+Map to predefined domain categories:
 - Stack & Libraries (what to use)
 - Architecture Patterns (how to structure)
 - Security Considerations (auth, encryption, vulnerabilities)
@@ -189,34 +189,36 @@ Categorize domains. Examples:
 - Performance (caching, optimization techniques)
 - Deployment (CI/CD, containerization)
 
-Minimum: 2 domains. Maximum: 8 domains.
+Minimum: 2 domains. Maximum: 8 domains. Each domain gets a short scope description.
 
 Display:
 ```
 Research domains identified: {N}
-  1. {domain_name}
-  2. {domain_name}
+  1. {domain_name} — {scope_description}
+  2. {domain_name} — {scope_description}
   ...
 Spawning {N} parallel researchers...
 ```
 
-### 5b. Spawn parallel researchers
+### 5b. Spawn Parallel Researchers
 
 ```bash
-PHASE_DESC=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs roadmap get-phase "${PHASE}" | jq -r '.section')
+PHASE_DESC=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}" | jq -r '.section')
 ```
 
-For each domain, spawn a researcher agent:
+For each domain, spawn a `gsd-phase-researcher` agent (native, code-aware):
 
 ```
 Task(
-  subagent_type="general-purpose",
+  subagent_type="gsd-phase-researcher",
   model="{researcher_model}",
   prompt="
-    First, read ./.claude/agents/gsd-phase-researcher.md for your role and output format.
-
-    You are researching ONLY the domain: {DOMAIN_NAME}
-    Phase: {PHASE_NUMBER} — {PHASE_NAME}
+    <objective>
+    Research ONLY the domain: {DOMAIN_NAME}
+    Phase: {PHASE_NUMBER} - {PHASE_NAME}
+    Scope: {DOMAIN_SCOPE_DESCRIPTION}
+    Answer: 'What do I need to know about {DOMAIN_NAME} to PLAN this phase well?'
+    </objective>
 
     <files_to_read>
     - {context_path} (USER DECISIONS from /gsd:discuss-phase)
@@ -228,13 +230,13 @@ Task(
     <additional_context>
     **Phase description:** {phase_description}
     **Phase requirement IDs (MUST address):** {phase_req_ids}
-    **Project skills:** Check .agents/skills/ directory (if exists) — read SKILL.md files, research should account for project skill patterns
+
+    **Project instructions:** Read ./CLAUDE.md if exists — follow project-specific guidelines
+    **Project skills:** Check .claude/skills/ or .agents/skills/ directory (if either exists) — read SKILL.md files, research should account for project skill patterns
     </additional_context>
 
-    Research ONLY {DOMAIN_NAME}. Do NOT research other domains.
-    Use Context7 for library docs, WebSearch for best practices.
-
-    Write output to: {phase_dir}/{padded_phase}-RESEARCH-{DOMAIN_SLUG}.md
+    <output>
+    Write to: {phase_dir}/{padded_phase}-RESEARCH-{DOMAIN_SLUG}.md
 
     Sections to include (only those relevant to your domain):
     - Recommended Stack (libraries/tools for this domain)
@@ -246,93 +248,93 @@ Task(
 
     DO NOT commit. Orchestrator commits after synthesis.
     Return: ## DOMAIN RESEARCH COMPLETE with key findings summary.
+    </output>
   ",
   description="Research {DOMAIN_NAME} for phase {PHASE_NUMBER}"
 )
 ```
 
-If domain count > 5: batch into groups of 5. Wait for batch 1 to complete before starting batch 2.
+**Batching:** If domain count > 5, batch into groups of 5. Wait for batch 1 to complete before starting batch 2.
 
 All Task() calls within a batch are issued in a single message (parallel execution).
 
-### 5c. Spawn synthesizer
+### 5c. Spawn Synthesis Agent
 
 After ALL researchers complete:
 
 ```
 Task(
-  subagent_type="gsd-research-synthesizer",
+  subagent_type="general-purpose",
   model="{researcher_model}",
   prompt="
-    First, read ./.claude/agents/gsd-research-synthesizer.md for your role.
+    Merge all domain research files into a single RESEARCH.md.
 
-    Synthesize phase research files into a single RESEARCH.md.
-
-    Phase: {PHASE_NUMBER} — {PHASE_NAME}
+    Phase: {PHASE_NUMBER} - {PHASE_NAME}
     Phase directory: {phase_dir}
 
     <files_to_read>
-    Read ALL files matching {phase_dir}/{padded_phase}-RESEARCH-*.md
-    Also read: {context_path} (for User Constraints section — MUST be first section)
+    Read ALL files matching: {phase_dir}/{padded_phase}-RESEARCH-*.md
+    Also read: {context_path} (for User Constraints section)
     </files_to_read>
 
-    Write output to: {phase_dir}/{padded_phase}-RESEARCH.md
+    <output>
+    Write to: {phase_dir}/{padded_phase}-RESEARCH.md
 
-    CRITICAL format requirements:
-    - ## User Constraints MUST be the FIRST content section (copy from CONTEXT.md verbatim)
-    - ## Standard Stack (merged from all domain researches)
-    - ## Architecture Patterns
-    - ## Don't Hand-Roll
-    - ## Common Pitfalls
-    - ## Code Examples
-    - ## Validation Architecture (if any domain covered this)
-    - ## State of the Art
-    - ## Open Questions
-    - ## Sources (merged from all domains)
+    CRITICAL format requirements — use this exact section order:
+    1. ## User Constraints (FIRST section — copy locked decisions from CONTEXT.md verbatim)
+    2. ## Recommended Stack (merged from all domain researches)
+    3. ## Architecture Patterns
+    4. ## Don't Hand-Roll
+    5. ## Common Pitfalls
+    6. ## Code Examples
+    7. ## Validation Architecture (if any domain covered this)
+    8. ## State of the Art
+    9. ## Open Questions
+    10. ## Sources (merged from all domains, deduplicated)
 
     {if phase_req_ids}
-    Add <phase_requirements> section mapping each REQ-ID to research findings.
+    Add <phase_requirements> section mapping each REQ-ID to relevant research findings.
     {/if}
 
     Commit all research files:
-    gsd-tools.cjs commit 'docs(phase-{PHASE_NUMBER}): complete phase research' --files {phase_dir}/
+    node \"$HOME/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs(phase-{PHASE_NUMBER}): complete phase research\" --files {phase_dir}/
 
     Return: ## RESEARCH COMPLETE
+    </output>
   ",
   description="Synthesize research for phase {PHASE_NUMBER}"
 )
 ```
 
-### 5d. Handle returns
+### 5d. Handle Returns
 
-- All researchers + synthesizer return `COMPLETE` → display confirmation, continue to step 6
-- Any researcher returns `BLOCKED` → display blocker, offer: 1) Provide context, 2) Skip research, 3) Abort
-- Synthesizer returns `BLOCKED` → missing domain files, ask user to retry
+- All researchers + synthesizer return `COMPLETE` → display confirmation, continue to step 5.5
+- Any researcher returns `BLOCKED` → display blocker, offer via AskUserQuestion:
+  1. Provide additional context
+  2. Skip research
+  3. Abort planning
+- Synthesizer returns `BLOCKED` → missing domain files, offer retry
 
-## 5.5. Create Validation Strategy (if Nyquist enabled)
+## 5.5. Create Validation Strategy
 
-**Skip if:** `nyquist_validation_enabled` is false from INIT JSON.
-
-After researcher completes, check if RESEARCH.md contains a Validation Architecture section:
+MANDATORY unless `nyquist_validation_enabled` is false.
 
 ```bash
 grep -l "## Validation Architecture" "${PHASE_DIR}"/*-RESEARCH.md 2>/dev/null
 ```
 
 **If found:**
-1. Read validation template from `./.claude/get-shit-done/templates/VALIDATION.md`
-2. Write to `${PHASE_DIR}/${PADDED_PHASE}-VALIDATION.md`
-3. Fill frontmatter: replace `{N}` with phase number, `{phase-slug}` with phase slug, `{date}` with current date
-4. If `commit_docs` is true:
+1. Read template: `$HOME/.claude/get-shit-done/templates/VALIDATION.md`
+2. Write to `${PHASE_DIR}/${PADDED_PHASE}-VALIDATION.md` (use Write tool)
+3. Fill frontmatter: `{N}` → phase number, `{phase-slug}` → slug, `{date}` → current date
+4. Verify:
 ```bash
-node ./.claude/get-shit-done/bin/gsd-tools.cjs commit-docs "docs(phase-${PHASE}): add validation strategy"
+test -f "${PHASE_DIR}/${PADDED_PHASE}-VALIDATION.md" && echo "VALIDATION_CREATED=true" || echo "VALIDATION_CREATED=false"
 ```
+5. If `VALIDATION_CREATED=false`: STOP — do not proceed to Step 6
+6. If `commit_docs`: `commit-docs "docs(phase-${PHASE}): add validation strategy"`
 
-**If not found (and nyquist enabled):** Display warning:
-```
-⚠ Nyquist validation enabled but researcher did not produce a Validation Architecture section.
-  Continuing without validation strategy. Plans may fail Dimension 8 check.
-```
+**If not found:** Warn and continue — plans may fail Dimension 8.
 
 ## 6. Check Existing Plans
 
@@ -347,14 +349,29 @@ ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null
 Extract from INIT JSON:
 
 ```bash
-STATE_PATH=$(echo "$INIT" | jq -r '.state_path // empty')
-ROADMAP_PATH=$(echo "$INIT" | jq -r '.roadmap_path // empty')
-REQUIREMENTS_PATH=$(echo "$INIT" | jq -r '.requirements_path // empty')
-RESEARCH_PATH=$(echo "$INIT" | jq -r '.research_path // empty')
-VERIFICATION_PATH=$(echo "$INIT" | jq -r '.verification_path // empty')
-UAT_PATH=$(echo "$INIT" | jq -r '.uat_path // empty')
-CONTEXT_PATH=$(echo "$INIT" | jq -r '.context_path // empty')
+STATE_PATH=$(printf '%s\n' "$INIT" | jq -r '.state_path // empty')
+ROADMAP_PATH=$(printf '%s\n' "$INIT" | jq -r '.roadmap_path // empty')
+REQUIREMENTS_PATH=$(printf '%s\n' "$INIT" | jq -r '.requirements_path // empty')
+RESEARCH_PATH=$(printf '%s\n' "$INIT" | jq -r '.research_path // empty')
+VERIFICATION_PATH=$(printf '%s\n' "$INIT" | jq -r '.verification_path // empty')
+UAT_PATH=$(printf '%s\n' "$INIT" | jq -r '.uat_path // empty')
+CONTEXT_PATH=$(printf '%s\n' "$INIT" | jq -r '.context_path // empty')
 ```
+
+## 7.5. Verify Nyquist Artifacts
+
+Skip if `nyquist_validation_enabled` is false.
+
+```bash
+VALIDATION_EXISTS=$(ls "${PHASE_DIR}"/*-VALIDATION.md 2>/dev/null | head -1)
+```
+
+If missing and Nyquist enabled — ask user:
+1. Re-run: `/gsd:plan-phase {PHASE} --research`
+2. Disable Nyquist in config
+3. Continue anyway (plans fail Dimension 8)
+
+Proceed to Step 8 only if user selects 2 or 3.
 
 ## 8. Spawn gsd-planner Agent
 
@@ -387,7 +404,7 @@ Planner prompt:
 **Phase requirement IDs (every ID MUST appear in a plan's `requirements` field):** {phase_req_ids}
 
 **Project instructions:** Read ./CLAUDE.md if exists — follow project-specific guidelines
-**Project skills:** Check .agents/skills/ directory (if exists) — read SKILL.md files, plans should account for project skill rules
+**Project skills:** Check .claude/skills/ or .agents/skills/ directory (if either exists) — read SKILL.md files, plans should account for project skill rules
 </planning_context>
 
 <downstream_consumer>
@@ -410,8 +427,8 @@ Output consumed by /gsd:execute-phase. Plans need:
 
 ```
 Task(
-  prompt="First, read ./.claude/agents/gsd-planner.md for your role and instructions.\n\n" + filled_prompt,
-  subagent_type="general-purpose",
+  prompt=filled_prompt,
+  subagent_type="gsd-planner",
   model="{planner_model}",
   description="Plan Phase {phase}"
 )
@@ -452,7 +469,7 @@ Checker prompt:
 **Phase requirement IDs (MUST ALL be covered):** {phase_req_ids}
 
 **Project instructions:** Read ./CLAUDE.md if exists — verify plans honor project guidelines
-**Project skills:** Check .agents/skills/ directory (if exists) — verify plans account for project skill rules
+**Project skills:** Check .claude/skills/ or .agents/skills/ directory (if either exists) — verify plans account for project skill rules
 </verification_context>
 
 <expected_output>
@@ -507,8 +524,8 @@ Return what changed.
 
 ```
 Task(
-  prompt="First, read ./.claude/agents/gsd-planner.md for your role and instructions.\n\n" + revision_prompt,
-  subagent_type="general-purpose",
+  prompt=revision_prompt,
+  subagent_type="gsd-planner",
   model="{planner_model}",
   description="Revise Phase {phase} plans"
 )
@@ -531,12 +548,19 @@ Route to `<offer_next>` OR `auto_advance` depending on flags/config.
 Check for auto-advance trigger:
 
 1. Parse `--auto` flag from $ARGUMENTS
-2. Read `workflow.auto_advance` from config:
+2. **Sync chain flag with intent** — if user invoked manually (no `--auto`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference):
    ```bash
-   AUTO_CFG=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs config-get workflow.auto_advance 2>/dev/null || echo "false")
+   if [[ ! "$ARGUMENTS" =~ --auto ]]; then
+     node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
+   fi
+   ```
+3. Read both the chain flag and user preference:
+   ```bash
+   AUTO_CHAIN=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
+   AUTO_CFG=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
    ```
 
-**If `--auto` flag present OR `AUTO_CFG` is true:**
+**If `--auto` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true:**
 
 Display banner:
 ```
@@ -544,43 +568,15 @@ Display banner:
  GSD ► AUTO-ADVANCING TO EXECUTE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Plans ready. Spawning execute-phase...
+Plans ready. Launching execute-phase...
 ```
 
-Spawn execute-phase as Task with direct workflow file reference (do NOT use Skill tool — Skills don't resolve inside Task subagents):
+Launch execute-phase using the Skill tool to avoid nested Task sessions (which cause runtime freezes due to deep agent nesting):
 ```
-Task(
-  prompt="
-    <objective>
-    You are the execute-phase orchestrator. Execute all plans for Phase ${PHASE}: ${PHASE_NAME}.
-    </objective>
-
-    <execution_context>
-    @./.claude/get-shit-done/workflows/execute-phase.md
-    @./.claude/get-shit-done/references/checkpoints.md
-    @./.claude/get-shit-done/references/tdd.md
-    @./.claude/get-shit-done/references/model-profile-resolution.md
-    </execution_context>
-
-    <arguments>
-    PHASE=${PHASE}
-    ARGUMENTS='${PHASE} --auto --no-transition'
-    </arguments>
-
-    <instructions>
-    1. Read execute-phase.md from execution_context for your complete workflow
-    2. Follow ALL steps: initialize, handle_branching, validate_phase, discover_and_group_plans, execute_waves, aggregate_results, close_parent_artifacts, verify_phase_goal, update_roadmap
-    3. The --no-transition flag means: after verification + roadmap update, STOP and return status. Do NOT run transition.md.
-    4. When spawning executor agents, use subagent_type='gsd-executor' with the existing @file pattern from the workflow
-    5. When spawning verifier agents, use subagent_type='gsd-verifier'
-    6. Preserve the classifyHandoffIfNeeded workaround (spot-check on that specific error)
-    7. Do NOT use the Skill tool or /gsd: commands
-    </instructions>
-  ",
-  subagent_type="general-purpose",
-  description="Execute Phase ${PHASE}"
-)
+Skill(skill="gsd:execute-phase", args="${PHASE} --auto --no-transition")
 ```
+
+The `--no-transition` flag tells execute-phase to return status after verification instead of chaining further. This keeps the auto-advance chain flat — each phase runs at the same nesting level rather than spawning deeper Task agents.
 
 **Handle execute-phase return:**
 - **PHASE COMPLETE** → Display final summary:
@@ -647,8 +643,9 @@ Verification: {Passed | Passed with override | Skipped}
 - [ ] Phase validated against roadmap
 - [ ] Phase directory created if needed
 - [ ] CONTEXT.md loaded early (step 4) and passed to ALL agents
-- [ ] Research completed (unless --skip-research or --gaps or exists)
-- [ ] gsd-phase-researcher spawned with CONTEXT.md
+- [ ] Research domains identified (2-8) from CONTEXT.md + REQUIREMENTS.md
+- [ ] Parallel gsd-phase-researcher agents spawned per domain
+- [ ] Domain research files synthesized into single RESEARCH.md
 - [ ] Existing plans checked
 - [ ] gsd-planner spawned with CONTEXT.md + RESEARCH.md
 - [ ] Plans created (PLANNING COMPLETE or CHECKPOINT handled)

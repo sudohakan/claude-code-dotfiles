@@ -5,6 +5,19 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.2.0] - 2026-03-05
+
+### Added
+- **Project-level CLAUDE.md** for the dotfiles repo itself (tech stack, sync rules, versioning rules)
+- **AI-driven sync command** (`/sync-dotfiles`) — reverse sync from active config to repo with credential scanning, diff reporting, and selective apply
+- **GSD Eager Wave Execution** — custom `execute-phase.md` workflow replacing strict wave boundaries with dependency-driven eager start + cs-spawn hybrid routing
+- **GSD Multi-Domain Parallel Research** — custom `plan-phase.md` workflow spawning multiple `gsd-phase-researcher` agents per domain instead of single researcher
+
+### Changed
+- README.md version badge switched from GitHub Release API (broken on private/no-release repos) to static badge
+- README.md safety hooks section updated with session-based allowlist description
+- `.gitignore` expanded with `.claude/`, `node_modules/`, `__pycache__/` exclusions
+
 ## [1.1.3] - 2026-03-05
 
 ### Fixed

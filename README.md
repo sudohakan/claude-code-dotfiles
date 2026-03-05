@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
     <img src="https://img.shields.io/badge/tools-200+-F59E0B?style=flat-square" alt="200+ Tools">
-    <img src="https://img.shields.io/github/v/release/sudohakan/claude-code-dotfiles?label=version&style=flat-square" alt="Version">
+    <img src="https://img.shields.io/badge/version-1.2.0-blue?style=flat-square" alt="Version: 1.2.0">
   </p>
 </p>
 
@@ -20,7 +20,7 @@ A complete, opinionated Claude Code CLI setup that includes a full project lifec
 
 This project uses [Semantic Versioning](https://semver.org/). Releases are published automatically on [GitHub Releases](https://github.com/sudohakan/claude-code-dotfiles/releases) when a version tag is pushed.
 
-![Version](https://img.shields.io/github/v/release/sudohakan/claude-code-dotfiles?label=version)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 
 ## What's Included
 
@@ -174,7 +174,7 @@ A full project lifecycle management system with 31 commands covering:
 
 ### Safety Hooks
 
-- **Git protection** — All git commands (commit, push, reset, etc.) require explicit user approval
+- **Git protection** — All git commands (commit, push, reset, etc.) require explicit user approval. Session-based allowlist remembers approved commands (12h TTL)
 - **Context budget monitoring** — Automatic warnings at 45%, 55%, 65%, 75%, 85%, 90% context usage
 - **Observability** — JSONL logging of all tool invocations for audit trails
 

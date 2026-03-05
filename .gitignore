@@ -27,6 +27,14 @@ Thumbs.db
 .DS_Store
 desktop.ini
 
+# Project-level Claude Code config (local commands, not for distribution)
+.claude/
+
+# Node
+node_modules/
+__pycache__/
+*.pyc
+
 # Editor
 .vscode/
 .idea/

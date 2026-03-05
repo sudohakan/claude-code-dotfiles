@@ -1,9 +1,9 @@
 <purpose>
-Execute all plans in a phase using DAG-based dynamic scheduling. Orchestrator stays lean — delegates plan execution to subagents via Task() or cs-spawn.sh based on plan size and file overlap.
+Execute all plans in a phase using eager wave advancement with optional cs-spawn hybrid execution. Orchestrator stays lean — delegates plan execution to subagents via Task() or cs-spawn based on plan size.
 </purpose>
 
 <core_principle>
-Orchestrator coordinates, not executes. Each subagent loads the full execute-plan context. Orchestrator: discover plans → build DAG → route executors → fill agent slots dynamically → handle checkpoints → collect results.
+Orchestrator coordinates, not executes. Each subagent loads the full execute-plan context. Orchestrator: discover plans → route executors → fill agent slots eagerly (no wave boundary wait) → handle checkpoints → collect results.
 </core_principle>
 
 <required_reading>
@@ -16,7 +16,16 @@ Read STATE.md before any operation to load project context.
 Load all context in one call:
 
 ```bash
-INIT=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs init execute-phase "${PHASE_ARG}")
+INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" init execute-phase "${PHASE_ARG}")
+if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+
+# Check cs-spawn (Claude Squad) availability
+CS_AVAILABLE=$(which cs 2>/dev/null && echo "true" || echo "false")
+
+# Read execution config (cs-spawn thresholds, max concurrent)
+CS_TASK_THRESHOLD=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get execution.cs_spawn_threshold.task_count 2>/dev/null || echo "8")
+CS_FILES_THRESHOLD=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get execution.cs_spawn_threshold.files_modified 2>/dev/null || echo "15")
+MAX_CONCURRENT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get execution.max_concurrent 2>/dev/null || echo "6")
 ```
 
 Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelization`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `state_exists`, `roadmap_exists`, `phase_req_ids`.
@@ -26,6 +35,13 @@ Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelizat
 **If `state_exists` is false but `.planning/` exists:** Offer reconstruct or continue.
 
 When `parallelization` is false, plans within a wave execute sequentially.
+
+**Sync chain flag with intent** — if user invoked manually (no `--auto`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference). Must happen before any config reads (checkpoint handling also reads auto-advance flags):
+```bash
+if [[ ! "$ARGUMENTS" =~ --auto ]]; then
+  node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
+fi
+```
 </step>
 
 <step name="handle_branching">
@@ -47,58 +63,55 @@ From init JSON: `phase_dir`, `plan_count`, `incomplete_count`.
 Report: "Found {plan_count} plans in {phase_dir} ({incomplete_count} incomplete)"
 </step>
 
-<step name="discover_and_analyze_plans" depends_on="validate_phase">
-
-Run both commands to get DAG structure and routing recommendations:
+<step name="discover_and_route_plans">
+Load plan inventory and assign executor routing:
 
 ```bash
-PLAN_DAG=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs phase-plan-dag ${PHASE_NUMBER} --raw)
-PLAN_ROUTING=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs analyze-plan-routing ${PHASE_NUMBER} --raw)
+PLAN_INDEX=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" phase-plan-index "${PHASE_NUMBER}")
 ```
 
-From PLAN_DAG extract:
-- `ready` — plans that can start immediately (no unresolved dependencies)
-- `blocked` — plans waiting on specific other plans
-- `graph` — full dependency map
-- `plan_meta` — task_count, files_modified, autonomous flag per plan
-- `has_cycle` — if true, STOP and report cycle error
+Parse JSON for: `phase`, `plans[]` (each with `id`, `wave`, `autonomous`, `objective`, `files_modified`, `task_count`, `has_summary`), `waves` (map of wave number → plan IDs), `incomplete`, `has_checkpoints`.
 
-From PLAN_ROUTING extract:
-- `routing` — per-plan executor recommendation (`task` or `cs-spawn`)
+**Filtering:** Skip plans where `has_summary: true`. If `--gaps-only`: also skip non-gap_closure plans. If all filtered: "No matching incomplete plans" → exit.
 
-If `--gaps-only` flag: filter to plans with `gap_closure: true` in frontmatter.
+**Executor routing (per plan):**
 
-Display Execution Plan:
+For each incomplete plan, determine executor type:
+- If `CS_AVAILABLE` is false: all plans use `task` (fallback)
+- If `task_count > CS_TASK_THRESHOLD` OR `files_modified count > CS_FILES_THRESHOLD`: executor = `cs-spawn`
+- Otherwise: executor = `task`
+
+When `parallelization` is false: `MAX_CONCURRENT` = 1 (sequential override).
+
+**Initialize eager execution state:**
+- `READY` = plans from wave 1 (no unresolved dependencies)
+- `ACTIVE` = {} (map: planId → {type, status})
+- `COMPLETED` = empty set
+- `FAILED` = empty set
+- `ALL_PLANS` = full plan list with routing and depends_on metadata
+
+Report:
 ```
-╔══════════════════════════════════════╗
-║  GSD EXECUTING PHASE {PHASE_NUMBER} ║
-╚══════════════════════════════════════╝
+## Execution Plan
 
-Ready to execute: {ready.length} plans
-Blocked: {Object.keys(blocked).length} plans
-Executor routing:
-  Task() tool: {count of task-routed plans}
-  cs-spawn.sh: {count of cs-spawn-routed plans}
+**Phase {X}: {Name}** — {total_plans} plans, {wave_count} waves, eager advancement enabled
 
-Dependency Graph:
-  {planId} → [{deps}] via {executor}
-  ...
+| Wave | Plan | Executor | What it builds |
+|------|------|----------|----------------|
+| 1 | 01-01 | Task | {objective, 3-8 words} |
+| 1 | 01-02 | cs-spawn | {objective, 3-8 words} |
+| 2 | 01-03 | Task | {objective, 3-8 words} |
+
+{If CS_AVAILABLE is false:}
+Note: Claude Squad not found — all plans routed to Task()
 ```
-
 </step>
 
-<step name="dag_execution_loop" depends_on="discover_and_analyze_plans">
+<step name="eager_execution_loop" depends_on="discover_and_route_plans">
 
-Execute plans dynamically based on dependency resolution. Plans start as soon as their dependencies complete — no waiting for entire waves.
+Execute plans using eager slot filling. Plans start as soon as their dependencies resolve — no waiting for wave boundaries.
 
-**Variables:**
-- `ACTIVE_AGENTS` = {} — map of planId → {type: 'task'|'cs-spawn', status: 'running'}
-- `COMPLETED` = set of completed plan IDs
-- `FAILED` = set of failed plan IDs
-- `READY_QUEUE` = initial `ready` set from DAG
-- `MAX_CONCURRENT` = read from config parallelization.max_concurrent_agents (default: 6)
-
-**Executor prompt (shared by both Task and cs-spawn agents):**
+**Executor prompt (shared by Task and cs-spawn):**
 
 ```
 <objective>
@@ -107,10 +120,10 @@ Commit each task atomically. Create SUMMARY.md. Update STATE.md and ROADMAP.md.
 </objective>
 
 <execution_context>
-@./.claude/get-shit-done/workflows/execute-plan.md
-@./.claude/get-shit-done/templates/summary.md
-@./.claude/get-shit-done/references/checkpoints.md
-@./.claude/get-shit-done/references/tdd.md
+@$HOME/.claude/get-shit-done/workflows/execute-plan.md
+@$HOME/.claude/get-shit-done/templates/summary.md
+@$HOME/.claude/get-shit-done/references/checkpoints.md
+@$HOME/.claude/get-shit-done/references/tdd.md
 </execution_context>
 
 <files_to_read>
@@ -119,7 +132,7 @@ Read these files at execution start using the Read tool:
 - .planning/STATE.md (State)
 - .planning/config.json (Config, if exists)
 - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
-- .agents/skills/ (Project skills, if exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
+- .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
 </files_to_read>
 
 <success_criteria>
@@ -134,90 +147,121 @@ Read these files at execution start using the Read tool:
 **Loop:**
 
 ```
-WHILE READY_QUEUE is not empty OR ACTIVE_AGENTS is not empty:
+WHILE READY is not empty OR ACTIVE is not empty:
 
-  1. FILL SLOTS — While ACTIVE_AGENTS.size < MAX_CONCURRENT AND READY_QUEUE is not empty:
-     - Pick next plan from READY_QUEUE
-     - Check routing recommendation for this plan
+  1. FILL SLOTS — While ACTIVE.size < MAX_CONCURRENT AND READY is not empty:
+     plan = READY.next()
+     routing = ALL_PLANS[plan].executor
 
      Describe what's being built (BEFORE spawning):
      Read plan's <objective>. Display:
      ---
      **{Plan ID}: {Plan Name}**
      {2-3 sentences: what this builds, technical approach, why it matters}
-     Spawning via {executor type}...
+     Spawning via {routing}...
      ---
 
-     IF executor = "cs-spawn":
-       - Run: cs-spawn.sh --name "gsd-{PHASE}-{PLAN}" --prompt "<executor prompt>" --dir {PROJECT_PATH} --autoyes
-       - Add to ACTIVE_AGENTS as {type: 'cs-spawn', status: 'running'}
+     - Bad: "Executing terrain generation plan"
+     - Good: "Procedural terrain generator using Perlin noise — creates height maps, biome zones, and collision meshes. Required before vehicle physics can interact with ground."
 
-     IF executor = "task":
-       - Spawn: Task(subagent_type="gsd-executor", model="{executor_model}", prompt="<executor prompt>")
-       - Add to ACTIVE_AGENTS as {type: 'task', status: 'running'}
+     IF routing == "cs-spawn":
+       Spawn via Claude Squad:
+       ```bash
+       cs spawn --name "gsd-${PHASE_NUMBER}-${PLAN_ID}" \
+         --prompt "<executor_prompt>" \
+         --dir "$(pwd)"
+       ```
+       Add to ACTIVE as {type: 'cs-spawn', status: 'running'}
+
+     IF routing == "task":
+       Spawn via Task:
+       ```
+       Task(
+         subagent_type="gsd-executor",
+         model="{executor_model}",
+         prompt="<executor_prompt>"
+       )
+       ```
+       Add to ACTIVE as {type: 'task', status: 'running'}
 
      NOTE: Task() agents in the same fill cycle are spawned as parallel Task() calls in a single message.
      cs-spawn agents are spawned via sequential Bash calls (they return immediately).
 
-  2. WAIT FOR ANY COMPLETION:
+  2. WAIT FOR COMPLETION:
 
      For Task() agents: they block until completion (Claude Code handles this natively).
 
      For cs-spawn agents: poll for SUMMARY.md existence:
-       WORKTREE="~/.claude-squad/worktrees/gsd-{PHASE}-{PLAN}"
-       Check: does {WORKTREE}/{PHASE_DIR}/{PLAN}-SUMMARY.md exist?
-       Poll interval: 5 seconds
-       Timeout: 30 minutes
+       ```bash
+       # Find worktree path
+       CS_INFO=$(cs list --json 2>/dev/null)
+       WORKTREE=$(printf '%s\n' "$CS_INFO" | jq -r '.[] | select(.name=="gsd-'${PHASE_NUMBER}'-'${PLAN_ID}'") | .worktree')
+       # Check completion
+       test -f "${WORKTREE}/${PHASE_DIR}/${PLAN_ID}-SUMMARY.md"
+       ```
+       Poll interval: 5 seconds. Timeout: 30 minutes.
 
      When mixing both types: Task() agents complete first (blocking), then poll cs-spawn agents.
 
   3. ON PLAN COMPLETION (planId):
-     a. Run spot-check:
-        - SUMMARY.md exists?
-        - git log --grep="{PHASE}-{PLAN}" returns commits?
+
+     a. Spot-check:
+        - SUMMARY.md exists in plan directory?
+        - `git log --oneline --all --grep="{phase}-{plan}"` returns >= 1 commit?
         - No "## Self-Check: FAILED" marker?
 
-     b. Handle classifyHandoffIfNeeded false-failure:
-        If agent reports failure with "classifyHandoffIfNeeded" error → run spot-checks anyway
-        If spot-checks PASS → treat as successful
+     b. classifyHandoffIfNeeded false-failure workaround:
+        If agent reports failure with "classifyHandoffIfNeeded" error → run spot-checks anyway.
+        If spot-checks PASS → treat as successful.
 
-     c. IF cs-spawn agent: MERGE
-        - git merge --no-ff agent/gsd-{PHASE}-{PLAN}
-        - IF conflict → add to FAILED, present conflict to user, ask: "Resolve manually?" or "Skip this plan?"
-        - IF success → cs-spawn.sh --kill "gsd-{PHASE}-{PLAN}"
+     c. IF cs-spawn agent: MERGE and CLEANUP
+        ```bash
+        git merge --no-ff "gsd-${PHASE_NUMBER}-${PLAN_ID}"
+        ```
+        IF merge conflict → present conflict to user via AskUserQuestion:
+          - "Resolve manually and continue"
+          - "Skip this plan"
+          - "Stop execution"
+        IF merge success:
+        ```bash
+        cs kill "gsd-${PHASE_NUMBER}-${PLAN_ID}"
+        ```
 
      d. Report completion:
         ---
-        **{Plan ID}: {Plan Name}** — Complete
+        **{Plan ID}: {Plan Name}** — Complete {via Task/cs-spawn}
         {What was built — from SUMMARY.md}
         {Notable deviations, if any}
         {Newly unblocked plans, if any}
         ---
 
+        - Bad: "Plan complete. Proceeding."
+        - Good: "Terrain system complete — 3 biome types, height-based texturing, physics collision meshes. Vehicle physics (plans 01-03, 01-04) now unblocked."
+
      e. IF spot-check PASS:
-        - Add planId to COMPLETED
-        - Recalculate ready plans:
-          Run: gsd-tools.cjs phase-plan-dag {PHASE_NUMBER} --raw
-          New ready plans (not in COMPLETED, not in ACTIVE_AGENTS, not in FAILED) → add to READY_QUEUE
+        Add planId to COMPLETED.
+        Check ALL_PLANS for plans whose depends_on are now fully in COMPLETED.
+        Add newly unblocked plans to READY (regardless of wave number — eager advancement).
 
      f. IF spot-check FAIL:
-        - Add planId to FAILED
-        - Check if any blocked plans ONLY depend on this failed plan → mark those as blocked-by-failure
-        - Ask user: "Plan {planId} failed. Retry? / Skip and continue? / Stop execution?"
-        - "Retry" → add back to READY_QUEUE
-        - "Skip" → continue, dependent plans may fail
-        - "Stop" → exit loop
+        Add planId to FAILED.
+        Mark plans that ONLY depend on this failed plan as blocked-by-failure.
+        Ask user via AskUserQuestion:
+          - "Retry this plan"
+          - "Skip and continue"
+          - "Stop execution"
+        Retry → add back to READY.
+        Skip → continue loop.
+        Stop → exit loop.
 
-  4. CHECK TERMINATION:
-     - All plans in COMPLETED or FAILED → exit loop
-     - READY_QUEUE empty AND ACTIVE_AGENTS empty AND blocked plans remain → deadlock
-       → Report: "Deadlock: plans {X} blocked by failed plans {Y}"
-       → Ask user what to do
+  4. TERMINATION:
+     All plans in COMPLETED or FAILED → exit loop.
+     READY empty AND ACTIVE empty AND blocked plans remain → deadlock:
+       Report: "Deadlock: plans {X} blocked by failed plans {Y}"
+       Ask user what to do.
 ```
 
-**PARALLELIZATION=false override:** If config parallelization is false, set MAX_CONCURRENT=1. This ensures fully sequential execution (backward compatible).
-
-**Checkpoint plans (autonomous=false):** Handled the same as before — when a checkpoint agent returns structured state, present to user and spawn fresh continuation agent. See `<checkpoint_handling>`.
+**Checkpoint plans (autonomous=false):** Handled via `<checkpoint_handling>` step (unchanged). When a checkpoint agent returns structured state, present to user and spawn fresh continuation agent.
 
 </step>
 
@@ -226,12 +270,13 @@ Plans with `autonomous: false` require user interaction.
 
 **Auto-mode checkpoint handling:**
 
-Read auto-advance config:
+Read auto-advance config (chain flag + user preference):
 ```bash
-AUTO_CFG=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs config-get workflow.auto_advance 2>/dev/null || echo "false")
+AUTO_CHAIN=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
+AUTO_CFG=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
 ```
 
-When executor returns a checkpoint AND `AUTO_CFG` is `"true"`:
+When executor returns a checkpoint AND (`AUTO_CHAIN` is `"true"` OR `AUTO_CFG` is `"true"`):
 - **human-verify** → Auto-spawn continuation agent with `{user_response}` = `"approved"`. Log `⚡ Auto-approved checkpoint`.
 - **decision** → Auto-spawn continuation agent with `{user_response}` = first option from checkpoint details. Log `⚡ Auto-selected: [option]`.
 - **human-action** → Present to user (existing behavior below). Auth gates cannot be automated.
@@ -303,7 +348,7 @@ fi
 
 **2. Find parent UAT file:**
 ```bash
-PARENT_INFO=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs find-phase "${PARENT_PHASE}" --raw)
+PARENT_INFO=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" find-phase "${PARENT_PHASE}" --raw)
 # Extract directory from PARENT_INFO JSON, then find UAT file in that directory
 ```
 
@@ -334,7 +379,7 @@ mv .planning/debug/{slug}.md .planning/debug/resolved/
 
 **6. Commit updated artifacts:**
 ```bash
-node ./.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(phase-${PARENT_PHASE}): resolve UAT gaps and debug sessions after ${PHASE_NUMBER} gap closure" --files .planning/phases/*${PARENT_PHASE}*/*-UAT.md .planning/debug/resolved/*.md
+node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(phase-${PARENT_PHASE}): resolve UAT gaps and debug sessions after ${PHASE_NUMBER} gap closure" --files .planning/phases/*${PARENT_PHASE}*/*-UAT.md .planning/debug/resolved/*.md
 ```
 </step>
 
@@ -405,7 +450,7 @@ Gap closure cycle: `/gsd:plan-phase {X} --gaps` reads VERIFICATION.md → create
 **Mark phase complete and update all tracking files:**
 
 ```bash
-COMPLETION=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs phase complete "${PHASE_NUMBER}")
+COMPLETION=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" phase complete "${PHASE_NUMBER}")
 ```
 
 The CLI handles:
@@ -418,7 +463,7 @@ The CLI handles:
 Extract from result: `next_phase`, `next_phase_name`, `is_last_phase`.
 
 ```bash
-node ./.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md {phase_dir}/*-VERIFICATION.md
+node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md {phase_dir}/*-VERIFICATION.md
 ```
 </step>
 
@@ -452,12 +497,13 @@ STOP. Do not proceed to auto-advance or transition.
 **Auto-advance detection:**
 
 1. Parse `--auto` flag from $ARGUMENTS
-2. Read `workflow.auto_advance` from config:
+2. Read both the chain flag and user preference (chain flag already synced in init step):
    ```bash
-   AUTO_CFG=$(node ./.claude/get-shit-done/bin/gsd-tools.cjs config-get workflow.auto_advance 2>/dev/null || echo "false")
+   AUTO_CHAIN=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
+   AUTO_CFG=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
    ```
 
-**If `--auto` flag present OR `AUTO_CFG` is true (AND verification passed with no gaps):**
+**If `--auto` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true (AND verification passed with no gaps):**
 
 ```
 ╔══════════════════════════════════════════╗
@@ -468,7 +514,7 @@ STOP. Do not proceed to auto-advance or transition.
 
 Execute the transition workflow inline (do NOT use Task — orchestrator context is ~10-15%, transition needs phase completion data already in context):
 
-Read and follow `./.claude/get-shit-done/workflows/transition.md`, passing through the `--auto` flag so it propagates to the next phase invocation.
+Read and follow `$HOME/.claude/get-shit-done/workflows/transition.md`, passing through the `--auto` flag so it propagates to the next phase invocation.
 
 **If neither `--auto` nor `AUTO_CFG` is true:**
 
@@ -478,14 +524,18 @@ The workflow ends. The user runs `/gsd:progress` or invokes the transition workf
 </process>
 
 <context_efficiency>
-Orchestrator: ~10-15% context. Subagents: fresh 200k each. Task() agents block natively. cs-spawn agents polled via SUMMARY.md existence (5s interval). No context bleed.
+Orchestrator: ~10-15% context. Subagents: fresh 200k each. Task() agents block natively. cs-spawn agents polled via SUMMARY.md existence (5s interval). No context bleed. Eager advancement minimizes idle wait between waves.
 </context_efficiency>
 
 <failure_handling>
 - **classifyHandoffIfNeeded false failure:** Agent reports "failed" but error is `classifyHandoffIfNeeded is not defined` → Claude Code bug, not GSD. Spot-check (SUMMARY exists, commits present) → if pass, treat as success
 - **Agent fails mid-plan:** Missing SUMMARY.md → report, ask user how to proceed
-- **Dependency chain breaks:** Wave 1 fails → Wave 2 dependents likely fail → user chooses attempt or skip
-- **All agents in wave fail:** Systemic issue → stop, report for investigation
+- **cs-spawn merge conflict:** Present conflict details to user, offer manual resolve / skip / stop
+- **cs-spawn not found:** Fallback all plans to Task() with warning at start
+- **cs-spawn timeout (30min):** Report plan as potentially hung, offer: wait longer / kill and retry / skip
+- **Dependency chain breaks:** Failed plan → dependent plans blocked → user chooses attempt or skip
+- **All agents fail:** Systemic issue → stop, report for investigation
+- **Deadlock detected:** READY empty, ACTIVE empty, blocked plans remain → report blocked plan graph, ask user
 - **Checkpoint unresolvable:** "Skip this plan?" or "Abort phase execution?" → record partial progress in STATE.md
 </failure_handling>
 
