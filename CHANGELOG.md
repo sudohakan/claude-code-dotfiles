@@ -5,6 +5,12 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.2.1] - 2026-03-06
+
+### Changed
+- **Auto-format hook disabled by default** — `post-autoformat.js` removed from `settings.json` PostToolUse hooks. Formatting now requires explicit user request or user approval when Claude suggests it. Hook file remains available for manual use.
+- Auto-format rule added to `CLAUDE.md` global instructions
+
 ## [1.2.0] - 2026-03-05
 
 ### Added

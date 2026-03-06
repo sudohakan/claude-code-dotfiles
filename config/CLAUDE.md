@@ -6,6 +6,11 @@ Respond in the same language as the user.
 ## Git Rule
 **Git commands (commit, push, pull, checkout, branch, merge, rebase, reset, stash, etc.) are ONLY executed when the user explicitly requests them.** This includes automatic commits, auto-push, and GSD's atomic commit rule — do not run any git command without user request.
 
+## Auto-Format Rule
+Formatting is only performed when:
+1. **User explicitly requests it**
+2. **Claude deems it necessary** — asks the user first, runs `npx prettier --write "<file>"` only upon approval
+
 ## Dotfiles Versioning
 When `claude-code-dotfiles` (`C:\dev\claude-code-dotfiles`) is updated:
 1. Update the `VERSION` file with the new version (semver)

@@ -31,15 +31,6 @@
         ]
       },
       {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/post-autoformat.js\""
-          }
-        ]
-      },
-      {
         "hooks": [
           {
             "type": "command",
