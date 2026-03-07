@@ -101,7 +101,7 @@ config/
 │   ├── dotfiles-check-update.js # Dotfiles update check
 │   └── post-autoformat.js       # Auto format (disabled by default)
 ├── docs/                     # 5 reference documents
-├── commands/                 # 9 + 31 slash commands
+├── commands/                 # 9 + 33 slash commands
 │   ├── init-hakan.md            # /init-hakan — project scaffolding
 │   ├── browser.md               # /browser — Playwright MCP browser launcher
 │   ├── commit.md                # /commit — conventional commit
@@ -111,7 +111,7 @@ config/
 │   ├── release.md               # /release — version bump, changelog, tag
 │   ├── run-ci.md                # /run-ci — auto-detect and run CI
 │   ├── ship.md                  # /ship — end-to-end git workflow
-│   └── gsd/                     # /gsd:* (31 commands)
+│   └── gsd/                     # /gsd:* (33 commands)
 ├── agents/                   # 11 GSD agent definitions
 ├── get-shit-done/            # GSD core engine
 ├── skills/                   # 3 skill sets

@@ -5,6 +5,19 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.8.0] - 2026-03-07
+
+### Added
+- **`/gsd:auto-phase`** — Automated plan + execute + verify cycle for one or more phases
+  - Single phase: `/gsd:auto-phase 4` runs full cycle (plan, execute, verify)
+  - Range: `/gsd:auto-phase 4-9` runs the cycle for each phase sequentially
+  - Auto gap closure: if verify finds issues, runs `--gaps` plan + `--gaps-only` execute (max 2 iterations)
+  - Skips already-completed phases automatically
+  - Final summary table with per-phase status
+- **`/gsd:run-phase`** — Plan + execute a phase in one step (no verify)
+  - `/gsd:run-phase 4` is equivalent to `/gsd:plan-phase 4` + `/gsd:execute-phase 4`
+  - Skips planning if PLAN.md already exists, skips execution if SUMMARY.md exists
+
 ## [1.7.1] - 2026-03-07
 
 ### Removed
