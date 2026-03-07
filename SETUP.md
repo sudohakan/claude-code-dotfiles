@@ -9,28 +9,26 @@
 
 ### PowerShell (Windows):
 ```powershell
-PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-portable\install.ps1"
+PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps1"
 ```
 
 ### Git Bash:
 ```bash
-bash /c/dev/claude-code-portable/install.sh
+bash /c/dev/claude-code-dotfiles/install.sh
 ```
 
-### What the Script Does (10 Steps):
+### What the Script Does (8 Steps):
 
 | Step | Action | Details |
 |------|--------|---------|
 | 1 | Check package manager | Is winget available? |
-| 2 | **Install dependencies** | Git, Node.js, jq — auto-installs via winget if missing |
+| 2 | **Install dependencies** | Git, Node.js, Python, jq — auto-installs via winget if missing |
 | 3 | **Install Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` — auto if missing |
 | 4 | Back up existing config | `.claude-backup-YYYYMMDD-HHMMSS` |
-| 5 | Create directory structure | `.claude/` subdirectories |
-| 6 | Copy configuration | Hooks, docs, commands, agents, GSD, skills |
-| 7 | Fix paths | Auto-updates if username differs |
-| 8 | Transfer memory files | Per-project memory |
-| 9 | **Install HakanMCP** | `git clone` + `npm install` + `npm run build` |
-| 10 | **Install plugins** | 7 official + 6 Trail of Bits = 13 plugins |
+| 5 | Copy configuration | Hooks, docs, commands, agents, GSD, skills |
+| 6 | Fix paths | Auto-updates if username differs |
+| 7 | **Install HakanMCP** | `git clone` + `npm install` + `npm run build` |
+| 8 | **Install plugins** | 7 official + 6 Trail of Bits = 13 plugins |
 
 **After installation, just run `claude login` and you're ready.**
 
@@ -62,6 +60,7 @@ The script auto-installs missing software (via winget):
 | Software | Why Needed | Automatic? |
 |----------|-----------|------------|
 | **Node.js v18+** | Hooks, Claude CLI, HakanMCP | Yes (winget) |
+| **Python 3.8+** | Dippy hook | Yes (winget) |
 | **Git** | HakanMCP clone, version control | Yes (winget) |
 | **jq** | Required by some hooks | Yes (winget) |
 | **Claude Code CLI** | Main tool | Yes (npm) |
@@ -86,22 +85,29 @@ The script auto-installs missing software (via winget):
 
 ```
 config/
-├── CLAUDE.md                 # Global instructions (8.5KB)
+├── CLAUDE.md                 # Global instructions
 ├── settings.json             # Hooks, plugins, MCP, model preferences
 ├── settings.local.json       # Local permissions
 ├── package.json              # CommonJS setting
 ├── gsd-file-manifest.json    # GSD file manifest
-├── hooks/                    # 7 hook scripts
-│   ├── pretooluse-safety.js     # Git safety hook
+├── hooks/                    # 6 hooks
+│   ├── dippy/                   # Smart bash auto-approve (Python)
+│   ├── pretooluse-safety.js     # Credential + destructive + unicode blocker
 │   ├── gsd-context-monitor.js   # Context budget monitoring
 │   ├── gsd-statusline.js        # Status line
 │   ├── gsd-check-update.js      # GSD update check
-│   ├── post-autoformat.js       # Auto format
-│   ├── post-notify.js           # Windows toast notification
-│   └── post-observability.js    # JSONL log
+│   └── post-autoformat.js       # Auto format (disabled by default)
 ├── docs/                     # 5 reference documents
-├── commands/                 # 1 + 31 slash commands
-│   ├── init-hakan.md            # /init-hakan
+├── commands/                 # 9 + 31 slash commands
+│   ├── init-hakan.md            # /init-hakan — project scaffolding
+│   ├── browser.md               # /browser — Playwright MCP browser launcher
+│   ├── commit.md                # /commit — conventional commit
+│   ├── create-pr.md             # /create-pr — branch, commit, push, PR
+│   ├── fix-github-issue.md      # /fix-github-issue — fetch and fix issue
+│   ├── fix-pr.md                # /fix-pr — fix PR review comments
+│   ├── release.md               # /release — version bump, changelog, tag
+│   ├── run-ci.md                # /run-ci — auto-detect and run CI
+│   ├── ship.md                  # /ship — end-to-end git workflow
 │   └── gsd/                     # /gsd:* (31 commands)
 ├── agents/                   # 11 GSD agent definitions
 ├── get-shit-done/            # GSD core engine
@@ -138,14 +144,15 @@ home-config/
 ```powershell
 winget install Git.Git
 winget install OpenJS.NodeJS.LTS
+winget install Python.Python.3.12
 winget install jqlang.jq
 npm install -g @anthropic-ai/claude-code
 ```
 
 ### Step 2: Copy Files
 ```powershell
-xcopy /E /Y "C:\dev\claude-code-portable\config\*" "%USERPROFILE%\.claude\"
-copy "C:\dev\claude-code-portable\home-config\.claude.json" "%USERPROFILE%\.claude.json"
+xcopy /E /Y "C:\dev\claude-code-dotfiles\config\*" "%USERPROFILE%\.claude\"
+copy "C:\dev\claude-code-dotfiles\home-config\.claude.json" "%USERPROFILE%\.claude.json"
 ```
 
 ### Step 3: Fix Paths
@@ -175,7 +182,7 @@ cd C:\dev\HakanMCP && npm install && npm run build
 Post-installation checks:
 ```bash
 claude --version                              # Is CLI working?
-node ~/.claude/hooks/pretooluse-safety.js --test  # Are hooks active?
+node ~/.claude/hooks/pretooluse-safety.js --test  # Are hooks active? (19/19)
 claude plugins list                           # Are plugins installed?
 # Inside Claude: /gsd:help                    # Is GSD working?
 ```
@@ -200,10 +207,10 @@ claude plugins list                           # Are plugins installed?
 
 ```powershell
 # On this machine — create zip
-Compress-Archive -Path "C:\dev\claude-code-portable\*" -DestinationPath "C:\dev\claude-code-portable.zip"
+Compress-Archive -Path "C:\dev\claude-code-dotfiles\*" -DestinationPath "C:\dev\claude-code-dotfiles.zip"
 
 # On target machine — extract and install
-Expand-Archive -Path "claude-code-portable.zip" -DestinationPath "C:\dev\claude-code-portable"
-PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-portable\install.ps1"
+Expand-Archive -Path "claude-code-dotfiles.zip" -DestinationPath "C:\dev\claude-code-dotfiles"
+PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps1"
 # Then: claude login
 ```

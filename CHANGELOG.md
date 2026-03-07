@@ -5,6 +5,23 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.6.0] - 2026-03-07
+
+### Added
+- **Project targeting for all git workflow commands** — `/ship`, `/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci` now support targeting any project directory
+  - `--path=<dir>` flag for explicit directory targeting
+  - Fuzzy project name matching: `/ship paratic` finds matching projects from registry
+  - Auto-detect git root from cwd (skips home directory)
+  - Project picker with recent projects, scan root discovery, and manual path entry
+- **`project-registry.json`** — configurable project discovery: `scan_roots` (directories to scan for repos), `extra_projects` (manually added paths), `recent` (auto-updated usage history), `max_scan_depth`
+- **Common "Step 0: Resolve Target Project"** block across all 7 git workflow commands (DRY)
+
+### Fixed
+- **README.md** — alt text badge version mismatch (`1.4.0` → `1.6.0`), added Git Workflow Commands row (7 commands), added 7 command files to project structure tree
+- **CLAUDE.md (project-level)** — updated commands list (+7 git workflow), hooks count (`7` → `6`), test count (`9/9` → `19/19`)
+- **SETUP.md** — replaced all `claude-code-portable` references with `claude-code-dotfiles`, removed deleted hooks (post-notify, post-observability), added Dippy, updated command counts and hook list, added Python dependency
+- **SECURITY.md** — removed deleted hooks (post-notify, post-observability), added Dippy hook, updated hook table to 6
+
 ## [1.5.1] - 2026-03-07
 
 ### Added

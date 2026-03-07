@@ -56,13 +56,12 @@ All hooks run within the Claude Code CLI hook system:
 
 | Hook | Purpose | Risk Level |
 |------|---------|------------|
-| `pretooluse-safety.js` | **Blocks** dangerous git/shell commands | Protective |
+| `dippy/` | **Auto-approves** safe bash commands, flags risky ones | Protective |
+| `pretooluse-safety.js` | **Blocks** dangerous commands, credential leaks, unicode injection | Protective |
 | `gsd-context-monitor.js` | Monitors context window usage | Read-only |
 | `gsd-statusline.js` | Displays status information | Read-only |
 | `gsd-check-update.js` | Checks GSD version on startup | Read-only |
-| `post-autoformat.js` | Auto-formats edited files | File write (edited files only) |
-| `post-notify.js` | Windows toast notifications | OS notification API |
-| `post-observability.js` | Logs tool usage to JSONL | File write (log file only) |
+| `post-autoformat.js` | Auto-formats edited files (disabled by default) | File write (edited files only) |
 
 ## Reporting a Vulnerability
 

@@ -4,7 +4,7 @@
     My personal Claude Code CLI configuration — portable, automated, production-ready.
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/version-1.5.1-blue?style=flat-square" alt="Version: 1.4.0">
+    <img src="https://img.shields.io/badge/version-1.6.0-blue?style=flat-square" alt="Version: 1.6.0">
     <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows" alt="Platform: Windows">
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
@@ -32,6 +32,7 @@ claude login
 | **Global Instructions** | 1 | `CLAUDE.md` — GSD workflow, multi-agent protocol, context engineering, session continuity |
 | **Hooks** | 6 | Dippy (bash auto-approve), pretooluse-safety (credential/unicode/destructive blocker), GSD context monitor, statusline, check-update, auto-format |
 | **GSD Commands** | 31 | Full lifecycle: new-project, plan-phase, execute-phase, debug, quick, verify-work, and 25 more |
+| **Git Workflow Commands** | 7 | `/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship` |
 | **Utility Commands** | 2 | `/init-hakan` (project scaffolding), `/browser` (Playwright MCP browser launcher) |
 | **Agents** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
 | **Reference Docs** | 5 | Decision matrix, multi-agent protocol, tools reference, UI/UX design system, review/Ralph |
@@ -80,6 +81,7 @@ claude-code-dotfiles/
     ├── settings.local.json                      # Local overrides (gitignored)
     ├── package.json                             # GSD npm dependencies
     ├── gsd-file-manifest.json                   # GSD file tracking manifest
+    ├── project-registry.json                    # Project discovery config (scan roots, recent)
     ├── agents/                                  # 11 GSD agent definitions
     │   ├── gsd-planner.md                       # Phase planning and task breakdown
     │   ├── gsd-executor.md                      # Code implementation
@@ -95,6 +97,13 @@ claude-code-dotfiles/
     ├── commands/                                # Slash commands
     │   ├── init-hakan.md                        # /init-hakan — project scaffolding
     │   ├── browser.md                           # /browser — Playwright MCP browser launcher
+    │   ├── commit.md                            # /commit — conventional commit with emoji
+    │   ├── create-pr.md                         # /create-pr — branch, commit, push, PR
+    │   ├── fix-github-issue.md                  # /fix-github-issue — fetch and fix issue
+    │   ├── fix-pr.md                            # /fix-pr — fix PR review comments
+    │   ├── release.md                           # /release — version bump, changelog, tag
+    │   ├── run-ci.md                            # /run-ci — auto-detect and run CI checks
+    │   ├── ship.md                              # /ship — end-to-end git workflow
     │   └── gsd/                                 # 31 GSD workflow commands
     │       ├── new-project.md                   # Initialize project (ROADMAP + STATE)
     │       ├── plan-phase.md                    # Create phase plan (PLAN.md)
