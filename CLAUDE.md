@@ -6,7 +6,7 @@ Portable distribution package for Claude Code CLI configuration. Not a standalon
 ## Tech Stack
 - **Installer:** PowerShell (Windows), Bash (Linux/macOS)
 - **Hooks:** Node.js (JavaScript, .js)
-- **Commands:** Markdown (.md) — `/init-hakan`, `/browser`, 31 GSD commands
+- **Commands:** Markdown (.md) — `/init-hakan`, `/browser`, 7 git workflow commands (`/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship`), 31 GSD commands
 - **Agents:** Markdown (.md)
 - **GSD Runtime:** Node.js (CommonJS, .cjs) + npm
 - **Skills:** Python + Markdown
@@ -18,7 +18,7 @@ Portable distribution package for Claude Code CLI configuration. Not a standalon
 config/           → Copied to ~/.claude/ (install.ps1)
   CLAUDE.md       → Global Claude Code instructions
   settings.json   → Hook, MCP, permission settings
-  hooks/          → 7 hooks (safety, context monitor, statusline, etc.)
+  hooks/          → 6 hooks (Dippy, safety, context monitor, statusline, check-update, auto-format)
   commands/       → Slash commands (init-hakan, browser, gsd/*)
   agents/         → 11 agent definitions
   skills/         → 3 skill sets (cc-devops, trailofbits, ui-ux-pro-max)
@@ -54,6 +54,6 @@ This repo is the source copy of the active configuration under `~/.claude/`.
 
 ## Build & Test
 - **Build:** None (configuration package, no compilation needed)
-- **Test:** `node config/hooks/pretooluse-safety.js --test` (hook self-test, 9/9)
+- **Test:** `node config/hooks/pretooluse-safety.js --test` (hook self-test, 19/19)
 - **Install:** `PowerShell -ExecutionPolicy Bypass -File install.ps1`
 - **Lint:** None (Markdown + JSON, editor formatting is sufficient)

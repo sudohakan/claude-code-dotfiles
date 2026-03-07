@@ -1,18 +1,34 @@
-# Ship
+# Ship — End-to-End Git Workflow
 
-End-to-end professional git workflow: branch, CI, commit, version bump, push, PR.
+Branch, CI, commit, version bump, push, PR — all in one command.
 
 ## Usage
-`/ship` — full flow
+`/ship` — full flow (uses cwd or project picker)
+`/ship <project-name>` — fuzzy match project from registry
+`/ship --path=<dir>` — target specific directory
 `/ship --release` — includes version bump + changelog + tag
 `/ship --no-ci` — skip CI checks
 `/ship --no-pr` — push only, no PR
 `/ship --draft` — create draft PR
 `/ship --base=<branch>` — target branch (default: main)
 
-Flags are composable: `/ship --release --draft`
+Flags are composable: `/ship my-project --release --draft`
 
 ## Behavior
+
+### Step 0: Resolve Target Project
+- If `--path=<dir>` provided, verify it's a git repo and use it
+- If a project name/path argument is given, fuzzy-match against `~/.claude/project-registry.json` (case-insensitive partial match on directory name and path across `recent`, scanned `scan_roots`, and `extra_projects`)
+- If multiple matches found, show numbered list and ask user to pick
+- If single match found, confirm with user
+- If cwd is a git repo and NOT the user's home directory, use cwd
+- Otherwise, show project picker:
+  1. Recent projects from registry (sorted by `last_used`)
+  2. Projects found by scanning `scan_roots` directories for `.git` folders (up to `max_scan_depth` levels deep)
+  3. Option to enter a new path or add a new scan root
+- If `~/.claude/project-registry.json` has empty `scan_roots`, ask user to add at least one root directory
+- Once resolved, all subsequent git commands operate in the target directory (use `git -C <path>` or `cd` to target)
+- Update `recent` array in registry with `{"path": "<resolved>", "last_used": "<today>"}`
 
 ### Step 1: Analyze
 - Run `git status` and `git diff` to understand all changes
