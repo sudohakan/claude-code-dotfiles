@@ -57,10 +57,16 @@ Flags are composable: `/ship my-project --release --draft`
 
 ### Step 5: Release (only with --release)
 - Determine version increment (patch/minor/major) based on change scope
-- Update VERSION file
-- Update CHANGELOG.md (Keep a Changelog format)
-- Review README.md for necessary updates
-- Commit release files: `release: vX.Y.Z`
+- Update VERSION file (if exists)
+- Update CHANGELOG.md (Keep a Changelog format, if exists)
+- **Scan all root-level markdown files** (`*.md` in project root) for version references, badges, or content that may need updating based on the changes. Common examples:
+  - `README.md` — version badges, feature lists, component counts
+  - `SECURITY.md` — hook tables, component lists
+  - `SETUP.md` — installation steps, file trees
+  - Project-level `CLAUDE.md` — tech stack, directory structure
+  - Any other `.md` file that references versions, counts, or components
+- For each file with outdated content, update it
+- Commit all release files together: `release: vX.Y.Z`
 
 ### Step 6: Push
 - Push branch to remote with `-u` flag
