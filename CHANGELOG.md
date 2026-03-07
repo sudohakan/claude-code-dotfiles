@@ -5,6 +5,24 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.5.0] - 2026-03-07
+
+### Added
+- **6 new slash commands** for git workflow automation:
+  - `/commit` — Conventional commit with emoji, atomic splitting, diff analysis
+  - `/create-pr` — Branch creation, commit, push, and PR submission in one flow
+  - `/fix-github-issue` — Fetch issue, analyze, implement fix, commit with reference
+  - `/fix-pr` — Fetch unresolved PR review comments and fix them
+  - `/release` — Changelog update, version bump, README review, tag creation
+  - `/run-ci` — Auto-detect project type, run CI checks, iteratively fix errors
+- **Superpowers triggering table** — All 13 superpowers skills now have intent-based trigger rules in CLAUDE.md (previously only 5-6 were actively triggered)
+
+### Changed
+- **CLAUDE.md** — Added missing features back: subagent preference, CS triggers, session resume reminder, quality gate reinforcement, knowledge base project-specific context note
+- **CLAUDE.md** — All trigger conditions are now intent-based and language-independent (no hardcoded phrases)
+- **UI/UX trigger** — Changed from keyword-based to intent-based detection
+- **.gitignore** — Added 6 runtime directories (profiles/, statsig/, tasks/, telemetry/, gsd-local-patches/, config/hooks/dippy/)
+
 ## [1.4.0] - 2026-03-07
 
 ### Added
