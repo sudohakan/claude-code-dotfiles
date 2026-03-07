@@ -69,6 +69,12 @@ Flags are composable: `/ship my-project --release --draft`
 - Target --base branch (default: main)
 - Return PR URL
 
+### Step 8: Merge (skip with --no-pr or --draft)
+- After PR is created, merge it: `gh pr merge <url> --squash --delete-branch`
+- If merge fails (CI required, review required, conflict): inform user and provide the PR URL
+- After successful merge, switch local branch back to main/master and pull: `git checkout main && git pull`
+- If --release: verify the tag is on the merged commit
+
 ## Rules
 - Show progress at each step
 - Ask for confirmation on branch name and commit messages
