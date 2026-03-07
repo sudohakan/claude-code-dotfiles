@@ -185,7 +185,7 @@ A full project lifecycle management system with 31 commands covering:
 ### Safety Hooks
 
 - **Smart auto-approve** — Dippy automatically approves safe bash commands (`ls`, `git status`, `npm test`, etc.) while flagging dangerous ones. 14,000+ test suite with custom bash parser
-- **Destructive command protection** — `pretooluse-safety` blocks force pushes, hard resets, recursive deletes, DROP TABLE, etc. Session-based allowlist remembers approved commands (12h TTL)
+- **Destructive command protection** — `pretooluse-safety` blocks force pushes, hard resets, recursive deletes, DROP TABLE, credential leaks (AWS/GitHub/OpenAI keys), and unicode injection. Optional exfiltration detection (disabled by default). Session-based allowlist remembers approved commands (12h TTL)
 - **Context budget monitoring** — Automatic warnings at 45%, 55%, 65%, 75%, 85%, 90% context usage
 
 ### Multi-Agent Protocol

@@ -13,6 +13,11 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - **gsd-context-monitor.js** — All Turkish strings translated to English
 - **CLAUDE.md** — Updated toolset reference: replaced ccusage with Dippy
 - **MEMORY.md** — Updated language preference to auto-detect
+- **pretooluse-safety.js** — Upgraded to v1.2.0 with three new security layers:
+  - Credential leak detection (10 patterns: AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT)
+  - Data exfiltration detection (8 patterns, disabled by default via `ENABLE_EXFILTRATION_CHECK` flag)
+  - Unicode injection detection (zero-width chars, bidi overrides, Cyrillic/Latin homoglif)
+  - Extended self-test suite (19 tests covering all categories)
 
 ## [1.3.0] - 2026-03-07
 
