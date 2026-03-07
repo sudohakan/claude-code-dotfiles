@@ -61,6 +61,7 @@ All hooks run within the Claude Code CLI hook system:
 | `gsd-context-monitor.js` | Monitors context window usage | Read-only |
 | `gsd-statusline.js` | Displays status information | Read-only |
 | `gsd-check-update.js` | Checks GSD version on startup | Read-only |
+| `dotfiles-check-update.js` | Checks dotfiles version on startup (fetches GitHub) | Read-only (outbound HTTPS) |
 | `post-autoformat.js` | Auto-formats edited files (disabled by default) | File write (edited files only) |
 
 ## Reporting a Vulnerability

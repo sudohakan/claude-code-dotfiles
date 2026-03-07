@@ -5,6 +5,29 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.7.0] - 2026-03-07
+
+### Added
+- **Dotfiles auto-update system** — automatically checks GitHub for new versions on session start
+  - `dotfiles-check-update.js` — SessionStart hook fetches remote VERSION, compares with local
+  - `dotfiles-update.md` — `/dotfiles-update` slash command to pull latest and reinstall
+  - Statusline notification: `⬆ dotfiles 1.6.0→1.7.0 /dotfiles-update`
+  - `dotfiles-meta.json` created by install scripts (tracks version, repo path, install date)
+- **Ship command Step 8: Merge** — PR is now auto-merged with `--squash --delete-branch`, local main updated
+
+### Fixed
+- **install.ps1 / install.sh** — Commands copy now uses wildcard (`*.md`) instead of only `init-hakan.md`
+- **install.ps1 / install.sh** — Added `project-registry.json` copy (preserves existing)
+- **install.ps1 / install.sh** — Dippy installed via `git clone` instead of copying non-existent directory
+- **Ship command** — Added auto-detect for VERSION file to suggest `--release` flag
+
+### Changed
+- **commit.md** — Removed emoji from commit format, plain `type: description` only
+- **ship.md** — Removed emoji reference from Step 4
+- **browser.md** — Translated from Turkish to English
+- **init-hakan.md** — Translated from Turkish to English
+- Hooks count: 6 → 7, utility commands: 2 → 3, installation steps: 8 → 10
+
 ## [1.6.0] - 2026-03-07
 
 ### Added

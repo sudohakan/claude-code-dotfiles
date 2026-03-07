@@ -33,6 +33,10 @@ Flags are composable: `/ship my-project --release --draft`
 ### Step 1: Analyze
 - Run `git status` and `git diff` to understand all changes
 - Determine change scope (feature, fix, docs, refactor, chore)
+- **Version detection:** Check if project has `VERSION` file or `CHANGELOG.md`. If found and `--release` was NOT passed, warn user:
+  > "This project has versioning files (VERSION, CHANGELOG.md). Did you mean `/ship --release`?"
+  - If user confirms → enable release mode
+  - If user declines → continue without release
 - Show summary to user
 
 ### Step 2: Branch
