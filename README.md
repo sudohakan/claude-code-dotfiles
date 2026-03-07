@@ -231,14 +231,17 @@ Token efficiency rules enforced across all workflows:
 |-------|----------|
 | `claude: command not found` | `npm install -g @anthropic-ai/claude-code` or restart terminal |
 | Hooks not running | Check `~/.claude/settings.json` paths. Run `node ~/.claude/hooks/pretooluse-safety.js --test` |
+| Dippy not auto-approving | Ensure Python 3.8+ is installed: `python --version` |
+| Safety hook false positive | `node ~/.claude/hooks/pretooluse-safety.js --approve "command"` |
 | GSD commands missing | Verify `~/.claude/commands/gsd/` exists with `.md` files |
-| Path errors | Re-run `install.ps1` — auto-fixes paths for your username |
-| Context monitor broken | Ensure `jq` is installed: `jq --version` |
+| GSD workflows failing | Ensure `jq` is installed: `jq --version` (used by GSD workflows) |
+| Path errors after install | Re-run `install.ps1` — auto-fixes paths for your username |
 | Plugin install fails | Run `claude plugins install "plugin-name"` manually |
 | `CLAUDE.md` not loading | Must be in `~/.claude/CLAUDE.md` (global) or project root (project-level) |
 | Session continuity missing | Run `/init-hakan` in project to create memory structure |
-| HakanMCP failed | Check `C:\dev\HakanMCP`. Re-run `install.ps1` or use `-SkipHakanMCP` |
-| Safety hook false positive | `node ~/.claude/hooks/pretooluse-safety.js --approve "command"` |
+| HakanMCP connection error | Check `C:\dev\HakanMCP`. Re-run `install.ps1` or use `-SkipHakanMCP` |
+| Dotfiles update not showing | Check `~/.claude/dotfiles-meta.json` exists. Re-run install script to create it |
+| `/dotfiles-update` fails | Verify repo path in `~/.claude/dotfiles-meta.json` is correct and accessible |
 
 ## Requirements
 
