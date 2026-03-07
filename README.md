@@ -70,71 +70,71 @@ The install script performs these steps automatically:
 
 ```
 claude-code-dotfiles/
-├── install.ps1              # Windows installer
-├── install.sh               # Linux/macOS installer
-├── CLAUDE.md                # Project-level instructions
-├── VERSION                  # Current version (semver)
-├── CHANGELOG.md             # Release history
-├── SECURITY.md              # Security policy
-├── SETUP.md                 # Detailed setup guide
-├── LICENSE                  # MIT license
-├── config/
-│   ├── CLAUDE.md            # Global instructions
-│   ├── settings.json        # Claude Code settings
-│   ├── settings.local.json  # Local overrides
-│   ├── package.json         # GSD npm package config
-│   ├── gsd-file-manifest.json
-│   ├── agents/              # 11 agent definitions
-│   │   ├── gsd-planner.md
-│   │   ├── gsd-executor.md
-│   │   ├── gsd-debugger.md
-│   │   ├── gsd-verifier.md
-│   │   ├── gsd-phase-researcher.md
-│   │   ├── gsd-project-researcher.md
-│   │   ├── gsd-plan-checker.md
-│   │   ├── gsd-integration-checker.md
-│   │   ├── gsd-codebase-mapper.md
-│   │   ├── gsd-roadmapper.md
-│   │   └── gsd-research-synthesizer.md
-│   ├── commands/
-│   │   ├── init-hakan.md    # Project initialization
-│   │   └── gsd/             # 31 GSD slash commands
-│   │       ├── new-project.md
-│   │       ├── plan-phase.md
-│   │       ├── execute-phase.md
-│   │       ├── debug.md
-│   │       ├── quick.md
-│   │       └── ... (26 more)
-│   ├── docs/                # 5 reference documents
-│   │   ├── decision-matrix.md
-│   │   ├── multi-agent.md
-│   │   ├── tools-reference.md
-│   │   ├── ui-ux.md
-│   │   └── review-ralph.md
-│   ├── hooks/               # 6 hooks
-│   │   ├── dippy/            # Smart bash auto-approve (git submodule)
-│   │   ├── pretooluse-safety.js
-│   │   ├── gsd-context-monitor.js
-│   │   ├── gsd-statusline.js
-│   │   ├── gsd-check-update.js
-│   │   └── post-autoformat.js
-│   ├── get-shit-done/       # GSD runtime
-│   │   ├── VERSION
-│   │   ├── bin/             # GSD binaries & libraries
-│   │   ├── references/      # Reference materials
-│   │   ├── templates/       # Project templates
-│   │   └── workflows/       # Workflow definitions
-│   ├── plugins/             # Plugin registry
-│   ├── skills/              # 3 skill sets
-│   │   ├── cc-devops-skills/
-│   │   ├── trailofbits-security/
-│   │   └── ui-ux-pro-max/
-│   └── projects/            # Per-project config & memory
-│       └── C--Users-Hakan/
-│           └── memory/
-├── home-config/
-│   └── .claude.json         # Home directory config
-└── README.md
+├── install.ps1                # Windows installer (PowerShell)
+├── install.sh                 # Linux/macOS installer (Bash)
+├── CLAUDE.md                  # Project-level instructions for this repo
+├── VERSION                    # Current version number (semver)
+├── CHANGELOG.md               # Release history (Keep a Changelog format)
+├── SECURITY.md                # Security policy and vulnerability reporting
+├── SETUP.md                   # Detailed setup and configuration guide
+├── LICENSE                    # MIT license
+├── config/                    # All Claude Code configuration files
+│   ├── CLAUDE.md              # Global instructions (GSD, context engineering, multi-agent)
+│   ├── settings.json          # Hooks, plugins, MCP servers, model selection
+│   ├── settings.local.json    # Local overrides (not synced)
+│   ├── package.json           # GSD npm package dependencies
+│   ├── gsd-file-manifest.json # GSD file tracking manifest
+│   ├── agents/                # 11 GSD agent definitions
+│   │   ├── gsd-planner.md             # Phase planning and task breakdown
+│   │   ├── gsd-executor.md            # Code implementation and execution
+│   │   ├── gsd-debugger.md            # Bug investigation and root cause analysis
+│   │   ├── gsd-verifier.md            # Quality verification and UAT
+│   │   ├── gsd-phase-researcher.md    # Phase-specific technical research
+│   │   ├── gsd-project-researcher.md  # Project-wide context gathering
+│   │   ├── gsd-plan-checker.md        # Plan quality and completeness validation
+│   │   ├── gsd-integration-checker.md # Cross-component integration verification
+│   │   ├── gsd-codebase-mapper.md     # Codebase structure analysis
+│   │   ├── gsd-roadmapper.md          # Roadmap generation from requirements
+│   │   └── gsd-research-synthesizer.md # Multi-source research aggregation
+│   ├── commands/              # Slash commands
+│   │   ├── init-hakan.md              # Project scaffolding (/init-hakan)
+│   │   └── gsd/                       # 31 GSD workflow commands
+│   │       ├── new-project.md         # Initialize new project with ROADMAP + STATE
+│   │       ├── plan-phase.md          # Create detailed phase plan (PLAN.md)
+│   │       ├── execute-phase.md       # Execute phase with wave-based parallelization
+│   │       ├── debug.md               # Systematic debugging with persistent state
+│   │       ├── quick.md               # Quick task execution (skip planning)
+│   │       └── ... (26 more)          # progress, verify, resume, pause, etc.
+│   ├── docs/                  # 5 reference documents (loaded on-demand)
+│   │   ├── decision-matrix.md         # Task → workflow routing rules
+│   │   ├── multi-agent.md             # Parallel agent coordination protocol
+│   │   ├── tools-reference.md         # External tool integration guide
+│   │   ├── ui-ux.md                   # UI/UX Pro Max design system
+│   │   └── review-ralph.md            # Code review + Ralph Loop integration
+│   ├── hooks/                 # 6 automation hooks
+│   │   ├── dippy/                     # Smart bash auto-approve (Python, 14K+ tests)
+│   │   ├── pretooluse-safety.js       # Destructive command blocker (session allowlist)
+│   │   ├── gsd-context-monitor.js     # Context budget tracking (45-90% thresholds)
+│   │   ├── gsd-statusline.js          # Status line renderer (profile, phase, context %)
+│   │   ├── gsd-check-update.js        # GSD version check on session start
+│   │   └── post-autoformat.js         # Optional code formatting (disabled by default)
+│   ├── get-shit-done/         # GSD runtime engine
+│   │   ├── VERSION                    # GSD version number
+│   │   ├── bin/                       # Core libraries and CLI utilities
+│   │   ├── references/                # Workflow reference materials
+│   │   ├── templates/                 # Project and phase templates
+│   │   └── workflows/                 # Custom workflow overrides
+│   ├── plugins/               # Plugin registry and configurations
+│   ├── skills/                # 3 skill sets
+│   │   ├── cc-devops-skills/          # DevOps: IaC, CI/CD, cloud platforms
+│   │   ├── trailofbits-security/      # Security: static analysis, vulnerability audit
+│   │   └── ui-ux-pro-max/            # UI/UX: 67 styles, 96 palettes, 13 stacks
+│   └── projects/              # Per-project configuration and memory
+│       └── C--Users-Hakan/            # Default project scope
+│           └── memory/                # Session continuity and knowledge base
+├── home-config/               # Home directory config files
+│   └── .claude.json                   # ~/.claude.json (project-independent settings)
+└── README.md                  # This file
 ```
 
 ## Customization
@@ -143,7 +143,7 @@ claude-code-dotfiles/
 
 `config/CLAUDE.md` is the brain of the system. Key sections to personalize:
 
-- **Language preference** — Change response language (default: Turkish + English technical terms)
+- **Language preference** — Responds in whatever language the user speaks (auto-detect)
 - **GSD profile rules** — Adjust which keywords trigger `budget` / `balanced` / `quality` profiles
 - **Context budget thresholds** — Tune the checkpoint percentages (45%, 55%, 65%, etc.)
 - **Subagent model selection** — Set which model handles which complexity level

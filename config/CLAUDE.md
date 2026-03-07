@@ -143,7 +143,7 @@ Three files are maintained in the global memory directory. The relevant file is 
 ## 7. Advanced Toolset
 > Detail: `~/.claude/docs/tools-reference.md`
 
-Claude Squad, ccusage, Trail of Bits, Container Use, PostToolUse Hooks, recall, ClaudeCTX — all tool details and usage examples are in the docs file.
+Claude Squad, Trail of Bits, Container Use, Dippy, recall, ClaudeCTX — all tool details and usage examples are in the docs file.
 
 ---
 

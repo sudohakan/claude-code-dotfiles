@@ -104,9 +104,9 @@ process.stdin.on('end', () => {
               `**Context:** ${usedPct}% used, ${remaining}% remaining\n` +
               `**Session:** ${sessionId}\n` +
               `**CWD:** ${cwd}\n\n` +
-              `> Bu dosya context monitor tarafindan otomatik olusturuldu.\n` +
-              `> Yeni session'da \`memory/session-continuity.md\` ve bu dosyayi oku.\n` +
-              `> \`claude --resume\` ile devam edebilirsin.\n`;
+              `> This file was automatically created by the context monitor.\n` +
+              `> In a new session, read \`memory/session-continuity.md\` and this file.\n` +
+              `> You can resume with \`claude --resume\`.\n`;
             fs.writeFileSync(checkpointPath, content);
             break;
           }
@@ -169,9 +169,9 @@ process.stdin.on('end', () => {
               `**Context:** ${usedPct}% used, ${remaining}% remaining\n` +
               `**Session:** ${sessionId}\n` +
               `**CWD:** ${cwd}\n` +
-              `**Action:** /compact oneriliyor — session-continuity.md guncellenmeli\n\n` +
-              `> Bu dosya context monitor tarafindan %90 esiginde otomatik olusturuldu.\n` +
-              `> Compact sonrasi detay kaybi olabilir, session-continuity.md\'yi kontrol et.\n`;
+              `**Action:** /compact recommended — session-continuity.md should be updated\n\n` +
+              `> This file was automatically created by the context monitor at 90% threshold.\n` +
+              `> Detail loss may occur after compact — verify session-continuity.md.\n`;
             fs.writeFileSync(checkpointPath, content);
             break;
           }
@@ -184,31 +184,31 @@ process.stdin.on('end', () => {
     // Build message
     let message;
     if (isCompactUrgent) {
-      message = `CONTEXT COMPACT URGENT (${usedPct}%, ${remaining}% kaldi): ` +
-        'Context %90 uzerinde! Oncelikle session-continuity.md guncelle (ne yapildi, ne kaldi, kararlar), ' +
-        'sonra kullaniciya /compact calistirmasini oner. ' +
-        'Compact sonrasi calismaya ayni session\'da devam edilebilir. ' +
-        'Yeni buyuk is BASLATMA, mevcut isi tamamla veya duraklat.';
+      message = `CONTEXT COMPACT URGENT (${usedPct}%, ${remaining}% remaining): ` +
+        'Context above 90%! First update session-continuity.md (what was done, what remains, decisions), ' +
+        'then suggest user to run /compact. ' +
+        'Work can continue in the same session after compact. ' +
+        'Do NOT start new large tasks, finish or pause current work.';
     } else if (isCompactSuggest) {
-      message = `CONTEXT COMPACT SUGGEST (${usedPct}%, ${remaining}% kaldi): ` +
-        'Context %85 esiginde. /compact calistirmak iyi bir zamanlama olur — ' +
-        'mevcut isini tamamla, session-continuity.md guncel mi kontrol et, ' +
-        'sonra kullaniciya /compact onerisi sun. ' +
-        'Compact detay kaybeder ama is akisi bolunmez.';
+      message = `CONTEXT COMPACT SUGGEST (${usedPct}%, ${remaining}% remaining): ` +
+        'Context at 85% threshold. Good time to run /compact — ' +
+        'finish current work, check if session-continuity.md is up to date, ' +
+        'then suggest /compact to the user. ' +
+        'Compact loses detail but does not break workflow.';
     } else if (isCritical) {
-      message = `CONTEXT CRITICAL (${usedPct}%, ${remaining}% kaldi): ` +
-        'HEMEN session-continuity.md guncelle — ne yapildi, ne kaldi, kararlar. ' +
-        'Kullaniciya bildir: "Context dolmak uzere, /compact veya `claude --resume` ile devam edebilirsiniz." ' +
-        'Yeni is BASLATMA. Mevcut isi bitir veya state kaydet.';
+      message = `CONTEXT CRITICAL (${usedPct}%, ${remaining}% remaining): ` +
+        'Update session-continuity.md IMMEDIATELY — what was done, what remains, decisions. ' +
+        'Notify user: "Context is nearly full, continue with /compact or `claude --resume`." ' +
+        'Do NOT start new tasks. Finish current work or save state.';
     } else if (isWarning) {
-      message = `CONTEXT WARNING (${usedPct}%, ${remaining}% kaldi): ` +
-        'Yeni buyuk isler icin SADECE subagent kullan. Ana context\'te yalnizca koordinasyon yap. ' +
-        'Mevcut isi tamamla, session-continuity.md guncellemeye hazirlan. ' +
-        'Eger GSD kullaniliyorsa /gsd:pause-work dusun.';
+      message = `CONTEXT WARNING (${usedPct}%, ${remaining}% remaining): ` +
+        'Use ONLY subagents for new large tasks. Main context for coordination only. ' +
+        'Finish current work, prepare to update session-continuity.md. ' +
+        'If using GSD, consider /gsd:pause-work.';
     } else {
-      message = `CONTEXT CHECKPOINT (${usedPct}%, ${remaining}% kaldi): ` +
-        'Context yarisi gecildi. Bundan sonra arastirma ve buyuk isler icin subagent kullan. ' +
-        'Ana context\'i temiz tut — uzun tool ciktilarini dosyaya yaz, context\'e degil.';
+      message = `CONTEXT CHECKPOINT (${usedPct}%, ${remaining}% remaining): ` +
+        'Context halfway used. From now on, use subagents for research and large tasks. ' +
+        'Keep main context clean — write long tool outputs to file, not context.';
     }
 
     const output = {

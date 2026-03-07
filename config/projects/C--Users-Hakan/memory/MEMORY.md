@@ -1,7 +1,7 @@
 # Claude Memory — {username}
 
 ## User Preferences
-- Language: Turkish (technical terms may remain in English)
+- Language: Responds in whatever language the user speaks (auto-detect)
 - Model: Opus
 - Workflow: GSD + Superpowers + Ralph Loop integrated
 - **Git rule:** Git commands are ONLY executed when explicitly requested by the user
