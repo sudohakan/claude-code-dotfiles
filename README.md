@@ -4,7 +4,7 @@
     My personal Claude Code CLI configuration — portable, automated, production-ready.
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/version-1.3.2-blue?style=flat-square" alt="Version: 1.3.2">
+    <img src="https://img.shields.io/badge/version-1.4.0-blue?style=flat-square" alt="Version: 1.4.0">
     <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows" alt="Platform: Windows">
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
@@ -32,6 +32,7 @@ claude login
 | **Global Instructions** | 1 | `CLAUDE.md` — GSD workflow, multi-agent protocol, context engineering, session continuity |
 | **Hooks** | 6 | Dippy (bash auto-approve), pretooluse-safety (credential/unicode/destructive blocker), GSD context monitor, statusline, check-update, auto-format |
 | **GSD Commands** | 31 | Full lifecycle: new-project, plan-phase, execute-phase, debug, quick, verify-work, and 25 more |
+| **Utility Commands** | 2 | `/init-hakan` (project scaffolding), `/browser` (Playwright MCP browser launcher) |
 | **Agents** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
 | **Reference Docs** | 5 | Decision matrix, multi-agent protocol, tools reference, UI/UX design system, review/Ralph |
 | **Skills** | 3 | cc-devops-skills, trailofbits-security, ui-ux-pro-max |
@@ -93,6 +94,7 @@ claude-code-dotfiles/
     │   └── gsd-research-synthesizer.md          # Multi-source research aggregation
     ├── commands/                                # Slash commands
     │   ├── init-hakan.md                        # /init-hakan — project scaffolding
+    │   ├── browser.md                           # /browser — Playwright MCP browser launcher
     │   └── gsd/                                 # 31 GSD workflow commands
     │       ├── new-project.md                   # Initialize project (ROADMAP + STATE)
     │       ├── plan-phase.md                    # Create phase plan (PLAN.md)

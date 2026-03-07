@@ -6,7 +6,8 @@ Portable distribution package for Claude Code CLI configuration. Not a standalon
 ## Tech Stack
 - **Installer:** PowerShell (Windows), Bash (Linux/macOS)
 - **Hooks:** Node.js (JavaScript, .js)
-- **Commands/Agents:** Markdown (.md)
+- **Commands:** Markdown (.md) — `/init-hakan`, `/browser`, 31 GSD commands
+- **Agents:** Markdown (.md)
 - **GSD Runtime:** Node.js (CommonJS, .cjs) + npm
 - **Skills:** Python + Markdown
 - **Versioning:** Semver (VERSION file + git tags + CHANGELOG.md)
@@ -18,7 +19,7 @@ config/           → Copied to ~/.claude/ (install.ps1)
   CLAUDE.md       → Global Claude Code instructions
   settings.json   → Hook, MCP, permission settings
   hooks/          → 7 hooks (safety, context monitor, statusline, etc.)
-  commands/       → Slash commands (init-hakan, gsd/*)
+  commands/       → Slash commands (init-hakan, browser, gsd/*)
   agents/         → 11 agent definitions
   skills/         → 3 skill sets (cc-devops, trailofbits, ui-ux-pro-max)
   docs/           → 5 reference documents

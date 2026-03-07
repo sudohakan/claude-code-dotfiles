@@ -5,6 +5,18 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.4.0] - 2026-03-07
+
+### Added
+- **browser.md** — `/browser` slash command: detect, launch, and connect browsers via Playwright MCP CDP
+  - Cross-platform browser detection (Windows registry + paths, macOS Applications + mdfind, Linux PATH + snap/flatpak)
+  - Fuzzy matching for browser names (typo-tolerant: `chrone`, `ff`, `edg`, etc.)
+  - Remote debugging port management with auto-increment (9222-9230)
+  - Last-used browser memory (`~/.claude/browser-last.json`)
+  - Flags: `--clean` (temp profile), `--port=XXXX` (custom port), `--connect` (attach to existing instance)
+  - Firefox CDP warning with fallback option
+  - Launch verification and CDP connection retry
+
 ## [1.3.3] - 2026-03-07
 
 ### Fixed
