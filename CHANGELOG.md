@@ -5,6 +5,14 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.7.1] - 2026-03-07
+
+### Removed
+- **270+ terragrunt cache files** from `cc-devops-skills` test directory (~2.9 MB repo size reduction)
+
+### Changed
+- `.gitignore` — added `.terragrunt-cache/`, `.terraform/`, `.terraform.lock.hcl` exclusions
+
 ## [1.7.0] - 2026-03-07
 
 ### Added
