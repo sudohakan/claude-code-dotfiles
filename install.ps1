@@ -102,6 +102,18 @@ Install-IfMissing "jq" "jq" `
     "winget install -e --id jqlang.jq --accept-source-agreements --accept-package-agreements" `
     "Manual: winget install jqlang.jq" | Out-Null
 
+# --- Python (required for Dippy hook) ---
+if (Get-Command python -ErrorAction SilentlyContinue) {
+    $pyVer = python --version 2>&1
+    Write-Host "  [OK] Python : $pyVer" -ForegroundColor Green
+} elseif (Get-Command python3 -ErrorAction SilentlyContinue) {
+    $pyVer = python3 --version 2>&1
+    Write-Host "  [OK] Python : $pyVer" -ForegroundColor Green
+} else {
+    Write-Host "  [!!] Python not found. Required for Dippy hook." -ForegroundColor Yellow
+    Write-Host "       Install: winget install -e --id Python.Python.3.12" -ForegroundColor DarkGray
+}
+
 # -- STEP 3: Install Claude Code CLI --
 Write-Step 3 $totalSteps "Installing Claude Code CLI..."
 
@@ -152,7 +164,7 @@ $dirs = @(
     "$ClaudeDir\hooks", "$ClaudeDir\docs", "$ClaudeDir\commands\gsd",
     "$ClaudeDir\agents", "$ClaudeDir\get-shit-done", "$ClaudeDir\skills",
     "$ClaudeDir\plugins", "$ClaudeDir\projects", "$ClaudeDir\profiles",
-    "$ClaudeDir\cache", "$ClaudeDir\logs"
+    "$ClaudeDir\cache"
 )
 foreach ($dir in $dirs) {
     if (-not (Test-Path $dir)) {
@@ -175,9 +187,9 @@ foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json", "packag
     }
 }
 
-# Hooks
-Copy-Item -Path "$configDir\hooks\*" -Destination "$ClaudeDir\hooks\" -Force
-Write-Host "  + hooks/ ($((Get-ChildItem "$configDir\hooks\*.js").Count) files)" -ForegroundColor DarkGray
+# Hooks (includes dippy/ subdirectory)
+Copy-Item -Path "$configDir\hooks\*" -Destination "$ClaudeDir\hooks\" -Recurse -Force
+Write-Host "  + hooks/ (js files + dippy/)" -ForegroundColor DarkGray
 
 # Docs
 Copy-Item -Path "$configDir\docs\*" -Destination "$ClaudeDir\docs\" -Force
@@ -373,6 +385,7 @@ $checks = @(
     @{ Name = "Node.js";     Ok = (Get-Command node -ErrorAction SilentlyContinue) },
     @{ Name = "Git";         Ok = (Get-Command git -ErrorAction SilentlyContinue) },
     @{ Name = "jq";          Ok = (Get-Command jq -ErrorAction SilentlyContinue) },
+    @{ Name = "Python";      Ok = (Get-Command python -ErrorAction SilentlyContinue) -or (Get-Command python3 -ErrorAction SilentlyContinue) },
     @{ Name = "Claude CLI";  Ok = (Get-Command claude -ErrorAction SilentlyContinue) },
     @{ Name = "HakanMCP";    Ok = (Test-Path "C:\dev\HakanMCP\dist\src\index.js") },
     @{ Name = "Config";      Ok = (Test-Path "$ClaudeDir\settings.json") },

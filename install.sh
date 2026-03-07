@@ -131,8 +131,17 @@ else
             "winget install -e --id jqlang.jq --accept-source-agreements --accept-package-agreements" \
             "Manual: winget install jqlang.jq"
     else
-        warn "jq not found. Manual: winget install jqlang.jq"
+        warn "jq not found. Install: apt install jq / brew install jq"
     fi
+fi
+
+# Python (required for Dippy hook)
+if command -v python3 &>/dev/null; then
+    ok "Python : $(python3 --version 2>/dev/null)"
+elif command -v python &>/dev/null; then
+    ok "Python : $(python --version 2>/dev/null)"
+else
+    warn "Python not found. Required for Dippy hook. Install: apt install python3 / brew install python"
 fi
 
 # -- STEP 3: Claude Code CLI --
@@ -178,7 +187,7 @@ fi
 # -- STEP 5: Directory structure --
 step 5 "Creating directory structure..."
 
-mkdir -p "$CLAUDE_DIR"/{hooks,docs,commands/gsd,agents,get-shit-done,skills,plugins,projects,profiles,cache,logs}
+mkdir -p "$CLAUDE_DIR"/{hooks,docs,commands/gsd,agents,get-shit-done,skills,plugins,projects,profiles,cache}
 ok "Directories created."
 
 # -- STEP 6: Copy configuration --
@@ -192,7 +201,11 @@ done
 echo "  + Core files"
 
 cp "$CONFIG_DIR"/hooks/*.js "$CLAUDE_DIR/hooks/"
-echo "  + hooks/"
+# Copy dippy subdirectory (Python-based bash auto-approve hook)
+if [ -d "$CONFIG_DIR/hooks/dippy" ]; then
+    cp -r "$CONFIG_DIR/hooks/dippy" "$CLAUDE_DIR/hooks/"
+fi
+echo "  + hooks/ (js files + dippy/)"
 
 cp "$CONFIG_DIR"/docs/*.md "$CLAUDE_DIR/docs/"
 echo "  + docs/"
@@ -260,13 +273,18 @@ step 9 "HakanMCP setup..."
 if $SKIP_HAKANMCP; then
     warn "HakanMCP skipped (--skip-hakanmcp)."
 else
-    MCP_DIR="/c/dev/HakanMCP"
+    # Platform-aware path: /c/dev on Git Bash Windows, ~/dev on Linux/macOS
+    if [ -d "/c/" ]; then
+        MCP_DIR="/c/dev/HakanMCP"
+    else
+        MCP_DIR="$HOME/dev/HakanMCP"
+    fi
     if [ -d "$MCP_DIR" ]; then
         ok "HakanMCP already exists: $MCP_DIR"
     else
         if command -v git &>/dev/null; then
             info "Cloning HakanMCP..."
-            mkdir -p /c/dev
+            mkdir -p "$(dirname "$MCP_DIR")"
             if git clone https://github.com/sudohakan/hakanmcp.git "$MCP_DIR" 2>/dev/null; then
                 cd "$MCP_DIR"
                 info "Running npm install..."
@@ -335,10 +353,11 @@ check_item "Node.js"    "$(command -v node &>/dev/null && echo true || echo fals
 check_item "Git"        "$(command -v git &>/dev/null && echo true || echo false)"
 check_item "jq"         "$(command -v jq &>/dev/null && echo true || echo false)"
 check_item "Claude CLI" "$(command -v claude &>/dev/null && echo true || echo false)"
-check_item "HakanMCP"   "$([ -f '/c/dev/HakanMCP/dist/src/index.js' ] && echo true || echo false)"
-check_item "Config"     "$([ -f '$CLAUDE_DIR/settings.json' ] && echo true || echo false)"
-check_item "Hooks"      "$([ -f '$CLAUDE_DIR/hooks/pretooluse-safety.js' ] && echo true || echo false)"
-check_item "GSD"        "$([ -f '$CLAUDE_DIR/get-shit-done/VERSION' ] && echo true || echo false)"
+if [ -d "/c/" ]; then _MCP_CHECK="/c/dev/HakanMCP/dist/src/index.js"; else _MCP_CHECK="$HOME/dev/HakanMCP/dist/src/index.js"; fi
+check_item "HakanMCP"   "$([ -f "$_MCP_CHECK" ] && echo true || echo false)"
+check_item "Config"     "$([ -f "$CLAUDE_DIR/settings.json" ] && echo true || echo false)"
+check_item "Hooks"      "$([ -f "$CLAUDE_DIR/hooks/pretooluse-safety.js" ] && echo true || echo false)"
+check_item "GSD"        "$([ -f "$CLAUDE_DIR/get-shit-done/VERSION" ] && echo true || echo false)"
 
 echo ""
 echo -e "\033[36m  Next steps:\033[0m"

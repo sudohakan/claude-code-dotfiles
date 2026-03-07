@@ -5,6 +5,19 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.2] - 2026-03-07
+
+### Fixed
+- **install.ps1** — Dippy hook directory was not copied (missing `-Recurse` on hooks copy)
+- **install.sh** — Dippy hook directory was not copied (`*.js` glob skipped subdirectories)
+- **install.sh** — `check_item` status checks used single quotes preventing variable expansion
+- **install.sh** — HakanMCP path hardcoded to `/c/dev/` (Git Bash); now platform-aware for Linux/macOS
+
+### Changed
+- **README.md** — Complete rewrite: aligned project structure comments, added hook execution order, safety system table, consolidated sections, removed redundant content
+- **install.ps1 / install.sh** — Added Python dependency check (required for Dippy hook)
+- **install.ps1 / install.sh** — Removed unused `logs/` directory creation (post-observability removed in v1.3.0)
+
 ## [1.3.1] - 2026-03-07
 
 ### Changed
