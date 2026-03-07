@@ -30,10 +30,10 @@ claude login
 | Component | Count | Description |
 |-----------|------:|-------------|
 | **Global Instructions** | 1 | `CLAUDE.md` — GSD workflow, multi-agent protocol, context engineering, session continuity |
-| **Hooks** | 6 | Dippy (bash auto-approve), pretooluse-safety (credential/unicode/destructive blocker), GSD context monitor, statusline, check-update, auto-format |
+| **Hooks** | 7 | Dippy (bash auto-approve), pretooluse-safety (credential/unicode/destructive blocker), GSD context monitor, statusline, GSD check-update, dotfiles check-update, auto-format |
 | **GSD Commands** | 31 | Full lifecycle: new-project, plan-phase, execute-phase, debug, quick, verify-work, and 25 more |
 | **Git Workflow Commands** | 7 | `/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship` |
-| **Utility Commands** | 2 | `/init-hakan` (project scaffolding), `/browser` (Playwright MCP browser launcher) |
+| **Utility Commands** | 3 | `/init-hakan` (project scaffolding), `/browser` (Playwright MCP browser launcher), `/dotfiles-update` (auto-update from GitHub) |
 | **Agents** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
 | **Reference Docs** | 5 | Decision matrix, multi-agent protocol, tools reference, UI/UX design system, review/Ralph |
 | **Skills** | 3 | cc-devops-skills, trailofbits-security, ui-ux-pro-max |
@@ -45,14 +45,16 @@ claude login
 
 | # | Step | Details |
 |--:|------|---------|
-| 1 | **Dependencies** | Installs Git, Node.js, jq via `winget` if not found |
-| 2 | **Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` |
-| 3 | **Backup** | Backs up existing `~/.claude/` to `~/.claude-backup-{timestamp}/` |
-| 4 | **Copy Config** | Copies all config to `~/.claude/` (hooks, commands, agents, skills, docs, GSD) |
-| 5 | **Path Fix** | Replaces hardcoded username references with current `$env:USERNAME` |
-| 6 | **Memory** | Creates `memory/` directory with template files for knowledge base |
-| 7 | **HakanMCP** | Clones and builds HakanMCP to `C:\dev\HakanMCP` (skip: `-SkipHakanMCP`) |
-| 8 | **Plugins** | Installs 13 plugins via `claude plugins install` (skip: `-SkipPlugins`) |
+| 1 | **Package Manager** | Checks for winget/choco availability |
+| 2 | **Dependencies** | Installs Git, Node.js, Python, jq via `winget` if not found |
+| 3 | **Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` |
+| 4 | **Backup** | Backs up existing `~/.claude/` to `~/.claude-backup-{timestamp}/` |
+| 5 | **Directory Structure** | Creates all required directories under `~/.claude/` |
+| 6 | **Copy Config** | Copies all config to `~/.claude/` (hooks, commands, agents, skills, docs, GSD) |
+| 7 | **Path Fix** | Replaces hardcoded username references with current `$env:USERNAME` |
+| 8 | **Memory** | Creates `memory/` directory with template files for knowledge base |
+| 9 | **HakanMCP** | Clones and builds HakanMCP to `C:\dev\HakanMCP` (skip: `-SkipHakanMCP`) |
+| 10 | **Plugins** | Installs 13 plugins via `claude plugins install` (skip: `-SkipPlugins`) |
 
 ## Project Structure
 
@@ -97,13 +99,14 @@ claude-code-dotfiles/
     ├── commands/                                # Slash commands
     │   ├── init-hakan.md                        # /init-hakan — project scaffolding
     │   ├── browser.md                           # /browser — Playwright MCP browser launcher
-    │   ├── commit.md                            # /commit — conventional commit with emoji
+    │   ├── commit.md                            # /commit — conventional commit
     │   ├── create-pr.md                         # /create-pr — branch, commit, push, PR
     │   ├── fix-github-issue.md                  # /fix-github-issue — fetch and fix issue
     │   ├── fix-pr.md                            # /fix-pr — fix PR review comments
     │   ├── release.md                           # /release — version bump, changelog, tag
     │   ├── run-ci.md                            # /run-ci — auto-detect and run CI checks
     │   ├── ship.md                              # /ship — end-to-end git workflow
+    │   ├── dotfiles-update.md                   # /dotfiles-update — auto-update from GitHub
     │   └── gsd/                                 # 31 GSD workflow commands
     │       ├── new-project.md                   # Initialize project (ROADMAP + STATE)
     │       ├── plan-phase.md                    # Create phase plan (PLAN.md)
@@ -119,12 +122,13 @@ claude-code-dotfiles/
     │   ├── tools-reference.md                   # External tool integration guide
     │   ├── ui-ux.md                             # UI/UX Pro Max design system
     │   └── review-ralph.md                      # Code review + Ralph Loop
-    ├── hooks/                                   # 6 automation hooks
+    ├── hooks/                                   # 7 automation hooks
     │   ├── dippy/                               # Smart bash auto-approve (Python, 14K+ tests)
     │   ├── pretooluse-safety.js                 # Credential + destructive + unicode blocker
     │   ├── gsd-context-monitor.js               # Context budget tracking (45–90%)
     │   ├── gsd-statusline.js                    # Status line (profile, phase, context %)
     │   ├── gsd-check-update.js                  # GSD version check on session start
+    │   ├── dotfiles-check-update.js             # Dotfiles version check on session start
     │   └── post-autoformat.js                   # Code formatting (disabled by default)
     ├── get-shit-done/                           # GSD runtime engine
     │   ├── VERSION                              # GSD version number

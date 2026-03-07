@@ -17,7 +17,7 @@ PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps
 bash /c/dev/claude-code-dotfiles/install.sh
 ```
 
-### What the Script Does (8 Steps):
+### What the Script Does (10 Steps):
 
 | Step | Action | Details |
 |------|--------|---------|
@@ -25,10 +25,12 @@ bash /c/dev/claude-code-dotfiles/install.sh
 | 2 | **Install dependencies** | Git, Node.js, Python, jq — auto-installs via winget if missing |
 | 3 | **Install Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` — auto if missing |
 | 4 | Back up existing config | `.claude-backup-YYYYMMDD-HHMMSS` |
-| 5 | Copy configuration | Hooks, docs, commands, agents, GSD, skills |
-| 6 | Fix paths | Auto-updates if username differs |
-| 7 | **Install HakanMCP** | `git clone` + `npm install` + `npm run build` |
-| 8 | **Install plugins** | 7 official + 6 Trail of Bits = 13 plugins |
+| 5 | Create directory structure | Hooks, docs, commands, agents, GSD, skills directories |
+| 6 | Copy configuration | All config files, commands, hooks, agents, skills, plugins |
+| 7 | Fix paths | Auto-updates if username differs |
+| 8 | **Transfer memory** | Cross-project knowledge base files |
+| 9 | **Install HakanMCP** | `git clone` + `npm install` + `npm run build` |
+| 10 | **Install plugins** | 7 official + 6 Trail of Bits = 13 plugins |
 
 **After installation, just run `claude login` and you're ready.**
 
@@ -90,12 +92,13 @@ config/
 ├── settings.local.json       # Local permissions
 ├── package.json              # CommonJS setting
 ├── gsd-file-manifest.json    # GSD file manifest
-├── hooks/                    # 6 hooks
+├── hooks/                    # 7 hooks
 │   ├── dippy/                   # Smart bash auto-approve (Python)
 │   ├── pretooluse-safety.js     # Credential + destructive + unicode blocker
 │   ├── gsd-context-monitor.js   # Context budget monitoring
 │   ├── gsd-statusline.js        # Status line
 │   ├── gsd-check-update.js      # GSD update check
+│   ├── dotfiles-check-update.js # Dotfiles update check
 │   └── post-autoformat.js       # Auto format (disabled by default)
 ├── docs/                     # 5 reference documents
 ├── commands/                 # 9 + 31 slash commands
