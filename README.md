@@ -4,7 +4,7 @@
     My personal Claude Code CLI configuration — portable, automated, production-ready.
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/version-1.7.1-blue?style=flat-square" alt="Version: 1.7.1">
+    <img src="https://img.shields.io/badge/version-1.8.0-blue?style=flat-square" alt="Version: 1.8.0">
     <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows" alt="Platform: Windows">
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
@@ -31,7 +31,7 @@ claude login
 |-----------|------:|-------------|
 | **Global Instructions** | 1 | `CLAUDE.md` — GSD workflow, multi-agent protocol, context engineering, session continuity |
 | **Hooks** | 7 | Dippy (bash auto-approve), pretooluse-safety (credential/unicode/destructive blocker), GSD context monitor, statusline, GSD check-update, dotfiles check-update, auto-format |
-| **GSD Commands** | 31 | Full lifecycle: new-project, plan-phase, execute-phase, debug, quick, verify-work, and 25 more |
+| **GSD Commands** | 33 | Full lifecycle: new-project, plan-phase, execute-phase, auto-phase, run-phase, debug, quick, verify-work, and 25 more |
 | **Git Workflow Commands** | 7 | `/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship` |
 | **Utility Commands** | 3 | `/init-hakan` (project scaffolding), `/browser` (Playwright MCP browser launcher), `/dotfiles-update` (auto-update from GitHub) |
 | **Agents** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
@@ -107,12 +107,14 @@ claude-code-dotfiles/
     │   ├── run-ci.md                            # /run-ci — auto-detect and run CI checks
     │   ├── ship.md                              # /ship — end-to-end git workflow
     │   ├── dotfiles-update.md                   # /dotfiles-update — auto-update from GitHub
-    │   └── gsd/                                 # 31 GSD workflow commands
+    │   └── gsd/                                 # 33 GSD workflow commands
     │       ├── new-project.md                   # Initialize project (ROADMAP + STATE)
     │       ├── plan-phase.md                    # Create phase plan (PLAN.md)
     │       ├── execute-phase.md                 # Execute with wave parallelization
     │       ├── debug.md                         # Systematic debugging
     │       ├── quick.md                         # Quick task (skip planning)
+    │       ├── auto-phase.md                    # Full cycle (plan+execute+verify) for phases
+    │       ├── run-phase.md                     # Plan+execute in one step
     │       ├── verify-work.md                   # UAT validation
     │       ├── progress.md                      # Status and next-action routing
     │       └── ... (24 more)                    # discuss, research, resume, pause, etc.
@@ -170,13 +172,15 @@ StatusLine    →  gsd-statusline.js                Render profile + phase + con
 
 ### GSD Workflow
 
-Full project lifecycle management with 31 slash commands:
+Full project lifecycle management with 33 slash commands:
 
 | Stage | Command | Description |
 |-------|---------|-------------|
 | **Init** | `/gsd:new-project` | Scaffold ROADMAP.md and STATE.md |
 | **Plan** | `/gsd:discuss-phase` → `/gsd:plan-phase` | Gather context, create phase plan |
 | **Execute** | `/gsd:execute-phase` | Run with wave-based agent parallelization |
+| **Auto** | `/gsd:auto-phase` | Full cycle (plan+execute+verify) for one or range of phases |
+| **Run** | `/gsd:run-phase` | Plan+execute in one step (no verify) |
 | **Verify** | `/gsd:verify-work` | Conversational UAT validation |
 | **Quick** | `/gsd:quick` | Skip planning for small tasks |
 | **Debug** | `/gsd:debug` | Systematic debugging with dedicated agent |
