@@ -6,6 +6,10 @@
           {
             "type": "command",
             "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-check-update.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"C:/Users/Hakan/.claude/hooks/dotfiles-check-update.js\""
           }
         ]
       }
