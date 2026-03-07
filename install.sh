@@ -201,18 +201,32 @@ done
 echo "  + Core files"
 
 cp "$CONFIG_DIR"/hooks/*.js "$CLAUDE_DIR/hooks/"
-# Copy dippy subdirectory (Python-based bash auto-approve hook)
-if [ -d "$CONFIG_DIR/hooks/dippy" ]; then
-    cp -r "$CONFIG_DIR/hooks/dippy" "$CLAUDE_DIR/hooks/"
+# Install Dippy (Python-based bash auto-approve hook) via git clone
+if [ -d "$CLAUDE_DIR/hooks/dippy" ]; then
+    ok "Dippy already installed"
+else
+    if command -v git &>/dev/null; then
+        git clone https://github.com/ldayton/Dippy "$CLAUDE_DIR/hooks/dippy" 2>/dev/null && ok "Dippy cloned" || warn "Dippy clone failed (optional)"
+    else
+        warn "Git not available, skipping Dippy"
+    fi
 fi
 echo "  + hooks/ (js files + dippy/)"
 
 cp "$CONFIG_DIR"/docs/*.md "$CLAUDE_DIR/docs/"
 echo "  + docs/"
 
-cp "$CONFIG_DIR/commands/init-hakan.md" "$CLAUDE_DIR/commands/"
+cp "$CONFIG_DIR"/commands/*.md "$CLAUDE_DIR/commands/"
 cp "$CONFIG_DIR"/commands/gsd/*.md "$CLAUDE_DIR/commands/gsd/"
 echo "  + commands/"
+
+# Copy project-registry.json (only if not existing — preserves user config)
+if [ ! -f "$CLAUDE_DIR/project-registry.json" ]; then
+    cp "$CONFIG_DIR/project-registry.json" "$CLAUDE_DIR/project-registry.json"
+    echo "  + project-registry.json (new)"
+else
+    echo "  + project-registry.json (existing preserved)"
+fi
 
 cp "$CONFIG_DIR"/agents/*.md "$CLAUDE_DIR/agents/"
 echo "  + agents/"
@@ -337,6 +351,17 @@ else
         echo "    Plugins will auto-install after reopening the terminal."
     fi
 fi
+
+# -- Dotfiles Meta (version tracking for auto-update) --
+DOTFILES_VERSION=$(cat "$SCRIPT_DIR/VERSION" | tr -d '[:space:]')
+cat > "$CLAUDE_DIR/dotfiles-meta.json" << EOF
+{
+  "version": "$DOTFILES_VERSION",
+  "repo_path": "$SCRIPT_DIR",
+  "installed_at": "$(date +%Y-%m-%d)"
+}
+EOF
+ok "dotfiles-meta.json created (v$DOTFILES_VERSION)"
 
 # -- SUMMARY --
 echo ""

@@ -35,22 +35,19 @@ Create well-structured commits with conventional commit messages.
 7. Create the commit
 
 ## Commit Message Format
-`<emoji> <type>: <description>`
+`<type>: <description>`
 
-Types and emojis:
-- ✨ `feat`: New feature
-- 🐛 `fix`: Bug fix
-- 📝 `docs`: Documentation
-- ♻️ `refactor`: Code refactoring
-- ⚡️ `perf`: Performance improvement
-- ✅ `test`: Tests
-- 🔧 `chore`: Tooling, configuration
-- 💄 `style`: Formatting/style
-- 🔒️ `fix`: Security fix
-- 🚑️ `fix`: Critical hotfix
-- 🗑️ `revert`: Reverting changes
-- 🏗️ `refactor`: Architectural change
-- 🔥 `fix`: Remove code or files
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `refactor`: Code refactoring
+- `perf`: Performance improvement
+- `test`: Tests
+- `chore`: Tooling, configuration
+- `style`: Formatting/style
+- `revert`: Reverting changes
+- `release`: Version bump and release
 
 ## Rules
 - Present tense, imperative mood

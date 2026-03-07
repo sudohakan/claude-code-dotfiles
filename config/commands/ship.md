@@ -48,7 +48,7 @@ Flags are composable: `/ship my-project --release --draft`
 ### Step 4: Commit
 - Analyze diff for logical grouping
 - Split into atomic commits if multiple concerns detected
-- Generate conventional commit messages with emoji
+- Generate conventional commit messages
 - Show proposed commits for approval
 
 ### Step 5: Release (only with --release)
@@ -68,6 +68,12 @@ Flags are composable: `/ship my-project --release --draft`
 - Use --draft flag if specified
 - Target --base branch (default: main)
 - Return PR URL
+
+### Step 8: Merge (skip with --no-pr or --draft)
+- After PR is created, merge it: `gh pr merge <url> --squash --delete-branch`
+- If merge fails (CI required, review required, conflict): inform user and provide the PR URL
+- After successful merge, switch local branch back to main/master and pull: `git checkout main && git pull`
+- If --release: verify the tag is on the merged commit
 
 ## Rules
 - Show progress at each step
