@@ -48,7 +48,7 @@ Flags are composable: `/ship my-project --release --draft`
 ### Step 4: Commit
 - Analyze diff for logical grouping
 - Split into atomic commits if multiple concerns detected
-- Generate conventional commit messages with emoji
+- Generate conventional commit messages
 - Show proposed commits for approval
 
 ### Step 5: Release (only with --release)
