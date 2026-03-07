@@ -38,6 +38,11 @@ desktop.ini
 # Project-level Claude Code config (local commands, not for distribution)
 .claude/
 
+# Terraform / Terragrunt
+.terragrunt-cache/
+.terraform/
+.terraform.lock.hcl
+
 # Node
 node_modules/
 __pycache__/
