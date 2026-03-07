@@ -5,6 +5,15 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.1] - 2026-03-07
+
+### Changed
+- **Project Structure** — Every line now has a descriptive comment explaining its purpose
+- **Language preference** — Changed from hardcoded Turkish to auto-detect (responds in user's language)
+- **gsd-context-monitor.js** — All Turkish strings translated to English
+- **CLAUDE.md** — Updated toolset reference: replaced ccusage with Dippy
+- **MEMORY.md** — Updated language preference to auto-detect
+
 ## [1.3.0] - 2026-03-07
 
 ### Added

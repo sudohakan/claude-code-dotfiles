@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
     <img src="https://img.shields.io/badge/tools-200+-F59E0B?style=flat-square" alt="200+ Tools">
-    <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square" alt="Version: 1.3.0">
+    <img src="https://img.shields.io/badge/version-1.3.1-blue?style=flat-square" alt="Version: 1.3.0">
   </p>
 </p>
 
@@ -20,7 +20,7 @@ A complete, opinionated Claude Code CLI setup that includes a full project lifec
 
 This project uses [Semantic Versioning](https://semver.org/). Releases are published automatically on [GitHub Releases](https://github.com/sudohakan/claude-code-dotfiles/releases) when a version tag is pushed.
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.1-blue)
 
 ## What's Included
 
