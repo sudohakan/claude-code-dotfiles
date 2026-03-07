@@ -187,18 +187,18 @@ foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json", "packag
     }
 }
 
-# Hooks (includes dippy/ subdirectory)
-Copy-Item -Path "$configDir\hooks\*" -Destination "$ClaudeDir\hooks\" -Recurse -Force
-Write-Host "  + hooks/ (js files + dippy/)" -ForegroundColor DarkGray
+# Hooks (js files only — Dippy is cloned separately)
+Get-ChildItem "$configDir\hooks\*" -File | Copy-Item -Destination "$ClaudeDir\hooks\" -Force
+Write-Host "  + hooks/ (js files)" -ForegroundColor DarkGray
 
 # Docs
 Copy-Item -Path "$configDir\docs\*" -Destination "$ClaudeDir\docs\" -Force
 Write-Host "  + docs/" -ForegroundColor DarkGray
 
-# Commands
-Copy-Item -Path "$configDir\commands\init-hakan.md" -Destination "$ClaudeDir\commands\" -Force
+# Commands (all *.md files + gsd/ subdirectory)
+Get-ChildItem "$configDir\commands\*.md" | Copy-Item -Destination "$ClaudeDir\commands\" -Force
 Copy-Item -Path "$configDir\commands\gsd\*" -Destination "$ClaudeDir\commands\gsd\" -Force
-Write-Host "  + commands/ (init-hakan + GSD)" -ForegroundColor DarkGray
+Write-Host "  + commands/ (all commands + GSD)" -ForegroundColor DarkGray
 
 # Agents
 Copy-Item -Path "$configDir\agents\*" -Destination "$ClaudeDir\agents\" -Force
@@ -216,6 +216,16 @@ Write-Host "  + skills/ (3 skill sets)" -ForegroundColor DarkGray
 Copy-Item -Path "$configDir\plugins\known_marketplaces.json" -Destination "$ClaudeDir\plugins\" -Force
 Copy-Item -Path "$configDir\plugins\blocklist.json" -Destination "$ClaudeDir\plugins\" -Force
 Write-Host "  + plugins/ (marketplace config)" -ForegroundColor DarkGray
+
+# Project registry (preserve existing)
+$registrySrc = "$configDir\project-registry.json"
+$registryDst = "$ClaudeDir\project-registry.json"
+if ((Test-Path $registrySrc) -and -not (Test-Path $registryDst)) {
+    Copy-Item -Path $registrySrc -Destination $registryDst -Force
+    Write-Host "  + project-registry.json" -ForegroundColor DarkGray
+} elseif (Test-Path $registryDst) {
+    Write-Host "  ~ project-registry.json (existing preserved)" -ForegroundColor DarkGray
+}
 
 Write-Host "  All files copied." -ForegroundColor Green
 
@@ -291,6 +301,26 @@ Write-Step 9 $totalSteps "HakanMCP setup..."
 if ($SkipHakanMCP) {
     Write-Host "  HakanMCP skipped (-SkipHakanMCP)." -ForegroundColor Yellow
 } else {
+    # -- Dippy (git clone if not present) --
+    $dippyDir = "$ClaudeDir\hooks\dippy"
+    if (Test-Path $dippyDir) {
+        Write-Host "  [OK] Dippy already exists: $dippyDir" -ForegroundColor Green
+    } else {
+        if ($gitOk -or (Get-Command git -ErrorAction SilentlyContinue)) {
+            Write-Host "  Cloning Dippy..." -ForegroundColor Cyan
+            try {
+                git clone https://github.com/ldayton/Dippy "$dippyDir" 2>&1 | Out-Null
+                Write-Host "  [OK] Dippy installed: $dippyDir" -ForegroundColor Green
+            } catch {
+                Write-Host "  [!!] Dippy clone failed: $_" -ForegroundColor Red
+                Write-Host "       Manual: git clone https://github.com/ldayton/Dippy $dippyDir" -ForegroundColor DarkGray
+            }
+        } else {
+            Write-Host "  [!!] Git not available, cannot clone Dippy." -ForegroundColor Yellow
+        }
+    }
+
+    # -- HakanMCP --
     $mcpDir = "C:\dev\HakanMCP"
     if (Test-Path $mcpDir) {
         Write-Host "  [OK] HakanMCP already exists: $mcpDir" -ForegroundColor Green
@@ -371,6 +401,15 @@ if ($SkipPlugins) {
         Write-Host "  (other plugins will auto-install on first launch)" -ForegroundColor DarkGray
     }
 }
+
+# -- Dotfiles Meta (version tracking for auto-update) --
+$dotfilesMeta = @{
+    version = (Get-Content "$ScriptDir\VERSION" -Raw).Trim()
+    repo_path = $ScriptDir
+    installed_at = (Get-Date -Format 'yyyy-MM-dd')
+} | ConvertTo-Json
+Set-Content -Path "$ClaudeDir\dotfiles-meta.json" -Value $dotfilesMeta -NoNewline
+Write-Host "  [OK] dotfiles-meta.json created (v$((Get-Content "$ScriptDir\VERSION" -Raw).Trim()))" -ForegroundColor Green
 
 # -- SUMMARY --
 Write-Host ""
