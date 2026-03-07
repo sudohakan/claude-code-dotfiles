@@ -23,11 +23,37 @@ When `claude-code-dotfiles` (`C:\dev\claude-code-dotfiles`) is updated:
 
 ## 1. Task Classification
 
-Every user request is classified first. **Class determines approach:**
+Every user request is classified first. **Class determines approach.**
+
+### Brainstorming (creative/ambiguous work)
+`superpowers:brainstorming` skill is triggered when user intent matches any of these:
+- Asking for ideas, suggestions, or alternatives (language-independent intent detection)
+- New feature, command, tool, or architectural design to be created
+- Multiple approaches possible and the best one is unclear
+- User is not requesting direct action, but exploring/questioning
+
+### Superpowers Triggering (intent-based, language-independent)
+The following skills are automatically triggered when matching intent is detected:
+
+| Intent | Skill | When |
+|--------|-------|------|
+| Creative/exploratory question | `brainstorming` | Ideas, suggestions, alternatives requested; unclear approach |
+| Bug, error, unexpected behavior | `systematic-debugging` | Problem report, error analysis |
+| Plan/spec ready, moving to implementation | `executing-plans` | Written plan exists, step-by-step execution needed |
+| Multiple independent tasks | `dispatching-parallel-agents` | 2+ independent tasks can run simultaneously |
+| New feature/major change planning | `writing-plans` | Multi-step task, spec/requirements available |
+| Test writing / TDD approach | `test-driven-development` | User requests tests or TDD is appropriate |
+| Isolated work requirement | `using-git-worktrees` | Feature isolation, parallel branch work |
+| Independent tasks within plan | `subagent-driven-development` | Parallel implementation in current session |
+| Branch/feature completed | `finishing-a-development-branch` | Merge/PR/cleanup decision needed |
+| Work completion claim | `verification-before-completion` | Prove it works before claiming completion |
+| Code review request/delivery | `requesting-code-review` | Major feature/milestone completed |
+| Review feedback received | `receiving-code-review` | Evaluate feedback with rigor, don't blindly accept |
+| New skill creation/editing | `writing-skills` | Skill file being written or modified |
 
 ### Direct Task (no GSD required)
 GSD is NOT used — execute directly in these cases:
-- User says exactly what to do ("edit this file", "add this", "commit")
+- User states exactly what to do (specific action request)
 - Simple changes in one or a few files
 - Config/dotfiles edits
 - Git operations (commit, push, tag)
@@ -99,7 +125,7 @@ GSD kicks in for these cases:
 ## 3. UI/UX Pro Max — Design System
 > Details: `~/.claude/docs/ui-ux.md`
 
-Triggered when user asks to create/fix/improve UI or asks about style/color/layout.
+Triggered when user intent is visual interface design/modification (UI creation, styling, colors, layout, typography, etc.).
 
 ---
 

@@ -2,7 +2,7 @@
 .credentials.json
 *.credential*
 
-# Session-specific
+# Session-specific & runtime
 history.jsonl
 shell-snapshots/
 session-env/
@@ -15,6 +15,14 @@ file-history/
 plans/
 ide/
 stats-cache.json
+profiles/
+statsig/
+tasks/
+telemetry/
+gsd-local-patches/
+
+# Dippy hook (cloned separately, not part of dotfiles template)
+config/hooks/dippy/
 
 # Plugin downloads (re-installed automatically)
 config/plugins/cache/
