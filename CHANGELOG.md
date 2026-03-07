@@ -5,6 +5,14 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.5.1] - 2026-03-07
+
+### Added
+- **Opera GX browser support** in `/browser` command — detection paths, fuzzy matching (`opera-gx`, `operagx`, `gx`, `ogx`)
+
+### Fixed
+- **Playwright MCP settings** — corrected package name (`@playwright/mcp`) and CLI flag (`--cdp-endpoint`)
+
 ## [1.5.0] - 2026-03-07
 
 ### Added

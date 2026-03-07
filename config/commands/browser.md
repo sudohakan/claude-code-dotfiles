@@ -2,7 +2,7 @@
 
 Bu komutu calistirdigin zaman asagidaki adimlari sirayla uygula. Kullaniciya Turkce mesaj ver.
 
-Kullanim: `/browser [chrome|edge|firefox|brave|opera|vivaldi] [--clean] [--port=XXXX] [--connect]`
+Kullanim: `/browser [chrome|edge|firefox|brave|opera|opera-gx|vivaldi] [--clean] [--port=XXXX] [--connect]`
 
 Arguman degiskeni: `$ARGUMENTS`
 
@@ -51,6 +51,7 @@ Asagidaki yollari kontrol et (bash ile `test -f` kullan):
 | Firefox | `"/c/Program Files/Mozilla Firefox/firefox.exe"`, `"/c/Program Files (x86)/Mozilla Firefox/firefox.exe"` |
 | Brave | `"/c/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"` |
 | Opera | `"${LOCALAPPDATA:-$HOME/AppData/Local}/Programs/Opera/opera.exe"`, `"/c/Program Files/Opera/opera.exe"` |
+| Opera GX | `"/c/Program Files/Opera GX/opera.exe"`, `"/c/Program Files (x86)/Opera GX/opera.exe"`, `"${LOCALAPPDATA:-$HOME/AppData/Local}/Programs/Opera GX/opera.exe"` |
 | Vivaldi | `"${LOCALAPPDATA:-$HOME/AppData/Local}/Vivaldi/Application/vivaldi.exe"` |
 | Chromium | `"/c/Program Files/Chromium/Application/chrome.exe"` |
 
@@ -93,6 +94,7 @@ Kullanici bir tarayici adi verdiyse (Adim 1'den), asagidaki tabloya gore esle:
 | `firefox`, `fire`, `ff`, `fox`, `fireofx` | Firefox |
 | `brave`, `brav`, `bra` | Brave |
 | `opera`, `oper`, `opr` | Opera |
+| `opera-gx`, `operagx`, `gx`, `ogx` | Opera GX |
 | `vivaldi`, `viv`, `viva` | Vivaldi |
 | `chromium`, `chrm` | Chromium |
 

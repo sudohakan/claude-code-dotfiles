@@ -47,7 +47,7 @@
     "feature-dev@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
+    "playwright@claude-plugins-official": false,
     "static-analysis@trailofbits": true,
     "differential-review@trailofbits": true,
     "insecure-defaults@trailofbits": true,
@@ -71,6 +71,14 @@
       ],
       "cwd": "C:\\dev\\HakanMCP",
       "startup_timeout_sec": 60
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--cdp-endpoint",
+        "http://localhost:9222"
+      ]
     }
   },
   "model": "opus"
