@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
     <img src="https://img.shields.io/badge/tools-200+-F59E0B?style=flat-square" alt="200+ Tools">
-    <img src="https://img.shields.io/badge/version-1.2.1-blue?style=flat-square" alt="Version: 1.2.1">
+    <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square" alt="Version: 1.3.0">
   </p>
 </p>
 
@@ -20,14 +20,14 @@ A complete, opinionated Claude Code CLI setup that includes a full project lifec
 
 This project uses [Semantic Versioning](https://semver.org/). Releases are published automatically on [GitHub Releases](https://github.com/sudohakan/claude-code-dotfiles/releases) when a version tag is pushed.
 
-![Version](https://img.shields.io/badge/version-1.2.1-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 
 ## What's Included
 
 | Component | Count | Description |
 |-----------|-------|-------------|
 | **CLAUDE.md** | 1 | Global instructions: GSD workflow, multi-agent coordination, context engineering, session continuity |
-| **Hooks** | 7 | `pretooluse-safety` (git protection), `gsd-context-monitor`, `gsd-statusline`, `gsd-check-update`, `post-autoformat`, `post-observability`, `post-notify` |
+| **Hooks** | 6 | `dippy` (smart bash auto-approve), `pretooluse-safety` (destructive command protection), `gsd-context-monitor`, `gsd-statusline`, `gsd-check-update`, `post-autoformat` |
 | **GSD Commands** | 31 | Full Get Shit Done workflow — `/gsd:new-project`, `/gsd:plan-phase`, `/gsd:execute-phase`, `/gsd:debug`, `/gsd:quick`, and 26 more |
 | **Agent Definitions** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
 | **Reference Docs** | 5 | Decision matrix, multi-agent protocol, tools reference, UI/UX system, review/Ralph |
@@ -111,14 +111,13 @@ claude-code-dotfiles/
 │   │   ├── tools-reference.md
 │   │   ├── ui-ux.md
 │   │   └── review-ralph.md
-│   ├── hooks/               # 7 hooks
+│   ├── hooks/               # 6 hooks
+│   │   ├── dippy/            # Smart bash auto-approve (git submodule)
 │   │   ├── pretooluse-safety.js
 │   │   ├── gsd-context-monitor.js
 │   │   ├── gsd-statusline.js
 │   │   ├── gsd-check-update.js
-│   │   ├── post-autoformat.js
-│   │   ├── post-observability.js
-│   │   └── post-notify.js
+│   │   └── post-autoformat.js
 │   ├── get-shit-done/       # GSD runtime
 │   │   ├── VERSION
 │   │   ├── bin/             # GSD binaries & libraries
@@ -185,9 +184,9 @@ A full project lifecycle management system with 31 commands covering:
 
 ### Safety Hooks
 
-- **Git protection** — All git commands (commit, push, reset, etc.) require explicit user approval. Session-based allowlist remembers approved commands (12h TTL)
+- **Smart auto-approve** — Dippy automatically approves safe bash commands (`ls`, `git status`, `npm test`, etc.) while flagging dangerous ones. 14,000+ test suite with custom bash parser
+- **Destructive command protection** — `pretooluse-safety` blocks force pushes, hard resets, recursive deletes, DROP TABLE, etc. Session-based allowlist remembers approved commands (12h TTL)
 - **Context budget monitoring** — Automatic warnings at 45%, 55%, 65%, 75%, 85%, 90% context usage
-- **Observability** — JSONL logging of all tool invocations for audit trails
 
 ### Multi-Agent Protocol
 

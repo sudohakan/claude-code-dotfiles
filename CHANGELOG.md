@@ -5,6 +5,20 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.0] - 2026-03-07
+
+### Added
+- **Dippy** — Smart bash auto-approve hook. Safe commands (`ls`, `git status`, `npm test`, etc.) are auto-approved, dangerous commands require user confirmation. Python-based with 14,000+ tests and a custom bash parser. Installed at `~/.claude/hooks/dippy/`
+
+### Removed
+- **CC Notify** (`post-notify.js`) — Windows toast notifications were not visible due to OS notification settings. Hook and file removed
+- **post-observability.js** — JSONL tool activity logging was collecting data but never consumed. Hook, file, and `~/.claude/logs/` directory removed
+- **ccusage** — Global npm package uninstalled. Was never actively used for usage monitoring
+
+### Changed
+- Hook count reduced from 7 to 6 (5 existing + Dippy)
+- `settings.json` updated: Dippy added as first PreToolUse hook (runs before pretooluse-safety.js), CC Notify and observability hooks removed from PostToolUse
+
 ## [1.2.1] - 2026-03-06
 
 ### Changed

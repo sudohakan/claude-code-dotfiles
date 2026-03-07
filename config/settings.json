@@ -16,6 +16,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python \"C:/Users/Hakan/.claude/hooks/dippy/bin/dippy-hook\""
+          },
+          {
+            "type": "command",
             "command": "node \"C:/Users/Hakan/.claude/hooks/pretooluse-safety.js\""
           }
         ]
@@ -27,23 +31,6 @@
           {
             "type": "command",
             "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-context-monitor.js\""
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/post-observability.js\""
-          }
-        ]
-      },
-      {
-        "matcher": "AskUserQuestion|Task|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/post-notify.js\""
           }
         ]
       }
