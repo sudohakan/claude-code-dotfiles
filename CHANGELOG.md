@@ -5,6 +5,15 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.3] - 2026-03-07
+
+### Fixed
+- **pretooluse-safety.js** — Allowlist session ID now uses stable daily file instead of `process.ppid` which changed on every hook invocation, causing repeated blocks even after user approval
+
+### Changed
+- **CLAUDE.md** — Restructured with task classification (direct vs GSD), simplified context budget, Turkish-aligned language rule
+- **init-hakan.md** — Full Turkish localization of project initialization command
+
 ## [1.3.2] - 2026-03-07
 
 ### Fixed

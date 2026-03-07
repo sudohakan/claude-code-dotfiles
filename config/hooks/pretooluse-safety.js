@@ -82,7 +82,8 @@ function checkUnicodeInjection(command) {
 
 // --- Session-based allowlist ---
 const ALLOWLIST_DIR = path.join(os.tmpdir(), "claude-safety-allowlist");
-const SESSION_ID = process.env.CLAUDE_SESSION_ID || process.ppid?.toString() || "default";
+// Use CLAUDE_SESSION_ID if available, otherwise use a stable daily file
+const SESSION_ID = process.env.CLAUDE_SESSION_ID || `daily-${new Date().toISOString().slice(0, 10)}`;
 const ALLOWLIST_FILE = path.join(ALLOWLIST_DIR, `session-${SESSION_ID}.json`);
 const ALLOWLIST_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours
 
