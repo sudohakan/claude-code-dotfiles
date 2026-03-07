@@ -16,13 +16,14 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [1.5.0] - 2026-03-07
 
 ### Added
-- **6 new slash commands** for git workflow automation:
+- **7 new slash commands** for git workflow automation:
   - `/commit` — Conventional commit with emoji, atomic splitting, diff analysis
   - `/create-pr` — Branch creation, commit, push, and PR submission in one flow
   - `/fix-github-issue` — Fetch issue, analyze, implement fix, commit with reference
   - `/fix-pr` — Fetch unresolved PR review comments and fix them
   - `/release` — Changelog update, version bump, README review, tag creation
   - `/run-ci` — Auto-detect project type, run CI checks, iteratively fix errors
+  - `/ship` — End-to-end professional git workflow: branch, CI, commit, release, push, PR
 - **Superpowers triggering table** — All 13 superpowers skills now have intent-based trigger rules in CLAUDE.md (previously only 5-6 were actively triggered)
 
 ### Changed
