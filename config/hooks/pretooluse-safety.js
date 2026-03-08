@@ -96,7 +96,9 @@ function loadAllowlist() {
       return [];
     }
     return JSON.parse(fs.readFileSync(ALLOWLIST_FILE, "utf8"));
-  } catch {
+  } catch (e) {
+    // Allowlist read failed — continue without it (security not affected)
+    if (process.env.DEBUG) process.stderr.write(`[safety] loadAllowlist error: ${e.message}\n`);
     return [];
   }
 }
@@ -110,8 +112,9 @@ function saveToAllowlist(command) {
       list.push(normalized);
     }
     fs.writeFileSync(ALLOWLIST_FILE, JSON.stringify(list, null, 2));
-  } catch {
-    // If allowlist cannot be written, fail silently — security is not blocked
+  } catch (e) {
+    // Allowlist write failed — security still works, just won't remember approval
+    if (process.env.DEBUG) process.stderr.write(`[safety] saveToAllowlist error: ${e.message}\n`);
   }
 }
 
@@ -131,8 +134,9 @@ function cleanupOldAllowlists() {
         fs.unlinkSync(fp);
       }
     }
-  } catch {
-    // Ignore cleanup errors
+  } catch (e) {
+    // Cleanup is best-effort — old files will expire naturally
+    if (process.env.DEBUG) process.stderr.write(`[safety] cleanupOldAllowlists error: ${e.message}\n`);
   }
 }
 
@@ -306,4 +310,21 @@ async function main() {
   }
 }
 
-main();
+// Export internals for unit testing
+if (require.main !== module) {
+  module.exports = {
+    DANGEROUS_PATTERNS,
+    CREDENTIAL_PATTERNS,
+    EXFILTRATION_PATTERNS,
+    checkUnicodeInjection,
+    loadAllowlist,
+    saveToAllowlist,
+    isAllowed,
+    cleanupOldAllowlists,
+    ALLOWLIST_DIR,
+    ALLOWLIST_FILE,
+    ALLOWLIST_MAX_AGE_MS,
+  };
+} else {
+  main();
+}

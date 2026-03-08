@@ -189,7 +189,14 @@ foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json", "packag
 
 # Hooks (js files only — Dippy is cloned separately)
 Get-ChildItem "$configDir\hooks\*" -File | Copy-Item -Destination "$ClaudeDir\hooks\" -Force
-Write-Host "  + hooks/ (js files)" -ForegroundColor DarkGray
+# Hook shared libraries
+if (Test-Path "$configDir\hooks\lib") {
+    if (-not (Test-Path "$ClaudeDir\hooks\lib")) {
+        New-Item -ItemType Directory -Path "$ClaudeDir\hooks\lib" -Force | Out-Null
+    }
+    Copy-Item -Path "$configDir\hooks\lib\*" -Destination "$ClaudeDir\hooks\lib\" -Recurse -Force
+}
+Write-Host "  + hooks/ (js files + lib)" -ForegroundColor DarkGray
 
 # Docs
 Copy-Item -Path "$configDir\docs\*" -Destination "$ClaudeDir\docs\" -Force

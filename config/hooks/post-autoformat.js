@@ -5,7 +5,7 @@
  * Only activates if a formatter config exists in the project directory.
  */
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -62,10 +62,11 @@ process.stdin.on('end', () => {
       process.exit(0);
     }
 
-    // Run formatter (prettier > biome > eslint --fix order)
+    // Run formatter (prettier > biome order)
+    // Uses execFileSync with array args to prevent command injection
     const formatters = [
-      { cmd: 'npx prettier --write', check: '.prettierrc' },
-      { cmd: 'npx @biomejs/biome format --write', check: 'biome.json' },
+      { bin: 'npx', args: ['prettier', '--write'], check: '.prettierrc' },
+      { bin: 'npx', args: ['@biomejs/biome', 'format', '--write'], check: 'biome.json' },
     ];
 
     for (const fmt of formatters) {
@@ -75,7 +76,7 @@ process.stdin.on('end', () => {
       if (!cfgExists && fmt.check !== '.prettierrc') continue;
 
       try {
-        execSync(`${fmt.cmd} "${filePath}"`, {
+        execFileSync(fmt.bin, [...fmt.args, filePath], {
           cwd: dir,
           timeout: 10000,
           stdio: 'pipe',
@@ -84,7 +85,7 @@ process.stdin.on('end', () => {
 
         // Successful format — complete silently (context token savings)
         return;
-      } catch (e) {
+      } catch {
         // Formatter returned error — skip silently
       }
     }

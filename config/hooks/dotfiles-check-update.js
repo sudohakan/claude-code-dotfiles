@@ -6,16 +6,11 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
+const { getCacheDir, getMetaFilePath } = require('./lib/paths');
 
-const homeDir = os.homedir();
-const cacheDir = path.join(homeDir, '.claude', 'cache');
+const cacheDir = getCacheDir();
 const cacheFile = path.join(cacheDir, 'dotfiles-update-check.json');
-const metaFile = path.join(homeDir, '.claude', 'dotfiles-meta.json');
-
-// Ensure cache directory exists
-if (!fs.existsSync(cacheDir)) {
-  fs.mkdirSync(cacheDir, { recursive: true });
-}
+const metaFile = getMetaFilePath();
 
 // Only check if dotfiles-meta.json exists (means dotfiles were installed via script)
 if (!fs.existsSync(metaFile)) {

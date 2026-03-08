@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { getClaudeDir, getTodosDir, getCacheDir } = require('./lib/paths');
 
 // Read JSON from stdin
 let input = '';
@@ -62,8 +63,7 @@ process.stdin.on('end', () => {
 
     // Current task from todos
     let task = '';
-    const homeDir = os.homedir();
-    const todosDir = path.join(homeDir, '.claude', 'todos');
+    const todosDir = getTodosDir();
     if (session && fs.existsSync(todosDir)) {
       try {
         const files = fs.readdirSync(todosDir)
@@ -85,7 +85,8 @@ process.stdin.on('end', () => {
 
     // GSD update available?
     let gsdUpdate = '';
-    const cacheFile = path.join(homeDir, '.claude', 'cache', 'gsd-update-check.json');
+    const cacheDir = getCacheDir();
+    const cacheFile = path.join(cacheDir, 'gsd-update-check.json');
     if (fs.existsSync(cacheFile)) {
       try {
         const cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
@@ -97,7 +98,7 @@ process.stdin.on('end', () => {
 
     // Dotfiles update available?
     let dotfilesUpdate = '';
-    const dotfilesCacheFile = path.join(homeDir, '.claude', 'cache', 'dotfiles-update-check.json');
+    const dotfilesCacheFile = path.join(cacheDir, 'dotfiles-update-check.json');
     if (fs.existsSync(dotfilesCacheFile)) {
       try {
         const cache = JSON.parse(fs.readFileSync(dotfilesCacheFile, 'utf8'));

@@ -24,6 +24,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { getMemoryDirCandidates } = require('./lib/paths');
 
 const CHECKPOINT_THRESHOLD = 45;      // remaining <= 45% (used ~55%) -> auto-checkpoint
 const WARNING_THRESHOLD = 35;         // remaining <= 35% (used ~65%)
@@ -92,10 +93,7 @@ process.stdin.on('end', () => {
       warnData.checkpointSaved = true;
       try {
         // Find memory dir - check common locations
-        const memoryDirs = [
-          path.join(cwd, 'memory'),
-          path.join(os.homedir(), '.claude', 'projects', cwd.replace(/[:\\\/]/g, '-').replace(/^-+/, ''), 'memory'),
-        ];
+        const memoryDirs = getMemoryDirCandidates(cwd);
         for (const memDir of memoryDirs) {
           if (fs.existsSync(memDir)) {
             const checkpointPath = path.join(memDir, 'auto-checkpoint.md');
@@ -157,11 +155,8 @@ process.stdin.on('end', () => {
     // Auto-save session-continuity at compact_urgent (90%+ used)
     if (isCompactUrgent) {
       try {
-        const memoryDirs = [
-          path.join(cwd, 'memory'),
-          path.join(os.homedir(), '.claude', 'projects', cwd.replace(/[:\\\/]/g, '-').replace(/^-+/, ''), 'memory'),
-        ];
-        for (const memDir of memoryDirs) {
+        const memoryDirs2 = getMemoryDirCandidates(cwd);
+        for (const memDir of memoryDirs2) {
           if (fs.existsSync(memDir)) {
             const checkpointPath = path.join(memDir, 'auto-checkpoint.md');
             const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
