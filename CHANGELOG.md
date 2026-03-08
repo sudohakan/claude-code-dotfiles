@@ -5,6 +5,22 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.8.1] - 2026-03-08
+
+### Fixed
+- **post-autoformat.js** — Command injection fix: `execSync` replaced with `execFileSync` array syntax
+- **pretooluse-safety.js** — Empty catch blocks now log errors when `DEBUG` env var is set
+- **Hardcoded `.claude` paths** — 3 hooks updated to use shared utility with `CLAUDE_CONFIG_DIR` env var support
+
+### Added
+- **Shared path utility** (`config/hooks/lib/paths.js`) — eliminates duplicate directory resolution across hooks
+- **Unit tests** — pretooluse-safety (31 tests), gsd-statusline (9 tests), install.ps1 (6 tests)
+- **Module exports** for pretooluse-safety.js (guarded by `require.main !== module`) for testability
+
+### Changed
+- **install.ps1** — Now copies `hooks/lib/` directory during installation
+- **README.md** — Troubleshooting table updated with Dippy, dotfiles-update, GSD workflow entries
+
 ## [1.8.0] - 2026-03-07
 
 ### Added
