@@ -39,24 +39,79 @@ Flags are composable: `/ship my-project --release --draft`
   - If user declines → continue without release
 - Show summary to user
 
-### Step 2: Branch
+### Step 2: File Gate
+Review all **untracked files** from `git status` before they are staged.
+
+**Auto-block (never stage, never push):**
+- Secrets & credentials: `.env*`, `*.key`, `*.pem`, `*.p12`, `*.pfx`, `credentials*`, `secrets*`, `*password*`, `*.keystore`, `*.jks`
+- Build artifacts: `node_modules/`, `dist/`, `build/`, `bin/`, `obj/`, `.vs/`, `.idea/`, `__pycache__/`, `*.pyc`
+- Binaries & archives: `*.exe`, `*.dll`, `*.so`, `*.dylib`, `*.zip`, `*.tar.*`, `*.rar`, `*.7z`, `*.jar`, `*.war`
+- Logs & temp: `*.log`, `*.tmp`, `*.swp`, `*.bak`, `*.cache`
+
+**Warn (ask user):**
+- Files > 1 MB
+- Binary files (detected via `file` command or extension)
+- Generated files (`*.generated.*`, `*.g.cs`, `*.designer.cs`)
+- Database files (`*.db`, `*.sqlite`, `*.mdf`)
+
+**Auto-add (safe to stage):**
+- Source code (`*.ts`, `*.js`, `*.cs`, `*.py`, `*.go`, `*.rs`, `*.java`, etc.)
+- Config (`*.json`, `*.yaml`, `*.yml`, `*.toml`, `*.xml`, `*.csproj`, `*.sln`)
+- Documentation (`*.md`, `*.txt`, `*.rst`)
+- Tests, assets (`*.css`, `*.html`, `*.svg`, `*.png` < 500KB)
+
+**Procedure:**
+1. Classify each untracked file into the three categories
+2. Show a table to user: `File | Size | Decision (add/skip/blocked)`
+3. Blocked files are listed with reason — ask user: "Add these patterns to `.gitignore`?"
+4. If user approves `.gitignore` update, add patterns and include in the commit
+5. Warned files require explicit yes/no per file
+
+### Step 3: Branch
 - If already on a feature branch, use it
 - If on main/master, create a new branch with semantic naming: `<type>/<short-description>`
 - Ask user to confirm branch name
 
-### Step 3: CI (skip with --no-ci)
+### Step 4: CI (skip with --no-ci)
 - Auto-detect project type and run appropriate checks
 - If checks fail: analyze error, fix, re-run (max 5 iterations)
 - If unfixable: inform user, ask whether to continue
 
-### Step 4: Commit
+### Step 5: Commit
 - Analyze diff for logical grouping
 - Split into atomic commits if multiple concerns detected
 - Generate conventional commit messages
 - Show proposed commits for approval
 
-### Step 5: Release (only with --release)
-- Determine version increment (patch/minor/major) based on change scope
+### Step 5.5: Code Review
+- Invoke `superpowers:requesting-code-review` skill to review all staged changes
+- Review checks: correctness, security, code quality, adherence to project conventions
+- If review finds **critical issues** → fix before proceeding
+- If review finds **minor suggestions** → note them, proceed (can address later)
+- If review is clean → proceed to next step
+- Show review summary to user
+
+### Step 6: Release (only with --release)
+
+#### Version Standard (Semantic Versioning)
+Version format: `MAJOR.MINOR.PATCH` — strictly follows [semver.org](https://semver.org).
+
+| Bump | Trigger | Examples |
+|------|---------|----------|
+| **MAJOR** (X.0.0) | Breaking change, API contract change, major architectural overhaul | `feat!:`, `BREAKING CHANGE:` in commit, removed/renamed public API, database schema migration |
+| **MINOR** (x.Y.0) | New feature, new endpoint, new command, backward-compatible addition | `feat:` commit, new file/module added, new CLI flag, new tool registered |
+| **PATCH** (x.y.Z) | Bug fix, typo, docs update, refactor with no behavior change, dependency bump | `fix:`, `docs:`, `refactor:`, `chore:`, `style:`, `perf:` commits |
+
+**Decision process:**
+1. Scan all commit messages (since last tag) for conventional commit prefixes
+2. `feat!:` or body contains `BREAKING CHANGE` → **MAJOR**
+3. `feat:` → **MINOR**
+4. Everything else → **PATCH**
+5. Cross-check with diff scope: if 50%+ of source files changed and no explicit prefix → suggest MINOR, ask user
+6. Show recommended bump with reasoning, ask user for confirmation
+7. User can override (e.g., choose MAJOR when auto-detected MINOR)
+
+**Release steps:**
 - Update VERSION file (if exists)
 - Update CHANGELOG.md (Keep a Changelog format, if exists)
 - **Scan all root-level markdown files** (`*.md` in project root) for version references, badges, or content that may need updating based on the changes. Common examples:
@@ -68,22 +123,43 @@ Flags are composable: `/ship my-project --release --draft`
 - For each file with outdated content, update it
 - Commit all release files together: `release: vX.Y.Z`
 
-### Step 6: Push
+### Step 7: Security Scan (only on MAJOR bump)
+When the version bump is **MAJOR**, run security analysis before pushing:
+
+1. **Run Semgrep** — invoke `static-analysis:semgrep` skill with "important only" mode
+2. **Run CodeQL** — invoke `static-analysis:codeql` skill with "important only" mode
+3. **Evaluate results:**
+   - **Critical/High findings** → show details to user, ask: "Continue shipping or fix first?"
+   - **Medium/Low findings** → show summary count, informational only
+   - **No findings** → report clean scan, continue
+4. If user chooses to fix → pause ship, fix issues, then re-run `/ship --release` from the beginning
+5. If user chooses to continue → proceed to push
+
+### Step 8: Push
 - Push branch to remote with `-u` flag
 - If --release: create annotated tag `vX.Y.Z` and push tag
 
-### Step 7: PR (skip with --no-pr)
+### Step 9: PR (skip with --no-pr)
 - Create PR using `gh pr create`
 - Include summary (what changed and why) and test plan
+- If MAJOR release with security scan results, include scan summary in PR description
 - Use --draft flag if specified
 - Target --base branch (default: main)
 - Return PR URL
 
-### Step 8: Merge (skip with --no-pr or --draft)
+### Step 10: Merge (skip with --no-pr or --draft)
 - After PR is created, merge it: `gh pr merge <url> --squash --delete-branch`
 - If merge fails (CI required, review required, conflict): inform user and provide the PR URL
 - After successful merge, switch local branch back to main/master and pull: `git checkout main && git pull`
 - If --release: verify the tag is on the merged commit
+
+### Step 11: Cleanup
+After ship completes (success or failure):
+- Delete any SARIF files generated by security scans (`*.sarif`, `results/*.sarif`)
+- Delete CodeQL databases if created (`.codeql/`, `codeql-db/`)
+- Delete Semgrep output files (`.semgrep/`, `semgrep-results.*`)
+- Remove any temporary scan artifacts
+- Do NOT delete project files — only scan-generated artifacts
 
 ## Rules
 - Show progress at each step
@@ -92,3 +168,6 @@ Flags are composable: `/ship my-project --release --draft`
 - Never skip hooks
 - If any step fails, inform user and ask how to proceed
 - Keep output concise — show what matters, not verbose logs
+- File Gate blocked files are NEVER staged — no exceptions
+- Security scans only run on MAJOR bumps to avoid slowing down routine ships
+- Cleanup always runs, even if ship fails mid-way
