@@ -90,6 +90,16 @@ if (-not $nodeOk) {
     exit 1
 }
 
+# Check Node.js version (HakanMCP requires >= 20)
+if (Get-Command node -ErrorAction SilentlyContinue) {
+    $nodeVer = (node --version 2>$null) -replace 'v',''
+    $nodeMajor = [int]($nodeVer -split '\.')[0]
+    if ($nodeMajor -lt 20) {
+        Write-Host "  [!!] Node.js $nodeVer detected, but HakanMCP requires >= 20." -ForegroundColor Red
+        Write-Host "       Update Node.js: winget install -e --id OpenJS.NodeJS.LTS" -ForegroundColor DarkGray
+    }
+}
+
 # --- npm check (comes with Node) ---
 if (Get-Command npm -ErrorAction SilentlyContinue) {
     Write-Host "  [OK] npm : $(npm --version)" -ForegroundColor Green
@@ -330,7 +340,34 @@ if ($SkipHakanMCP) {
     # -- HakanMCP --
     $mcpDir = "C:\dev\HakanMCP"
     if (Test-Path $mcpDir) {
-        Write-Host "  [OK] HakanMCP already exists: $mcpDir" -ForegroundColor Green
+        Write-Host "  [OK] HakanMCP exists: $mcpDir — checking for updates..." -ForegroundColor Cyan
+        try {
+            Push-Location $mcpDir
+            $localHash = git rev-parse HEAD 2>$null
+            git fetch origin main --quiet 2>$null
+            $remoteHash = git rev-parse origin/main 2>$null
+            if ($localHash -ne $remoteHash -and $remoteHash) {
+                Write-Host "  Updates available. Pulling latest..." -ForegroundColor Cyan
+                git pull origin main --quiet 2>$null
+                Write-Host "  Running npm install..." -ForegroundColor Cyan
+                npm install 2>&1 | Out-Null
+                Write-Host "  Running npm run build..." -ForegroundColor Cyan
+                npm run build 2>&1 | Out-Null
+                Write-Host "  [OK] HakanMCP updated." -ForegroundColor Green
+            } else {
+                Write-Host "  [OK] HakanMCP is up to date." -ForegroundColor Green
+            }
+            # Ensure .env exists
+            if ((Test-Path "$mcpDir\.env.example") -and -not (Test-Path "$mcpDir\.env")) {
+                Copy-Item "$mcpDir\.env.example" "$mcpDir\.env"
+                Write-Host "  [OK] .env created from .env.example — configure API keys in $mcpDir\.env" -ForegroundColor Yellow
+            }
+            Pop-Location
+        } catch {
+            Pop-Location -ErrorAction SilentlyContinue
+            Write-Host "  [!!] HakanMCP update check failed: $_" -ForegroundColor Yellow
+            Write-Host "       Existing installation preserved." -ForegroundColor DarkGray
+        }
     } else {
         if ($gitOk -or (Get-Command git -ErrorAction SilentlyContinue)) {
             Write-Host "  Cloning HakanMCP..." -ForegroundColor Cyan
@@ -346,6 +383,11 @@ if ($SkipHakanMCP) {
                 npm run build 2>&1 | Out-Null
                 Pop-Location
                 Write-Host "  [OK] HakanMCP installed: $mcpDir" -ForegroundColor Green
+                # Setup .env from example
+                if ((Test-Path "$mcpDir\.env.example") -and -not (Test-Path "$mcpDir\.env")) {
+                    Copy-Item "$mcpDir\.env.example" "$mcpDir\.env"
+                    Write-Host "  [OK] .env created from .env.example — configure API keys in $mcpDir\.env" -ForegroundColor Yellow
+                }
             } catch {
                 Pop-Location -ErrorAction SilentlyContinue
                 Write-Host "  [!!] HakanMCP installation failed: $_" -ForegroundColor Red

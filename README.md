@@ -1,21 +1,35 @@
-<p align="center">
-  <h1 align="center">claude-code-dotfiles</h1>
-  <p align="center">
-    My personal Claude Code CLI configuration — portable, automated, production-ready.
-  </p>
-  <p align="center">
-    <img src="https://img.shields.io/badge/version-1.9.3-blue?style=flat-square" alt="Version: 1.9.3">
-    <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows" alt="Platform: Windows">
-    <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
-    <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">
-  </p>
-</p>
+![Version](https://img.shields.io/badge/version-1.10.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
 
----
+# claude-code-dotfiles
 
-A complete, opinionated Claude Code CLI setup: full project lifecycle workflow (GSD), multi-layer safety hooks, multi-agent coordination, context engineering rules, and 200+ MCP tools — all installable with a single command.
+Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, and 200+ MCP tools.
+
+## Table of Contents
+
+- [Highlights](#highlights)
+- [Quick Start](#quick-start)
+- [What's Included](#whats-included)
+- [Safety System](#safety-system)
+- [Documentation](#documentation)
+- [Troubleshooting](#troubleshooting)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Highlights
+
+- GSD (Get Shit Done) workflow with 34 commands for full project lifecycle management
+- Multi-agent coordination with 12 specialized agents and wave-based parallelization
+- 200+ MCP tools via HakanMCP integration (DB, Git, AI, monitoring, orchestration)
+- 3-layer safety system (Dippy auto-approve, pretooluse-safety blocker, context monitor)
+- Auto-update with version tracking and dotfiles sync
 
 ## Quick Start
+
+**Windows (PowerShell):**
 
 ```powershell
 git clone https://github.com/sudohakan/claude-code-dotfiles.git C:\dev\claude-code-dotfiles
@@ -23,40 +37,178 @@ PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps
 claude login
 ```
 
-> **Linux/macOS:** Use `install.sh` instead.
+**Linux/macOS (Bash):**
+
+```bash
+git clone https://github.com/sudohakan/claude-code-dotfiles.git ~/dev/claude-code-dotfiles
+bash ~/dev/claude-code-dotfiles/install.sh
+claude login
+```
+
+> For detailed installation steps, see [SETUP.md](SETUP.md)
 
 ## What's Included
 
-| Component | Count | Description |
-|-----------|------:|-------------|
-| **Global Instructions** | 1 | `CLAUDE.md` — GSD workflow, multi-agent protocol, context engineering, session continuity |
-| **Hooks** | 7 | Dippy (bash auto-approve), pretooluse-safety (credential/unicode/destructive blocker), GSD context monitor, statusline, GSD check-update, dotfiles check-update, auto-format |
-| **GSD Commands** | 33 | Full lifecycle: new-project, plan-phase, execute-phase, auto-phase, run-phase, debug, quick, verify-work, and 25 more |
-| **Git Workflow Commands** | 7 | `/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship` |
-| **Utility Commands** | 3 | `/init-hakan` (project scaffolding), `/browser` (Playwright MCP browser launcher), `/dotfiles-update` (auto-update from GitHub) |
-| **Agents** | 11 | planner, executor, debugger, verifier, phase-researcher, project-researcher, plan-checker, integration-checker, codebase-mapper, roadmapper, research-synthesizer |
-| **Reference Docs** | 5 | Decision matrix, multi-agent protocol, tools reference, UI/UX design system, review/Ralph |
-| **Skills** | 3 | cc-devops-skills, trailofbits-security, ui-ux-pro-max |
-| **Plugins** | 13 | 7 official + 6 Trail of Bits security plugins |
-| **Memory** | 6 files | Cross-project knowledge base: decisions, patterns, solutions, session-continuity, auto-checkpoint |
-| **MCP** | 200+ | HakanMCP server (DB, Git, AI, monitoring, orchestration, file system) |
+<details>
+<summary><strong>Hooks and Safety System (7 hooks)</strong></summary>
 
-## Installation Steps
+Every tool call passes through a multi-layer hook pipeline:
 
-| # | Step | Details |
-|--:|------|---------|
-| 1 | **Package Manager** | Checks for winget/choco availability |
-| 2 | **Dependencies** | Installs Git, Node.js, Python, jq via `winget` if not found |
-| 3 | **Claude Code CLI** | `npm install -g @anthropic-ai/claude-code` |
-| 4 | **Backup** | Backs up existing `~/.claude/` to `~/.claude-backup-{timestamp}/` |
-| 5 | **Directory Structure** | Creates all required directories under `~/.claude/` |
-| 6 | **Copy Config** | Copies all config to `~/.claude/` (hooks, commands, agents, skills, docs, GSD) |
-| 7 | **Path Fix** | Replaces hardcoded username references with current `$env:USERNAME` |
-| 8 | **Memory** | Creates `memory/` directory with template files for knowledge base |
-| 9 | **HakanMCP** | Clones and builds HakanMCP to `C:\dev\HakanMCP` (skip: `-SkipHakanMCP`) |
-| 10 | **Plugins** | Installs 13 plugins via `claude plugins install` (skip: `-SkipPlugins`) |
+| Hook | Type | Description |
+|------|------|-------------|
+| **Dippy** | PreToolUse | Smart bash auto-approve (Python, 14K+ tests). Auto-approves safe commands (`ls`, `git status`, `npm test`), flags risky ones |
+| **pretooluse-safety.js** | PreToolUse | Blocks destructive git/fs/db commands, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT), unicode injection (zero-width, bidi override, Cyrillic homoglyph) |
+| **gsd-context-monitor.js** | PostToolUse | Tracks context budget usage with thresholds at 45%, 55%, 65%, 75%, 85%, 90% |
+| **gsd-statusline.js** | StatusLine | Renders profile, phase, and context percentage |
+| **gsd-check-update.js** | SessionStart | Checks for GSD version updates on session start |
+| **dotfiles-check-update.js** | SessionStart | Checks for dotfiles version updates on session start |
+| **post-autoformat.js** | PostToolUse | Code formatting via Prettier (disabled by default) |
 
-## Project Structure
+**Hook execution order:**
+
+```
+SessionStart  ->  gsd-check-update.js             GSD version check
+PreToolUse    ->  dippy                            Auto-approve safe bash commands
+              ->  pretooluse-safety.js             Block dangerous commands / credentials / unicode
+PostToolUse   ->  gsd-context-monitor.js           Track context budget %
+StatusLine    ->  gsd-statusline.js                Render profile + phase + context %
+```
+
+Safety details:
+- Session-based allowlist remembers approved dangerous commands (12h TTL)
+- Credentials and unicode injection are always hard-blocked (no allowlist bypass)
+- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test` (19 tests)
+- Optional data exfiltration detection (curl POST, scp, netcat, rsync) via `ENABLE_EXFILTRATION_CHECK`
+
+</details>
+
+<details>
+<summary><strong>GSD Commands (34 commands)</strong></summary>
+
+Full project lifecycle management:
+
+| Stage | Command | Description |
+|-------|---------|-------------|
+| **Init** | `/gsd:new-project` | Scaffold ROADMAP.md and STATE.md |
+| **Plan** | `/gsd:discuss-phase` | Gather context and discuss phase approach |
+| | `/gsd:plan-phase` | Create phase plan (PLAN.md) |
+| | `/gsd:research-phase` | Phase-specific research |
+| | `/gsd:list-phase-assumptions` | List assumptions for a phase |
+| | `/gsd:validate-phase` | Validate phase plan |
+| **Execute** | `/gsd:execute-phase` | Run with wave-based agent parallelization |
+| | `/gsd:auto-phase` | Full cycle (plan+execute+verify) for one or range of phases |
+| | `/gsd:run-phase` | Plan+execute in one step (no verify) |
+| | `/gsd:quick` | Skip planning for small tasks |
+| **Verify** | `/gsd:verify-work` | Conversational UAT validation |
+| | `/gsd:add-tests` | Add tests for current work |
+| **Debug** | `/gsd:debug` | Systematic debugging with dedicated agent |
+| **Track** | `/gsd:progress` | Status check and next-action routing |
+| | `/gsd:health` | Project health check |
+| | `/gsd:check-todos` | Check outstanding TODOs |
+| **Phase Mgmt** | `/gsd:add-phase` | Add a new phase to roadmap |
+| | `/gsd:insert-phase` | Insert phase at specific position |
+| | `/gsd:remove-phase` | Remove a phase |
+| **Milestone** | `/gsd:new-milestone` | Create a new milestone |
+| | `/gsd:complete-milestone` | Mark milestone as complete |
+| | `/gsd:audit-milestone` | Audit milestone progress |
+| | `/gsd:plan-milestone-gaps` | Plan gaps in milestone |
+| **Workflow** | `/gsd:pause-work` | Pause current work |
+| | `/gsd:resume-work` | Resume paused work |
+| | `/gsd:cleanup` | Clean up project artifacts |
+| | `/gsd:reapply-patches` | Reapply patches |
+| **Config** | `/gsd:set-profile` | Set GSD profile (budget/balanced/quality) |
+| | `/gsd:settings` | View/edit GSD settings |
+| | `/gsd:update` | Update GSD to latest version |
+| **Tools** | `/gsd:map-codebase` | Map codebase structure |
+| | `/gsd:add-todo` | Add a TODO item |
+| | `/gsd:help` | Show GSD help |
+| | `/gsd:join-discord` | Join GSD Discord community |
+
+**Profile auto-selection:** `budget` (fix/typo) -- `balanced` (standard dev) -- `quality` (architecture/new project)
+
+</details>
+
+<details>
+<summary><strong>Utility and Git Commands (10 commands)</strong></summary>
+
+| Command | Category | Description |
+|---------|----------|-------------|
+| `/commit` | Git | Conventional commit with message generation |
+| `/create-pr` | Git | Branch, commit, push, and create PR |
+| `/fix-github-issue` | Git | Fetch and fix a GitHub issue |
+| `/fix-pr` | Git | Fix PR review comments |
+| `/release` | Git | Version bump, changelog update, tag |
+| `/run-ci` | Git | Auto-detect and run CI checks |
+| `/ship` | Git | End-to-end git workflow |
+| `/init-hakan` | Utility | Project scaffolding (creates `.planning/` and `memory/` structure) |
+| `/browser` | Utility | Playwright MCP browser launcher |
+| `/dotfiles-update` | Utility | Auto-update dotfiles from GitHub |
+
+</details>
+
+<details>
+<summary><strong>Agents (12 specialized)</strong></summary>
+
+| Agent | Role |
+|-------|------|
+| **gsd-planner** | Phase planning and task breakdown |
+| **gsd-executor** | Code implementation |
+| **gsd-debugger** | Bug investigation and root cause analysis |
+| **gsd-verifier** | Quality verification and UAT |
+| **gsd-phase-researcher** | Phase-specific research |
+| **gsd-project-researcher** | Project-wide context gathering |
+| **gsd-plan-checker** | Plan completeness validation |
+| **gsd-integration-checker** | Cross-component verification |
+| **gsd-codebase-mapper** | Codebase structure analysis |
+| **gsd-roadmapper** | Roadmap generation |
+| **gsd-research-synthesizer** | Multi-source research aggregation |
+| **gsd-nyquist-auditor** | Quality and frequency auditing |
+
+**Coordination features:**
+- Dependency-driven eager wave execution for parallel task scheduling
+- Quality gates between agent handoffs
+- Context-aware model routing: haiku (simple search) -> sonnet (standard) -> opus (deep analysis)
+- Failure protocols and automatic recovery
+
+</details>
+
+<details>
+<summary><strong>Skills (3 skill sets)</strong></summary>
+
+| Skill Set | Description |
+|-----------|-------------|
+| **cc-devops-skills** | DevOps: infrastructure as code, CI/CD, cloud platforms |
+| **trailofbits-security** | Security: static analysis, audit, vulnerability scanning (6 plugins) |
+| **ui-ux-pro-max** | UI/UX design system: 67 styles, 96 palettes, 13 tech stacks |
+
+**Plugins (13 total):** 7 official Claude Code plugins + 6 Trail of Bits security plugins
+
+</details>
+
+<details>
+<summary><strong>Memory and Context (6 files)</strong></summary>
+
+Cross-project knowledge base stored in `~/.claude/projects/`:
+
+| File | Purpose |
+|------|---------|
+| `MEMORY.md` | Main memory index |
+| `session-continuity.md` | Session state for resume (`claude --continue`) |
+| `auto-checkpoint.md` | Auto-checkpoint data |
+| `decisions.md` | Architectural decisions |
+| `patterns.md` | Recurring patterns |
+| `solutions.md` | Bug fixes and root causes |
+
+**Context engineering rules** enforced across all workflows:
+- Write to filesystem, not context -- large outputs go to files
+- Subagent isolation -- each subagent starts with clean context
+- Lazy loading -- MCP tools loaded on-demand via ToolSearch
+- Budget thresholds -- automatic checkpoints at 45%, 55%, 65%, 75%, 85%, 90%
+
+</details>
+
+<details>
+<summary><strong>Project Structure</strong></summary>
 
 ```
 claude-code-dotfiles/
@@ -67,6 +219,7 @@ claude-code-dotfiles/
 ├── CLAUDE.md                                    # Project-level instructions for this repo
 ├── SETUP.md                                     # Detailed setup guide
 ├── SECURITY.md                                  # Security policy
+├── CONTRIBUTING.md                              # Contribution guidelines
 ├── LICENSE                                      # MIT license
 ├── .gitignore                                   # Git exclusions
 ├── .github/
@@ -84,7 +237,7 @@ claude-code-dotfiles/
     ├── package.json                             # GSD npm dependencies
     ├── gsd-file-manifest.json                   # GSD file tracking manifest
     ├── project-registry.json                    # Project discovery config (scan roots, recent)
-    ├── agents/                                  # 11 GSD agent definitions
+    ├── agents/                                  # 12 GSD agent definitions
     │   ├── gsd-planner.md                       # Phase planning and task breakdown
     │   ├── gsd-executor.md                      # Code implementation
     │   ├── gsd-debugger.md                      # Bug investigation and root cause
@@ -95,6 +248,7 @@ claude-code-dotfiles/
     │   ├── gsd-integration-checker.md           # Cross-component verification
     │   ├── gsd-codebase-mapper.md               # Codebase structure analysis
     │   ├── gsd-roadmapper.md                    # Roadmap generation
+    │   ├── gsd-nyquist-auditor.md               # Quality and frequency auditing
     │   └── gsd-research-synthesizer.md          # Multi-source research aggregation
     ├── commands/                                # Slash commands
     │   ├── init-hakan.md                        # /init-hakan — project scaffolding
@@ -107,7 +261,7 @@ claude-code-dotfiles/
     │   ├── run-ci.md                            # /run-ci — auto-detect and run CI checks
     │   ├── ship.md                              # /ship — end-to-end git workflow
     │   ├── dotfiles-update.md                   # /dotfiles-update — auto-update from GitHub
-    │   └── gsd/                                 # 33 GSD workflow commands
+    │   └── gsd/                                 # 34 GSD workflow commands
     │       ├── new-project.md                   # Initialize project (ROADMAP + STATE)
     │       ├── plan-phase.md                    # Create phase plan (PLAN.md)
     │       ├── execute-phase.md                 # Execute with wave parallelization
@@ -117,7 +271,7 @@ claude-code-dotfiles/
     │       ├── run-phase.md                     # Plan+execute in one step
     │       ├── verify-work.md                   # UAT validation
     │       ├── progress.md                      # Status and next-action routing
-    │       └── ... (24 more)                    # discuss, research, resume, pause, etc.
+    │       └── ... (25 more)                    # discuss, research, resume, pause, etc.
     ├── docs/                                    # 5 reference documents (loaded on-demand)
     │   ├── decision-matrix.md                   # Task → workflow routing rules
     │   ├── multi-agent.md                       # Parallel agent coordination protocol
@@ -156,74 +310,43 @@ claude-code-dotfiles/
                 └── solutions.md                 # Bug fixes and root causes
 ```
 
-## How It Works
+</details>
 
-### Hook Execution Order
+## Safety System
 
-Every tool call passes through this pipeline:
-
-```
-SessionStart  →  gsd-check-update.js             GSD version check
-PreToolUse    →  dippy                            Auto-approve safe bash commands
-              →  pretooluse-safety.js             Block dangerous commands / credentials / unicode
-PostToolUse   →  gsd-context-monitor.js           Track context budget %
-StatusLine    →  gsd-statusline.js                Render profile + phase + context %
-```
-
-### GSD Workflow
-
-Full project lifecycle management with 33 slash commands:
-
-| Stage | Command | Description |
-|-------|---------|-------------|
-| **Init** | `/gsd:new-project` | Scaffold ROADMAP.md and STATE.md |
-| **Plan** | `/gsd:discuss-phase` → `/gsd:plan-phase` | Gather context, create phase plan |
-| **Execute** | `/gsd:execute-phase` | Run with wave-based agent parallelization |
-| **Auto** | `/gsd:auto-phase` | Full cycle (plan+execute+verify) for one or range of phases |
-| **Run** | `/gsd:run-phase` | Plan+execute in one step (no verify) |
-| **Verify** | `/gsd:verify-work` | Conversational UAT validation |
-| **Quick** | `/gsd:quick` | Skip planning for small tasks |
-| **Debug** | `/gsd:debug` | Systematic debugging with dedicated agent |
-| **Track** | `/gsd:progress` | Status check and next-action routing |
-
-**Profile auto-selection:** `budget` (fix/typo) · `balanced` (standard dev) · `quality` (architecture/new project)
-
-### Safety System
+Three layers protect every tool call from accidental damage:
 
 | Layer | Hook | What It Catches |
 |------:|------|-----------------|
 | 1 | **Dippy** | Auto-approves safe commands (`ls`, `git status`, `npm test`), flags risky ones |
-| 2 | **pretooluse-safety.js** | Destructive git/fs/db commands, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT), unicode injection (zero-width, bidi override, Cyrillic homoglif) |
-| 3 | *(optional)* | Data exfiltration detection (curl POST, scp, netcat, rsync) — disabled by default via `ENABLE_EXFILTRATION_CHECK` |
+| 2 | **pretooluse-safety.js** | Destructive git/fs/db commands, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT), unicode injection (zero-width, bidi override, Cyrillic homoglyph) |
+| 3 | *(optional)* | Data exfiltration detection (curl POST, scp, netcat, rsync) -- disabled by default via `ENABLE_EXFILTRATION_CHECK` |
 
-- Session-based allowlist remembers approved dangerous commands (12h TTL)
-- Credentials and unicode injection are always hard-blocked (no allowlist bypass)
-- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test` (19 tests)
+```mermaid
+flowchart TD
+    A["Tool Call"] --> B{"pretooluse-safety.js"}
+    B -->|"Blocked"| C["Reject + Warning"]
+    B -->|"Allowed"| D{"Dippy auto-approve"}
+    D -->|"Known safe"| E["Execute"]
+    D -->|"Unknown"| F["User prompt"]
+    E --> G{"gsd-context-monitor.js"}
+    G --> H["Track context usage"]
+```
 
-### Multi-Agent Protocol
+**Security highlights:**
+- No credentials in repo -- OAuth tokens generated per-machine via `claude login`
+- Credential detection hook blocks accidental exposure of API keys in commands
+- Path auto-fix -- install script replaces hardcoded paths with current username
+- Git safety -- commits and pushes require explicit user approval
 
-11 specialized agents with structured coordination:
+## Documentation
 
-- **Dependency-driven eager wave execution** for parallel task scheduling
-- **Quality gates** between agent handoffs
-- **Context-aware model routing:** haiku (simple search) → sonnet (standard) → opus (deep analysis)
-- **Failure protocols** and automatic recovery
-
-### Context Engineering
-
-Token efficiency rules enforced across all workflows:
-
-- **Write to filesystem, not context** — large outputs go to files
-- **Subagent isolation** — each subagent starts with clean context
-- **Lazy loading** — MCP tools loaded on-demand via ToolSearch
-- **Budget thresholds** — automatic checkpoints at 45%, 55%, 65%, 75%, 85%, 90%
-
-## Security
-
-- No credentials in repo — OAuth tokens generated per-machine via `claude login`
-- Credential detection hook — blocks accidental exposure of API keys in commands
-- Path auto-fix — install script replaces hardcoded paths with current username
-- Git safety — commits and pushes require explicit user approval
+| Document | Description |
+|----------|-------------|
+| [SETUP.md](SETUP.md) | Installation and configuration guide |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
+| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## Troubleshooting
 
@@ -235,7 +358,7 @@ Token efficiency rules enforced across all workflows:
 | Safety hook false positive | `node ~/.claude/hooks/pretooluse-safety.js --approve "command"` |
 | GSD commands missing | Verify `~/.claude/commands/gsd/` exists with `.md` files |
 | GSD workflows failing | Ensure `jq` is installed: `jq --version` (used by GSD workflows) |
-| Path errors after install | Re-run `install.ps1` — auto-fixes paths for your username |
+| Path errors after install | Re-run `install.ps1` -- auto-fixes paths for your username |
 | Plugin install fails | Run `claude plugins install "plugin-name"` manually |
 | `CLAUDE.md` not loading | Must be in `~/.claude/CLAUDE.md` (global) or project root (project-level) |
 | Session continuity missing | Run `/init-hakan` in project to create memory structure |
@@ -251,9 +374,13 @@ Token efficiency rules enforced across all workflows:
 - **Git:** Any recent version (auto-installed)
 - **Claude Code:** Installed automatically by the script
 
+## Contributing
+
+We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, commit conventions, and pull request guidelines.
+
 ## License
 
-[MIT](LICENSE) — 2026 Hakan
+[MIT](LICENSE) -- 2026 Hakan
 
 ---
 
