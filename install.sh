@@ -128,6 +128,43 @@ else
     warn "npm not found. Check your Node.js installation."
 fi
 
+# Python (required by hookify plugin)
+PYTHON_CMD=""
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+    ok "Python : $(python3 --version 2>&1)"
+elif command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+    ok "Python : $(python --version 2>&1)"
+else
+    info "Python not found, installing..."
+    if [ "$HAS_WINGET" = true ]; then
+        if winget install -e --id Python.Python.3.12 --accept-source-agreements --accept-package-agreements 2>/dev/null; then
+            export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/Programs/Python/Python312:/c/Users/$USERNAME/AppData/Local/Programs/Python/Python312/Scripts"
+            if command -v python &>/dev/null; then
+                PYTHON_CMD="python"
+                ok "Python installed"
+            elif command -v python3 &>/dev/null; then
+                PYTHON_CMD="python3"
+                ok "Python installed"
+            fi
+        fi
+    elif command -v brew &>/dev/null; then
+        if brew install python3 2>/dev/null; then
+            PYTHON_CMD="python3"
+            ok "Python installed via Homebrew"
+        fi
+    elif command -v apt-get &>/dev/null; then
+        if sudo apt-get install -y python3 2>/dev/null; then
+            PYTHON_CMD="python3"
+            ok "Python installed via apt"
+        fi
+    fi
+    if [ -z "$PYTHON_CMD" ]; then
+        warn "Python automatic installation failed. Install manually: https://www.python.org/downloads/"
+    fi
+fi
+
 # jq
 if command -v jq &>/dev/null; then
     ok "jq : $(jq --version 2>/dev/null)"
@@ -139,15 +176,6 @@ else
     else
         warn "jq not found. Install: apt install jq / brew install jq"
     fi
-fi
-
-# Python (required for Dippy hook)
-if command -v python3 &>/dev/null; then
-    ok "Python : $(python3 --version 2>/dev/null)"
-elif command -v python &>/dev/null; then
-    ok "Python : $(python --version 2>/dev/null)"
-else
-    warn "Python not found. Required for Dippy hook. Install: apt install python3 / brew install python"
 fi
 
 # -- STEP 3: Claude Code CLI --
@@ -372,7 +400,7 @@ else
     if command -v claude &>/dev/null; then
         info "Installing official plugins..."
 
-        for plugin in superpowers code-review context7 feature-dev ralph-loop playwright typescript-lsp; do
+        for plugin in superpowers code-review context7 feature-dev ralph-loop playwright typescript-lsp hookify frontend-design skill-creator commit-commands code-simplifier pr-review-toolkit security-guidance claude-md-management; do
             if claude plugins install "$plugin" 2>/dev/null; then
                 ok "$plugin"
             else
@@ -400,6 +428,23 @@ else
                     warn "$plugin@anthropic-agent-skills (can be installed manually later)"
                 fi
             done
+        fi
+
+        # Fix hookify python3 → python on systems where python3 doesn't exist
+        if [ -n "$PYTHON_CMD" ] && [ "$PYTHON_CMD" = "python" ]; then
+            info "Fixing hookify hooks for python compatibility..."
+            HOOKIFY_FIXED=0
+            for hfile in "$CLAUDE_DIR"/plugins/cache/claude-plugins-official/hookify/*/hooks/hooks.json \
+                         "$CLAUDE_DIR"/plugins/marketplaces/claude-code-plugins/plugins/hookify/hooks/hooks.json \
+                         "$CLAUDE_DIR"/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/hooks.json; do
+                if [ -f "$hfile" ]; then
+                    sed -i'' -e 's/python3 /python /g' "$hfile"
+                    HOOKIFY_FIXED=$((HOOKIFY_FIXED + 1))
+                fi
+            done
+            if [ "$HOOKIFY_FIXED" -gt 0 ]; then
+                ok "Hookify python3→python fix applied ($HOOKIFY_FIXED files)"
+            fi
         fi
 
         ok "Plugin installation complete."
@@ -433,6 +478,7 @@ check_item() {
 }
 check_item "Node.js"    "$(command -v node &>/dev/null && echo true || echo false)"
 check_item "Git"        "$(command -v git &>/dev/null && echo true || echo false)"
+check_item "Python"     "$( (command -v python3 &>/dev/null || command -v python &>/dev/null) && echo true || echo false)"
 check_item "jq"         "$(command -v jq &>/dev/null && echo true || echo false)"
 check_item "Claude CLI" "$(command -v claude &>/dev/null && echo true || echo false)"
 if [ -d "/c/" ]; then _MCP_CHECK="/c/dev/HakanMCP/dist/src/index.js"; else _MCP_CHECK="$HOME/dev/HakanMCP/dist/src/index.js"; fi
