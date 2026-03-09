@@ -5,6 +5,19 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.11.0] - 2026-03-09
+
+### Added
+- **Allowed directories** — New `ALLOWED_DIRS` concept: when CWD is inside an allowed directory (`c:/dev`, `c:/users/hakan/source`), destructive file operations are auto-allowed without prompting
+- **`normalizePath()` helper** — Normalizes Windows/Git Bash paths to lowercase forward-slash form for consistent comparison
+- **`isInAllowedDir()` helper** — Checks if a path is inside any allowed directory
+- **CWD-aware `isInSafeDevDir()`** — Now accepts `cwd` parameter; auto-allows when CWD is in allowed directory
+- **Extended destructive patterns** — `find -exec rm` and `rd /s` now recognized as file-destructive operations
+- **11 new tests** — Allowed directory tests (7) and CWD-based safe dir tests (4), total 30 tests
+
+### Changed
+- **pretooluse-safety.js** — Bumped from v1.2.0 to v1.3.0
+
 ## [1.10.1] - 2026-03-09
 
 ### Added
