@@ -84,8 +84,7 @@ These rules apply in ALL conversations — GSD and non-GSD alike.
 | **65%** | Complete current work, don't start new tasks |
 | **75%** | Update session-continuity.md, inform user: can continue with `claude --resume` |
 | **85%** | Suggest `/compact` |
-| **90%** | Update session-continuity.md, suggest `/compact` |
-| **95%** | Update session-continuity.md, run `/compact`, post-compact summary: "Son kalınan nokta: X. Devam edilecek: Y." |
+| **90%** | Update session-continuity.md, tell user to run `/compact` |
 
 ### Token Efficiency Principles
 
