@@ -281,8 +281,10 @@ ok "All files copied."
 step 7 "Fixing file paths..."
 
 if [ "$USERNAME" != "Hakan" ]; then
-    sed -i'' -e"s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$CLAUDE_DIR/settings.json"
-    sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$CLAUDE_DIR/settings.json"
+    # Escape backslashes in USERNAME for sed (handles domain usernames like CORP\user)
+    USERNAME_ESC="$(printf '%s\n' "$USERNAME" | sed 's/[\\|&/]/\\&/g')"
+    sed -i'' -e"s|C:/Users/Hakan|C:/Users/${USERNAME_ESC}|g" "$CLAUDE_DIR/settings.json"
+    sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME_ESC}|g" "$CLAUDE_DIR/settings.json"
     ok "Paths updated: Hakan -> ${USERNAME}"
 else
     ok "Same username, no changes needed."
@@ -343,10 +345,15 @@ else
             info "Updates available. Pulling latest..."
             git pull origin main --quiet 2>/dev/null
             info "Running npm install..."
-            npm install || warn "npm install had errors"
+            NPM_OK=true
+            npm install || { warn "npm install had errors"; NPM_OK=false; }
             info "Running npm run build..."
-            npm run build || warn "npm run build had errors"
-            ok "HakanMCP updated."
+            npm run build || { warn "npm run build had errors"; NPM_OK=false; }
+            if [ "$NPM_OK" = true ]; then
+                ok "HakanMCP updated."
+            else
+                warn "HakanMCP updated with errors — check above."
+            fi
         else
             ok "HakanMCP is up to date."
         fi
