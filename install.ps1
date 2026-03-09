@@ -351,9 +351,16 @@ if ($SkipHakanMCP) {
                 git pull origin main --quiet 2>$null
                 Write-Host "  Running npm install..." -ForegroundColor Cyan
                 npm install 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "  [!!] npm install failed during update." -ForegroundColor Red
+                }
                 Write-Host "  Running npm run build..." -ForegroundColor Cyan
                 npm run build 2>&1 | Out-Null
-                Write-Host "  [OK] HakanMCP updated." -ForegroundColor Green
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "  [!!] npm run build failed during update." -ForegroundColor Red
+                } else {
+                    Write-Host "  [OK] HakanMCP updated." -ForegroundColor Green
+                }
             } else {
                 Write-Host "  [OK] HakanMCP is up to date." -ForegroundColor Green
             }
@@ -375,12 +382,20 @@ if ($SkipHakanMCP) {
                 if (-not (Test-Path "C:\dev")) {
                     New-Item -ItemType Directory -Path "C:\dev" -Force | Out-Null
                 }
-                git clone https://github.com/sudohakan/hakanmcp.git $mcpDir 2>&1 | Out-Null
+                git clone https://github.com/sudohakan/HakanMCP.git $mcpDir 2>&1 | Out-Null
                 Push-Location $mcpDir
                 Write-Host "  Running npm install..." -ForegroundColor Cyan
                 npm install 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    Pop-Location
+                    throw "npm install failed"
+                }
                 Write-Host "  Running npm run build..." -ForegroundColor Cyan
                 npm run build 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    Pop-Location
+                    throw "npm run build failed"
+                }
                 Pop-Location
                 Write-Host "  [OK] HakanMCP installed: $mcpDir" -ForegroundColor Green
                 # Setup .env from example
@@ -391,7 +406,7 @@ if ($SkipHakanMCP) {
             } catch {
                 Pop-Location -ErrorAction SilentlyContinue
                 Write-Host "  [!!] HakanMCP installation failed: $_" -ForegroundColor Red
-                Write-Host "       Manual: git clone https://github.com/sudohakan/hakanmcp.git C:\dev\HakanMCP" -ForegroundColor DarkGray
+                Write-Host "       Manual: git clone https://github.com/sudohakan/HakanMCP.git C:\dev\HakanMCP" -ForegroundColor DarkGray
             }
         } else {
             Write-Host "  [!!] Git not available, cannot clone HakanMCP." -ForegroundColor Yellow

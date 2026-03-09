@@ -332,7 +332,7 @@ else
         if command -v git &>/dev/null; then
             info "Cloning HakanMCP..."
             mkdir -p "$(dirname "$MCP_DIR")"
-            if git clone https://github.com/sudohakan/hakanmcp.git "$MCP_DIR" 2>/dev/null; then
+            if git clone https://github.com/sudohakan/HakanMCP.git "$MCP_DIR" 2>/dev/null; then
                 cd "$MCP_DIR"
                 info "Running npm install..."
                 if ! npm install; then
@@ -355,7 +355,7 @@ else
                 fi
             else
                 err "HakanMCP clone failed."
-                echo "       Manual: git clone https://github.com/sudohakan/hakanmcp.git /c/dev/HakanMCP"
+                echo "       Manual: git clone https://github.com/sudohakan/HakanMCP.git /c/dev/HakanMCP"
             fi
         else
             warn "Git not available, cannot clone HakanMCP."
