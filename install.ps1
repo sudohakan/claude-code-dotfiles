@@ -197,7 +197,7 @@ foreach ($file in @("CLAUDE.md", "settings.json", "settings.local.json", "packag
     }
 }
 
-# Hooks (js files only — Dippy is cloned separately)
+# Hooks (js files only - Dippy is cloned separately)
 Get-ChildItem "$configDir\hooks\*" -File | Copy-Item -Destination "$ClaudeDir\hooks\" -Force
 # Hook shared libraries
 if (Test-Path "$configDir\hooks\lib") {
@@ -340,7 +340,7 @@ if ($SkipHakanMCP) {
     # -- HakanMCP --
     $mcpDir = "C:\dev\HakanMCP"
     if (Test-Path $mcpDir) {
-        Write-Host "  [OK] HakanMCP exists: $mcpDir — checking for updates..." -ForegroundColor Cyan
+        Write-Host "  [OK] HakanMCP exists: $mcpDir - checking for updates..." -ForegroundColor Cyan
         try {
             Push-Location $mcpDir
             $localHash = git rev-parse HEAD 2>$null
@@ -367,7 +367,7 @@ if ($SkipHakanMCP) {
             # Ensure .env exists
             if ((Test-Path "$mcpDir\.env.example") -and -not (Test-Path "$mcpDir\.env")) {
                 Copy-Item "$mcpDir\.env.example" "$mcpDir\.env"
-                Write-Host "  [OK] .env created from .env.example — configure API keys in $mcpDir\.env" -ForegroundColor Yellow
+                Write-Host "  [OK] .env created from .env.example - configure API keys in $mcpDir\.env" -ForegroundColor Yellow
             }
             Pop-Location
         } catch {
@@ -401,7 +401,7 @@ if ($SkipHakanMCP) {
                 # Setup .env from example
                 if ((Test-Path "$mcpDir\.env.example") -and -not (Test-Path "$mcpDir\.env")) {
                     Copy-Item "$mcpDir\.env.example" "$mcpDir\.env"
-                    Write-Host "  [OK] .env created from .env.example — configure API keys in $mcpDir\.env" -ForegroundColor Yellow
+                    Write-Host "  [OK] .env created from .env.example - configure API keys in $mcpDir\.env" -ForegroundColor Yellow
                 }
             } catch {
                 Pop-Location -ErrorAction SilentlyContinue
@@ -444,7 +444,10 @@ if ($SkipPlugins) {
             $tobPlugins = @(
                 "static-analysis@trailofbits", "differential-review@trailofbits",
                 "insecure-defaults@trailofbits", "sharp-edges@trailofbits",
-                "supply-chain-risk-auditor@trailofbits", "audit-context-building@trailofbits"
+                "supply-chain-risk-auditor@trailofbits", "audit-context-building@trailofbits",
+                "property-based-testing@trailofbits", "variant-analysis@trailofbits",
+                "spec-to-code-compliance@trailofbits", "git-cleanup@trailofbits",
+                "workflow-skill-design@trailofbits"
             )
             foreach ($plugin in $tobPlugins) {
                 try {
@@ -456,6 +459,27 @@ if ($SkipPlugins) {
             }
         } catch {
             Write-Host "  [--] Trail of Bits marketplace can be added later" -ForegroundColor DarkGray
+        }
+
+        # Anthropic Agent Skills marketplace
+        Write-Host "  Adding Anthropic Agent Skills marketplace..." -ForegroundColor Cyan
+        try {
+            claude plugins add-marketplace anthropic-agent-skills https://github.com/anthropics/skills 2>&1 | Out-Null
+            $anthropicPlugins = @(
+                "document-skills@anthropic-agent-skills",
+                "example-skills@anthropic-agent-skills",
+                "claude-api@anthropic-agent-skills"
+            )
+            foreach ($plugin in $anthropicPlugins) {
+                try {
+                    claude plugins install $plugin 2>&1 | Out-Null
+                    Write-Host "  [OK] $plugin" -ForegroundColor DarkGreen
+                } catch {
+                    Write-Host "  [--] $plugin (can be installed manually later)" -ForegroundColor DarkGray
+                }
+            }
+        } catch {
+            Write-Host "  [--] Anthropic Agent Skills marketplace can be added later" -ForegroundColor DarkGray
         }
 
         Write-Host "  Plugin installation complete." -ForegroundColor Green
