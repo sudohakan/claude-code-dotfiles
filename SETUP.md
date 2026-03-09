@@ -101,7 +101,7 @@ config/
 │   ├── dotfiles-check-update.js # Dotfiles update check
 │   └── post-autoformat.js       # Auto format (disabled by default)
 ├── docs/                     # 5 reference documents
-├── commands/                 # 9 + 33 slash commands
+├── commands/                 # 10 + 34 slash commands
 │   ├── init-hakan.md            # /init-hakan — project scaffolding
 │   ├── browser.md               # /browser — Playwright MCP browser launcher
 │   ├── commit.md                # /commit — conventional commit
@@ -112,7 +112,7 @@ config/
 │   ├── run-ci.md                # /run-ci — auto-detect and run CI
 │   ├── ship.md                  # /ship — end-to-end git workflow
 │   └── gsd/                     # /gsd:* (33 commands)
-├── agents/                   # 11 GSD agent definitions
+├── agents/                   # 12 GSD agent definitions
 ├── get-shit-done/            # GSD core engine
 ├── skills/                   # 3 skill sets
 │   ├── cc-devops-skills/
@@ -174,7 +174,7 @@ claude plugins install supply-chain-risk-auditor@trailofbits audit-context-build
 
 ### Step 5: HakanMCP
 ```bash
-git clone https://github.com/sudohakan/hakanmcp.git C:\dev\HakanMCP
+git clone https://github.com/sudohakan/HakanMCP.git C:\dev\HakanMCP
 cd C:\dev\HakanMCP && npm install && npm run build
 ```
 
@@ -185,7 +185,7 @@ cd C:\dev\HakanMCP && npm install && npm run build
 Post-installation checks:
 ```bash
 claude --version                              # Is CLI working?
-node ~/.claude/hooks/pretooluse-safety.js --test  # Are hooks active? (19/19)
+node ~/.claude/hooks/pretooluse-safety.js --test  # Are hooks active? (30/30)
 claude plugins list                           # Are plugins installed?
 # Inside Claude: /gsd:help                    # Is GSD working?
 ```

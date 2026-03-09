@@ -227,7 +227,7 @@ claude-code-dotfiles/
 ├── README.md                        # Project overview
 ├── SECURITY.md                      # Security policy
 ├── SETUP.md                         # Installation guide
-└── VERSION                          # Current version (1.9.3)
+└── VERSION                          # Current version (semver)
 ```
 
 </details>
@@ -444,7 +444,7 @@ The safety hook has a built-in test runner:
 
 ```bash
 node config/hooks/pretooluse-safety.js --test
-# Expected: 19/19 tests pass
+# Expected: 30/30 tests pass
 ```
 
 ### Local Test Flow

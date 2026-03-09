@@ -91,7 +91,10 @@ process.stdin.on('end', () => {
     if (fs.existsSync(gsdCacheFile)) {
       try {
         const cache = JSON.parse(fs.readFileSync(gsdCacheFile, 'utf8'));
-        if (cache.update_available) updateSources.push('GSD');
+        if (cache.update_available) {
+          const ver = cache.installed && cache.latest ? ` ${cache.installed}→${cache.latest}` : '';
+          updateSources.push(`GSD${ver}`);
+        }
       } catch (e) {}
     }
 
@@ -99,7 +102,10 @@ process.stdin.on('end', () => {
     if (fs.existsSync(dotfilesCacheFile)) {
       try {
         const cache = JSON.parse(fs.readFileSync(dotfilesCacheFile, 'utf8'));
-        if (cache.update_available) updateSources.push('Dotfiles');
+        if (cache.update_available) {
+          const ver = cache.installed && cache.latest ? ` ${cache.installed}→${cache.latest}` : '';
+          updateSources.push(`Dotfiles${ver}`);
+        }
       } catch (e) {}
     }
 
