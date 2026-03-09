@@ -253,8 +253,8 @@ ok "All files copied."
 step 7 "Fixing file paths..."
 
 if [ "$USERNAME" != "Hakan" ]; then
-    sed -i "s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$CLAUDE_DIR/settings.json"
-    sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$CLAUDE_DIR/settings.json"
+    sed -i'' -e"s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$CLAUDE_DIR/settings.json"
+    sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$CLAUDE_DIR/settings.json"
     ok "Paths updated: Hakan -> ${USERNAME}"
 else
     ok "Same username, no changes needed."
@@ -266,13 +266,13 @@ if [ -f "$HOME/.claude.json" ]; then
 else
     cp "$SCRIPT_DIR/home-config/.claude.json" "$HOME/.claude.json"
     if [ "$USERNAME" != "Hakan" ]; then
-        sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$HOME/.claude.json"
+        sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$HOME/.claude.json"
     fi
     ok ".claude.json created."
     # Fix MCP path for Linux/macOS
     if [ ! -d "/c/" ] && [ -f "$HOME/.claude.json" ]; then
-        sed -i "s|C:\\\\\\\\dev\\\\\\\\HakanMCP|$(echo "$HOME/dev/HakanMCP" | sed 's/\//\\\\\\\\/g')|g" "$HOME/.claude.json"
-        sed -i 's|"cwd": "C:\\\\dev\\\\HakanMCP"|"cwd": "'"$HOME/dev/HakanMCP"'"|g' "$HOME/.claude.json"
+        sed -i'' -e"s|C:\\\\\\\\dev\\\\\\\\HakanMCP|$(echo "$HOME/dev/HakanMCP" | sed 's/\//\\\\\\\\/g')|g" "$HOME/.claude.json"
+        sed -i'' -e's|"cwd": "C:\\\\dev\\\\HakanMCP"|"cwd": "'"$HOME/dev/HakanMCP"'"|g' "$HOME/.claude.json"
         ok ".claude.json paths fixed for $(uname -s)"
     fi
 fi
@@ -287,8 +287,8 @@ cp "$CONFIG_DIR"/projects/C--Users-Hakan/memory/*.md "$MEM_DST/"
 
 if [ "$USERNAME" != "Hakan" ]; then
     for mdfile in "$MEM_DST"/*.md; do
-        sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$mdfile"
-        sed -i "s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$mdfile"
+        sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$mdfile"
+        sed -i'' -e"s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$mdfile"
     done
 fi
 ok "Memory copied (${PROJECT_KEY})."

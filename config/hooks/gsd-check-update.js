@@ -40,14 +40,14 @@ if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir, { recursive: true });
 }
 
-// Run check in background (spawn background process, windowsHide prevents console flash)
+// Run check in background — pass paths via env to avoid code injection through CLAUDE_CONFIG_DIR
 const child = spawn(process.execPath, ['-e', `
   const fs = require('fs');
   const { execSync } = require('child_process');
 
-  const cacheFile = ${JSON.stringify(cacheFile)};
-  const projectVersionFile = ${JSON.stringify(projectVersionFile)};
-  const globalVersionFile = ${JSON.stringify(globalVersionFile)};
+  const cacheFile = process.env._GSD_CACHE_FILE;
+  const projectVersionFile = process.env._GSD_PROJECT_VERSION;
+  const globalVersionFile = process.env._GSD_GLOBAL_VERSION;
 
   // Check project directory first (local install), then global
   let installed = '0.0.0';
@@ -75,7 +75,13 @@ const child = spawn(process.execPath, ['-e', `
 `], {
   stdio: 'ignore',
   windowsHide: true,
-  detached: true  // Required on Windows for proper process detachment
+  detached: true,  // Required on Windows for proper process detachment
+  env: {
+    ...process.env,
+    _GSD_CACHE_FILE: cacheFile,
+    _GSD_PROJECT_VERSION: projectVersionFile,
+    _GSD_GLOBAL_VERSION: globalVersionFile
+  }
 });
 
 child.unref();

@@ -154,7 +154,7 @@ function checkUnicodeInjection(command) {
 // --- Session-based allowlist ---
 const ALLOWLIST_DIR = path.join(os.tmpdir(), "claude-safety-allowlist");
 // Use CLAUDE_SESSION_ID if available, otherwise use a stable daily file
-const SESSION_ID = process.env.CLAUDE_SESSION_ID || `daily-${new Date().toISOString().slice(0, 10)}`;
+const SESSION_ID = process.env.CLAUDE_SESSION_ID || `pid-${process.ppid || process.pid}-${new Date().toISOString().slice(0, 10)}`;
 const ALLOWLIST_FILE = path.join(ALLOWLIST_DIR, `session-${SESSION_ID}.json`);
 const ALLOWLIST_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours
 
@@ -383,7 +383,6 @@ async function main() {
     if (ENABLE_EXFILTRATION_CHECK) {
       for (const { pattern, reason } of EXFILTRATION_PATTERNS) {
         if (pattern.test(command)) {
-          saveToAllowlist(command);
           const result = {
             decision: "block",
             reason: `⚠️ Data exfiltration risk: ${reason}\nCommand: ${command}\nRequires explicit user approval.\n(Once approved, won't be asked again this session)`
@@ -403,7 +402,6 @@ async function main() {
         if (isFileDestructive && isInSafeDevDir(command, cwd)) {
           continue;
         }
-        saveToAllowlist(command);
         const result = {
           decision: "block",
           reason: `⚠️ Dangerous command detected: ${reason}\nCommand: ${command}\nRequires explicit user approval.\n(Once approved, won't be asked again this session)`
