@@ -42,7 +42,7 @@ info() { echo -e "  \033[36m$1\033[0m"; }
 install_if_missing() {
     local name="$1" cmd="$2" install_cmd="$3" manual_msg="$4"
     if command -v "$cmd" &>/dev/null; then
-        ok "$name : $($cmd --version 2>/dev/null || echo 'available')"
+        ok "$name : $("$cmd" --version 2>/dev/null || echo 'available')"
         return 0
     fi
     info "$name not found, installing..."
@@ -85,7 +85,7 @@ step 2 "Checking and installing dependencies..."
 if command -v git &>/dev/null; then
     ok "Git : $(git --version)"
 else
-    if $HAS_WINGET; then
+    if [ "$HAS_WINGET" = true ]; then
         install_if_missing "Git" "git" \
             "winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements" \
             "Manual: https://git-scm.com/downloads"
@@ -98,7 +98,7 @@ fi
 if command -v node &>/dev/null; then
     ok "Node.js : $(node --version)"
 else
-    if $HAS_WINGET; then
+    if [ "$HAS_WINGET" = true ]; then
         install_if_missing "Node.js" "node" \
             "winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements" \
             "Manual: https://nodejs.org"
@@ -118,7 +118,7 @@ fi
 # Check Node.js version (HakanMCP requires >= 20)
 NODE_MAJOR=$(node --version 2>/dev/null | sed 's/v//' | cut -d. -f1)
 if [ -n "$NODE_MAJOR" ] && [ "$NODE_MAJOR" -lt 20 ]; then
-    err "Node.js v$NODE_MAJOR detected, but HakanMCP requires >= 20. Please update Node.js."
+    err "Node.js v${NODE_MAJOR} detected, but HakanMCP requires >= 20. Please update Node.js."
 fi
 
 # npm
@@ -132,7 +132,7 @@ fi
 if command -v jq &>/dev/null; then
     ok "jq : $(jq --version 2>/dev/null)"
 else
-    if $HAS_WINGET; then
+    if [ "$HAS_WINGET" = true ]; then
         install_if_missing "jq" "jq" \
             "winget install -e --id jqlang.jq --accept-source-agreements --accept-package-agreements" \
             "Manual: winget install jqlang.jq"
@@ -176,7 +176,7 @@ fi
 step 4 "Backing up existing configuration..."
 
 if [ -d "$CLAUDE_DIR" ]; then
-    if $FORCE; then
+    if [ "$FORCE" = true ]; then
         cp -r "$CLAUDE_DIR" "$BACKUP_DIR"
         ok "Backup: $BACKUP_DIR"
     else
@@ -253,9 +253,9 @@ ok "All files copied."
 step 7 "Fixing file paths..."
 
 if [ "$USERNAME" != "Hakan" ]; then
-    sed -i "s|C:/Users/Hakan|C:/Users/$USERNAME|g" "$CLAUDE_DIR/settings.json"
-    sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\$USERNAME|g" "$CLAUDE_DIR/settings.json"
-    ok "Paths updated: Hakan -> $USERNAME"
+    sed -i'' -e"s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$CLAUDE_DIR/settings.json"
+    sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$CLAUDE_DIR/settings.json"
+    ok "Paths updated: Hakan -> ${USERNAME}"
 else
     ok "Same username, no changes needed."
 fi
@@ -266,13 +266,13 @@ if [ -f "$HOME/.claude.json" ]; then
 else
     cp "$SCRIPT_DIR/home-config/.claude.json" "$HOME/.claude.json"
     if [ "$USERNAME" != "Hakan" ]; then
-        sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\$USERNAME|g" "$HOME/.claude.json"
+        sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$HOME/.claude.json"
     fi
     ok ".claude.json created."
     # Fix MCP path for Linux/macOS
     if [ ! -d "/c/" ] && [ -f "$HOME/.claude.json" ]; then
-        sed -i "s|C:\\\\\\\\dev\\\\\\\\HakanMCP|$(echo "$HOME/dev/HakanMCP" | sed 's/\//\\\\\\\\/g')|g" "$HOME/.claude.json"
-        sed -i 's|"cwd": "C:\\\\dev\\\\HakanMCP"|"cwd": "'"$HOME/dev/HakanMCP"'"|g' "$HOME/.claude.json"
+        sed -i'' -e"s|C:\\\\\\\\dev\\\\\\\\HakanMCP|$(echo "$HOME/dev/HakanMCP" | sed 's/\//\\\\\\\\/g')|g" "$HOME/.claude.json"
+        sed -i'' -e's|"cwd": "C:\\\\dev\\\\HakanMCP"|"cwd": "'"$HOME/dev/HakanMCP"'"|g' "$HOME/.claude.json"
         ok ".claude.json paths fixed for $(uname -s)"
     fi
 fi
@@ -280,23 +280,23 @@ fi
 # -- STEP 8: Memory --
 step 8 "Transferring memory files..."
 
-PROJECT_KEY="C--Users-$USERNAME"
+PROJECT_KEY="C--Users-${USERNAME}"
 MEM_DST="$CLAUDE_DIR/projects/$PROJECT_KEY/memory"
 mkdir -p "$MEM_DST"
 cp "$CONFIG_DIR"/projects/C--Users-Hakan/memory/*.md "$MEM_DST/"
 
 if [ "$USERNAME" != "Hakan" ]; then
     for mdfile in "$MEM_DST"/*.md; do
-        sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\$USERNAME|g" "$mdfile"
-        sed -i "s|C:/Users/Hakan|C:/Users/$USERNAME|g" "$mdfile"
+        sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$mdfile"
+        sed -i'' -e"s|C:/Users/Hakan|C:/Users/${USERNAME}|g" "$mdfile"
     done
 fi
-ok "Memory copied ($PROJECT_KEY)."
+ok "Memory copied (${PROJECT_KEY})."
 
 # -- STEP 9: HakanMCP --
 step 9 "HakanMCP setup..."
 
-if $SKIP_HAKANMCP; then
+if [ "$SKIP_HAKANMCP" = true ]; then
     warn "HakanMCP skipped (--skip-hakanmcp)."
 else
     # Platform-aware path: /c/dev on Git Bash Windows, ~/dev on Linux/macOS
@@ -366,7 +366,7 @@ fi
 # -- STEP 10: Plugins --
 step 10 "Installing plugins..."
 
-if $SKIP_PLUGINS; then
+if [ "$SKIP_PLUGINS" = true ]; then
     warn "Plugin installation skipped (--skip-plugins)."
 else
     if command -v claude &>/dev/null; then
@@ -382,11 +382,22 @@ else
 
         info "Adding Trail of Bits marketplace..."
         if claude plugins add-marketplace trailofbits https://github.com/trailofbits/skills 2>/dev/null; then
-            for plugin in static-analysis differential-review insecure-defaults sharp-edges supply-chain-risk-auditor audit-context-building; do
+            for plugin in static-analysis differential-review insecure-defaults sharp-edges supply-chain-risk-auditor audit-context-building property-based-testing variant-analysis spec-to-code-compliance git-cleanup workflow-skill-design; do
                 if claude plugins install "${plugin}@trailofbits" 2>/dev/null; then
                     ok "$plugin@trailofbits"
                 else
                     warn "$plugin@trailofbits (can be installed manually later)"
+                fi
+            done
+        fi
+
+        info "Adding Anthropic Agent Skills marketplace..."
+        if claude plugins add-marketplace anthropic-agent-skills https://github.com/anthropics/skills 2>/dev/null; then
+            for plugin in document-skills example-skills claude-api; do
+                if claude plugins install "${plugin}@anthropic-agent-skills" 2>/dev/null; then
+                    ok "$plugin@anthropic-agent-skills"
+                else
+                    warn "$plugin@anthropic-agent-skills (can be installed manually later)"
                 fi
             done
         fi
@@ -399,7 +410,7 @@ else
 fi
 
 # -- Dotfiles Meta (version tracking for auto-update) --
-DOTFILES_VERSION=$(cat "$SCRIPT_DIR/VERSION" | tr -d '[:space:]')
+DOTFILES_VERSION=$(tr -d '[:space:]' < "$SCRIPT_DIR/VERSION")
 cat > "$CLAUDE_DIR/dotfiles-meta.json" << EOF
 {
   "version": "$DOTFILES_VERSION",
@@ -418,7 +429,7 @@ echo ""
 
 echo -e "\033[36m  Status Summary:\033[0m"
 check_item() {
-    if $2; then echo -e "    \033[32m[OK] $1\033[0m"; else echo -e "    \033[33m[--] $1\033[0m"; fi
+    if [ "$2" = true ]; then echo -e "    \033[32m[OK] $1\033[0m"; else echo -e "    \033[33m[--] $1\033[0m"; fi
 }
 check_item "Node.js"    "$(command -v node &>/dev/null && echo true || echo false)"
 check_item "Git"        "$(command -v git &>/dev/null && echo true || echo false)"

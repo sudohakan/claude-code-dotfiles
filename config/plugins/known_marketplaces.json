@@ -22,5 +22,13 @@
     },
     "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\trailofbits",
     "lastUpdated": "2026-02-27T09:00:32.018Z"
+  },
+  "anthropic-agent-skills": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/skills"
+    },
+    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\anthropic-agent-skills",
+    "lastUpdated": "2026-03-09T12:00:00.000Z"
   }
 }

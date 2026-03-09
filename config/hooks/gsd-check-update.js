@@ -9,26 +9,45 @@ const { spawn } = require('child_process');
 
 const homeDir = os.homedir();
 const cwd = process.cwd();
-const cacheDir = path.join(homeDir, '.claude', 'cache');
+
+// Detect runtime config directory (supports Claude, OpenCode, Gemini)
+// Respects CLAUDE_CONFIG_DIR for custom config directory setups
+function detectConfigDir(baseDir) {
+  // Check env override first (supports multi-account setups)
+  const envDir = process.env.CLAUDE_CONFIG_DIR;
+  if (envDir && fs.existsSync(path.join(envDir, 'get-shit-done', 'VERSION'))) {
+    return envDir;
+  }
+  for (const dir of ['.config/opencode', '.opencode', '.gemini', '.claude']) {
+    if (fs.existsSync(path.join(baseDir, dir, 'get-shit-done', 'VERSION'))) {
+      return path.join(baseDir, dir);
+    }
+  }
+  return envDir || path.join(baseDir, '.claude');
+}
+
+const globalConfigDir = detectConfigDir(homeDir);
+const projectConfigDir = detectConfigDir(cwd);
+const cacheDir = path.join(globalConfigDir, 'cache');
 const cacheFile = path.join(cacheDir, 'gsd-update-check.json');
 
 // VERSION file locations (check project first, then global)
-const projectVersionFile = path.join(cwd, '.claude', 'get-shit-done', 'VERSION');
-const globalVersionFile = path.join(homeDir, '.claude', 'get-shit-done', 'VERSION');
+const projectVersionFile = path.join(projectConfigDir, 'get-shit-done', 'VERSION');
+const globalVersionFile = path.join(globalConfigDir, 'get-shit-done', 'VERSION');
 
 // Ensure cache directory exists
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir, { recursive: true });
 }
 
-// Run check in background (spawn background process, windowsHide prevents console flash)
+// Run check in background — pass paths via env to avoid code injection through CLAUDE_CONFIG_DIR
 const child = spawn(process.execPath, ['-e', `
   const fs = require('fs');
   const { execSync } = require('child_process');
 
-  const cacheFile = ${JSON.stringify(cacheFile)};
-  const projectVersionFile = ${JSON.stringify(projectVersionFile)};
-  const globalVersionFile = ${JSON.stringify(globalVersionFile)};
+  const cacheFile = process.env._GSD_CACHE_FILE;
+  const projectVersionFile = process.env._GSD_PROJECT_VERSION;
+  const globalVersionFile = process.env._GSD_GLOBAL_VERSION;
 
   // Check project directory first (local install), then global
   let installed = '0.0.0';
@@ -56,7 +75,13 @@ const child = spawn(process.execPath, ['-e', `
 `], {
   stdio: 'ignore',
   windowsHide: true,
-  detached: true  // Required on Windows for proper process detachment
+  detached: true,  // Required on Windows for proper process detachment
+  env: {
+    ...process.env,
+    _GSD_CACHE_FILE: cacheFile,
+    _GSD_PROJECT_VERSION: projectVersionFile,
+    _GSD_GLOBAL_VERSION: globalVersionFile
+  }
 });
 
 child.unref();
