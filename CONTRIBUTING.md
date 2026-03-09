@@ -183,11 +183,13 @@ claude-code-dotfiles/
 │   │   ├── gsd-roadmapper.md        #   Roadmap creation agent
 │   │   └── gsd-verifier.md          #   Work verification agent
 │   │
-│   ├── skills/                      # Skill sets (3 sets)
+│   ├── skills/                      # Skill sets (4 sets)
 │   │   ├── cc-devops-skills/        #   DevOps automation skills
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
 │   │   │   └── devops-skills-plugin/
+│   │   ├── community-skills/        #   Community skills
+│   │   │   └── ...
 │   │   ├── trailofbits-security/    #   Trail of Bits security skills
 │   │   │   ├── CLAUDE.md
 │   │   │   ├── CODEOWNERS
@@ -280,10 +282,11 @@ export default async function(event) {
 }
 ```
 
-**Existing hooks (6):**
+**Existing hooks (7):**
 
 | Hook | Purpose |
 |------|---------|
+| `dippy` | Smart bash auto-approve (Python, 14K+ tests) |
 | `pretooluse-safety.js` | Safety checks before tool execution (has self-test: `node pretooluse-safety.js --test`) |
 | `gsd-context-monitor.js` | Monitors context budget and warns at thresholds |
 | `gsd-statusline.js` | Displays GSD status in the notification bar |
@@ -340,11 +343,12 @@ Located in `config/skills/`. Each skill is a directory containing:
 - Plugin directories with implementation code
 - Supporting scripts (Python, JS) and data files as needed
 
-**Existing skill sets (3):**
+**Existing skill sets (4):**
 
 | Skill Set | Directory | Contents |
 |-----------|-----------|----------|
 | CC DevOps | `cc-devops-skills/` | DevOps automation plugin for CI/CD, deployment, infrastructure |
+| Community Skills | `community-skills/` | 4 standalone community skills (d3js, web-assets, slides, ffuf) |
 | Trail of Bits Security | `trailofbits-security/` | 6 security analysis skills (plugins directory, ruff.toml for Python linting) |
 | UI/UX Pro Max | `ui-ux-pro-max/` | Design system skills with SKILL.md, data files, and Python scripts |
 

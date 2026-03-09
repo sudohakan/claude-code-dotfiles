@@ -21,7 +21,7 @@ config/           → Copied to ~/.claude/ (install.ps1)
   hooks/          → 7 hooks (Dippy, safety, context monitor, statusline, GSD check-update, dotfiles check-update, auto-format)
   commands/       → Slash commands (init-hakan, browser, gsd/*)
   agents/         → 12 agent definitions
-  skills/         → 3 skill sets (cc-devops, trailofbits, ui-ux-pro-max)
+  skills/         → 4 skill sets (cc-devops, community-skills, trailofbits, ui-ux-pro-max)
   docs/           → 5 reference documents
   get-shit-done/  → GSD runtime (workflows, templates, bin, references)
 home-config/      → Copied to ~/ (.claude.json)

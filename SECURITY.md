@@ -130,6 +130,7 @@ This configuration includes third-party skill sets and plugins:
 | GSD (Get Shit Done) | Claude Code plugin marketplace | Maintained by marketplace authors |
 | Trail of Bits skills | [trailofbits/skills](https://github.com/trailofbits/skills) | Maintained by Trail of Bits |
 | cc-devops-skills | Claude plugins marketplace | Community maintained |
+| community-skills | [awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills) | Community maintained |
 | ui-ux-pro-max | Claude plugins marketplace | Community maintained |
 
 Report vulnerabilities in third-party components directly to their maintainers.
