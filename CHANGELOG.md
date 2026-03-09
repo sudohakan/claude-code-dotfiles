@@ -5,6 +5,12 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.9.2] - 2026-03-09
+
+### Fixed
+- **Removed context %95 threshold** — `/compact` is a CLI command, cannot be triggered programmatically. %90 (prompt user) is the final threshold.
+- **Removed `-c` shortcut** — Not viable for the same reason
+
 ## [1.9.1] - 2026-03-09
 
 ### Added
@@ -21,7 +27,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 - **`-bs` shortcut** — User message containing `-bs` triggers `superpowers:brainstorming` skill immediately
-- **Context %95 threshold** — Auto-update session-continuity.md, run `/compact`, show post-compact summary with last point and next step
+- **Context %90 threshold wording** — Clarified: update session-continuity.md, tell user to run `/compact`
 
 ## [1.8.1] - 2026-03-08
 
