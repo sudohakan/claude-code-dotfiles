@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-1.13.2-blue)
+![Version](https://img.shields.io/badge/version-1.13.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)

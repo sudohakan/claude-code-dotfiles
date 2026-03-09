@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.13.3] - 2026-03-10
+
+### Fixed
+- **context monitor** — Use stdin hook_event_name instead of GEMINI_API_KEY environment variable check to fix "PostToolUse:Bash hook error"
+
 ## [1.13.2] - 2026-03-10
 
 ### Fixed
