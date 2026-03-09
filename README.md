@@ -5,7 +5,7 @@
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, and 200+ MCP tools.
+Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 28 plugins across 4 marketplaces, and 200+ MCP tools.
 
 ## Table of Contents
 
@@ -173,15 +173,66 @@ Full project lifecycle management:
 </details>
 
 <details>
-<summary><strong>Skills (3 skill sets)</strong></summary>
+<summary><strong>Skills & Plugins (4 marketplaces, 28 plugins)</strong></summary>
+
+**Bundled Skill Sets (local):**
 
 | Skill Set | Description |
 |-----------|-------------|
 | **cc-devops-skills** | DevOps: infrastructure as code, CI/CD, cloud platforms |
-| **trailofbits-security** | Security: static analysis, audit, vulnerability scanning (6 plugins) |
+| **trailofbits-security** | Security: static analysis, audit, vulnerability scanning |
 | **ui-ux-pro-max** | UI/UX design system: 67 styles, 96 palettes, 13 tech stacks |
+| **community-skills** | 4 community skills from [awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills) |
 
-**Plugins (13 total):** 7 official Claude Code plugins + 6 Trail of Bits security plugins
+**Community Skills (4 standalone):**
+
+| Skill | Source | Description |
+|-------|--------|-------------|
+| **d3js-visualization** | [chrisvoncsefalvay/claude-d3js-skill](https://github.com/chrisvoncsefalvay/claude-d3js-skill) | D3.js data visualization (charts, graphs, network diagrams, heatmaps) |
+| **web-asset-generator** | [alonw0/web-asset-generator](https://github.com/alonw0/web-asset-generator) | Favicon, app icon, Open Graph social media image generation |
+| **frontend-slides** | [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides) | Animation-rich HTML presentations from scratch or PPT conversion |
+| **ffuf-web-fuzzing** | [jthack/ffuf_claude_skill](https://github.com/jthack/ffuf_claude_skill) | Web fuzzing for penetration testing with auto-calibration |
+
+**Plugin Marketplaces:**
+
+| Marketplace | Source | Plugins |
+|-------------|--------|---------|
+| **claude-plugins-official** | `anthropics/claude-plugins-official` | 15 plugins |
+| **trailofbits** | `trailofbits/skills` | 11 plugins |
+| **anthropic-agent-skills** | `anthropics/skills` | 3 plugins (document-skills, example-skills, claude-api) |
+
+**Enabled Plugins (28 total):**
+
+| Plugin | Marketplace | Description |
+|--------|-------------|-------------|
+| context7 | official | Library documentation lookup |
+| code-review | official | Code review workflows |
+| superpowers | official | 20+ core skills (TDD, debugging, brainstorming, plans) |
+| feature-dev | official | Guided feature development |
+| ralph-loop | official | Continuous code review loop |
+| typescript-lsp | official | TypeScript language server |
+| frontend-design | official | Production-grade frontend UI design |
+| skill-creator | official | Create and improve custom skills |
+| commit-commands | official | Git commit + push + PR automation |
+| code-simplifier | official | Refactor for clarity and reduce complexity |
+| pr-review-toolkit | official | 6 specialized PR review agents |
+| security-guidance | official | Security context and guidance |
+| hookify | official | Custom hook creation (block patterns, enforce rules) |
+| claude-md-management | official | Audit and improve CLAUDE.md files |
+| static-analysis | trailofbits | Semgrep + CodeQL scanning |
+| differential-review | trailofbits | Security-focused diff review |
+| insecure-defaults | trailofbits | Detect fail-open insecure defaults |
+| sharp-edges | trailofbits | Identify error-prone APIs and footguns |
+| supply-chain-risk-auditor | trailofbits | Dependency risk assessment |
+| audit-context-building | trailofbits | Deep code analysis for security audit |
+| property-based-testing | trailofbits | Generate property-based tests (fast-check) |
+| variant-analysis | trailofbits | Find similar vulnerabilities across codebase |
+| spec-to-code-compliance | trailofbits | Verify code implements specifications |
+| git-cleanup | trailofbits | Safe worktree and branch cleanup |
+| workflow-skill-design | trailofbits | Multi-step workflow skill patterns |
+| document-skills | anthropic | Excel, Word, PowerPoint, PDF processing |
+| example-skills | anthropic | MCP builder, web artifacts, webapp testing, art, themes |
+| claude-api | anthropic | Claude API and SDK documentation |
 
 </details>
 
@@ -294,11 +345,12 @@ claude-code-dotfiles/
     │   └── workflows/                           # Workflow step definitions
     ├── plugins/                                 # Plugin registry
     │   ├── blocklist.json                       # Blocked plugin list
-    │   └── known_marketplaces.json              # Plugin marketplace definitions
-    ├── skills/                                  # 3 skill sets
+    │   └── known_marketplaces.json              # 4 marketplace definitions (official, code, trailofbits, anthropic-skills)
+    ├── skills/                                  # 4 skill sets
     │   ├── cc-devops-skills/                    # DevOps: IaC, CI/CD, cloud platforms
     │   ├── trailofbits-security/                # Security: static analysis, audit
-    │   └── ui-ux-pro-max/                       # UI/UX: 67 styles, 96 palettes, 13 stacks
+    │   ├── ui-ux-pro-max/                       # UI/UX: 67 styles, 96 palettes, 13 stacks
+    │   └── community-skills/                    # 4 community skills (d3js, web-assets, slides, ffuf)
     └── projects/                                # Per-project config and memory
         └── C--Users-Hakan/
             └── memory/                          # Cross-project knowledge base

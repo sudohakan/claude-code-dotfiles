@@ -18,11 +18,15 @@ Formatting is only applied when:
 
 ## Dotfiles Versioning
 When `claude-code-dotfiles` (`C:\dev\claude-code-dotfiles`) is updated:
-1. Update `VERSION` file with new version (semver)
-2. Add entry to `CHANGELOG.md` in [Keep a Changelog](https://keepachangelog.com) format
-3. Update `README.md` to reflect changes
-4. Include `vX.Y.Z` version in commit message
-5. **After push, create and push tag:** `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z` (triggers GitHub Release automatically)
+1. Determine version bump using **Semantic Versioning** (`MAJOR.MINOR.PATCH`):
+   - **MAJOR** (X.0.0) — Breaking change: removed/renamed commands, incompatible config changes, installer breaking changes
+   - **MINOR** (x.Y.0) — New feature: new command, new skill, new hook, new agent, new doc
+   - **PATCH** (x.y.Z) — Bug fix, typo, docs update, config tweak, refactor with no behavior change
+2. Update `VERSION` file with new version
+3. Add entry to `CHANGELOG.md` in [Keep a Changelog](https://keepachangelog.com) format
+4. Update `README.md` to reflect changes
+5. Include `vX.Y.Z` version in commit message
+6. **After push, create and push tag:** `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z` (triggers GitHub Release automatically)
 
 ---
 
