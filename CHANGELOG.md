@@ -11,6 +11,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - **Statusline update notifications** — Now shows version numbers: `Updates: GSD 1.2.3→1.3.0, Dotfiles 1.10.1→1.11.0` instead of just `Updates: GSD, Dotfiles`
 - **HakanMCP clone URL** — Fixed case mismatch in both install scripts: `hakanmcp.git` → `HakanMCP.git`
 - **PowerShell npm error handling** — `npm install` and `npm run build` failures are now detected and reported instead of silently swallowed by `Out-Null`
+- **Stale counts in docs** — Fixed outdated command (9+33→10+34), agent (11→12), and test (19→30) counts in SETUP.md, CONTRIBUTING.md, and project CLAUDE.md
+- **HakanMCP URL in SETUP.md** — Fixed manual install URL case: `hakanmcp.git` → `HakanMCP.git`
 
 ## [1.11.0] - 2026-03-09
 

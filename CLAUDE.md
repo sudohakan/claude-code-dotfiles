@@ -6,7 +6,7 @@ Portable distribution package for Claude Code CLI configuration. Not a standalon
 ## Tech Stack
 - **Installer:** PowerShell (Windows), Bash (Linux/macOS)
 - **Hooks:** Node.js (JavaScript, .js)
-- **Commands:** Markdown (.md) — `/init-hakan`, `/browser`, `/dotfiles-update`, 7 git workflow commands (`/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship`), 33 GSD commands
+- **Commands:** Markdown (.md) — `/init-hakan`, `/browser`, `/dotfiles-update`, 7 git workflow commands (`/commit`, `/create-pr`, `/fix-github-issue`, `/fix-pr`, `/release`, `/run-ci`, `/ship`), 34 GSD commands
 - **Agents:** Markdown (.md)
 - **GSD Runtime:** Node.js (CommonJS, .cjs) + npm
 - **Skills:** Python + Markdown
@@ -20,7 +20,7 @@ config/           → Copied to ~/.claude/ (install.ps1)
   settings.json   → Hook, MCP, permission settings
   hooks/          → 7 hooks (Dippy, safety, context monitor, statusline, GSD check-update, dotfiles check-update, auto-format)
   commands/       → Slash commands (init-hakan, browser, gsd/*)
-  agents/         → 11 agent definitions
+  agents/         → 12 agent definitions
   skills/         → 3 skill sets (cc-devops, trailofbits, ui-ux-pro-max)
   docs/           → 5 reference documents
   get-shit-done/  → GSD runtime (workflows, templates, bin, references)
@@ -54,6 +54,6 @@ This repo is the source copy of the active configuration under `~/.claude/`.
 
 ## Build & Test
 - **Build:** None (configuration package, no compilation needed)
-- **Test:** `node config/hooks/pretooluse-safety.js --test` (hook self-test, 19/19)
+- **Test:** `node config/hooks/pretooluse-safety.js --test` (hook self-test, 30/30)
 - **Install:** `PowerShell -ExecutionPolicy Bypass -File install.ps1`
 - **Lint:** None (Markdown + JSON, editor formatting is sufficient)
