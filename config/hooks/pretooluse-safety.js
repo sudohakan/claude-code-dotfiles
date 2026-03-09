@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * PreToolUse Safety Hook v1.2.0
+ * PreToolUse Safety Hook v1.3.0
  * Detects dangerous commands, credential leaks, data exfiltration, and unicode injection.
  * If the user has approved, does not ask again in the same session.
+ * Supports allowed directories — destructive file ops are auto-allowed when CWD is inside.
  * Runs as a Claude Code hook — reads JSON from stdin.
  */
 
@@ -15,7 +16,14 @@ const os = require("os");
 // Set to true to enable exfiltration detection (disabled by default)
 const ENABLE_EXFILTRATION_CHECK = false;
 
-// --- Safe development directories (rm -rf allowed here) ---
+// --- Allowed directories (destructive file ops auto-allowed when CWD is inside) ---
+// Normalized to lowercase forward-slash paths for comparison.
+const ALLOWED_DIRS = [
+  "c:/dev",
+  "c:/users/hakan/source",
+];
+
+// --- Safe development directories (rm -rf with explicit absolute paths allowed) ---
 const SAFE_DEV_DIRS = [
   /^\/c\/dev\//i,
   /^C:\\\\dev\\/i,
@@ -24,7 +32,39 @@ const SAFE_DEV_DIRS = [
   /^C:\\\\Users\\\\Hakan\\\\source\\/i,
 ];
 
-function isInSafeDevDir(command) {
+/**
+ * Normalize a Windows/Git Bash path to lowercase forward-slash form.
+ * "/c/dev/foo" → "c:/dev/foo", "C:\\dev\\foo" → "c:/dev/foo"
+ */
+function normalizePath(p) {
+  let n = p.replace(/\\/g, "/").toLowerCase();
+  // Git Bash style: /c/... → c:/...
+  const gitBashMatch = n.match(/^\/([a-z])\/(.*)/);
+  if (gitBashMatch) {
+    n = `${gitBashMatch[1]}:/${gitBashMatch[2]}`;
+  }
+  // Remove trailing slash
+  return n.replace(/\/+$/, "");
+}
+
+/**
+ * Check if a path is inside any allowed directory.
+ */
+function isInAllowedDir(dirPath) {
+  const normalized = normalizePath(dirPath);
+  return ALLOWED_DIRS.some(allowed => normalized === allowed || normalized.startsWith(allowed + "/"));
+}
+
+/**
+ * Check if destructive file commands target only safe directories.
+ * Works with both explicit absolute paths and CWD-relative commands.
+ */
+function isInSafeDevDir(command, cwd) {
+  // If CWD is in an allowed directory, auto-allow file-destructive ops
+  if (cwd && isInAllowedDir(cwd)) {
+    return true;
+  }
+
   // Extract paths from rm -rf
   const rmMatch = command.match(/rm\s+-[a-z]*r[a-z]*f\s+(.+)/i) || command.match(/rm\s+-[a-z]*f[a-z]*r\s+(.+)/i);
   // Extract paths from rmdir /s /q
@@ -236,6 +276,37 @@ if (process.argv.includes("--test")) {
     ok ? passed++ : failed++;
   }
 
+  // Allowed directory tests
+  const ALLOWED_DIR_TESTS = [
+    { path: "/c/dev/HakanMCP", expected: true, label: "Git Bash /c/dev" },
+    { path: "C:\\dev\\HakanMCP", expected: true, label: "Windows C:\\dev" },
+    { path: "C:/dev/HakanMCP", expected: true, label: "Forward slash C:/dev" },
+    { path: "C:/dev", expected: true, label: "Exact match C:/dev" },
+    { path: "/c/Users/Hakan/source/repos", expected: true, label: "Git Bash source" },
+    { path: "C:\\Users\\Hakan\\Desktop", expected: false, label: "Desktop not allowed" },
+    { path: "/tmp/evil", expected: false, label: "tmp not allowed" },
+  ];
+  for (const { path: p, expected, label } of ALLOWED_DIR_TESTS) {
+    const result = isInAllowedDir(p);
+    const ok = result === expected;
+    console.log(`${ok ? "✓" : "✗"} [allowed-dir] "${label}" (${p}) → ${result ? "ALLOWED" : "BLOCKED"} (expected: ${expected ? "ALLOWED" : "BLOCKED"})`);
+    ok ? passed++ : failed++;
+  }
+
+  // CWD-based safe dir tests
+  const CWD_SAFE_TESTS = [
+    { cmd: "rm -rf node_modules v2 v3", cwd: "/c/dev/HakanMCP", expected: true, label: "relative rm -rf in allowed CWD" },
+    { cmd: "find . -maxdepth 1 -exec rm -rf {} +", cwd: "C:\\dev\\HakanMCP", expected: true, label: "find -exec rm in allowed CWD" },
+    { cmd: "rm -rf /tmp/important", cwd: "/c/dev/HakanMCP", expected: true, label: "rm -rf outside but CWD allowed" },
+    { cmd: "rm -rf node_modules", cwd: "/tmp", expected: false, label: "rm -rf in non-allowed CWD" },
+  ];
+  for (const { cmd, cwd, expected, label } of CWD_SAFE_TESTS) {
+    const result = isInSafeDevDir(cmd, cwd);
+    const ok = result === expected;
+    console.log(`${ok ? "✓" : "✗"} [cwd-safe] "${label}" → ${result ? "SAFE" : "BLOCKED"} (expected: ${expected ? "SAFE" : "BLOCKED"})`);
+    ok ? passed++ : failed++;
+  }
+
   // Allowlist test
   try {
     saveToAllowlist("rm -rf /test");
@@ -325,10 +396,12 @@ async function main() {
     }
 
     // Check 4: Destructive commands
+    const cwd = event.cwd || process.cwd();
     for (const { pattern, reason } of DANGEROUS_PATTERNS) {
       if (pattern.test(command)) {
-        // Allow destructive file ops in safe development directories
-        if ((/rm\s+-[a-z]*r[a-z]*f|rm\s+-[a-z]*f[a-z]*r/i.test(command) || /rmdir\s+\/s/i.test(command)) && isInSafeDevDir(command)) {
+        // Allow destructive file ops in safe/allowed development directories
+        const isFileDestructive = /rm\s+-[a-z]*r[a-z]*f|rm\s+-[a-z]*f[a-z]*r/i.test(command) || /rmdir\s+\/s/i.test(command) || /find\s+.*-exec\s+rm/i.test(command) || /rd\s+\/s/i.test(command);
+        if (isFileDestructive && isInSafeDevDir(command, cwd)) {
           continue;
         }
         saveToAllowlist(command);
@@ -351,7 +424,10 @@ if (require.main !== module) {
     DANGEROUS_PATTERNS,
     CREDENTIAL_PATTERNS,
     EXFILTRATION_PATTERNS,
+    ALLOWED_DIRS,
     SAFE_DEV_DIRS,
+    normalizePath,
+    isInAllowedDir,
     isInSafeDevDir,
     checkUnicodeInjection,
     loadAllowlist,
