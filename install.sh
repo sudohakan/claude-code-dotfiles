@@ -115,6 +115,12 @@ if ! command -v node &>/dev/null; then
     exit 1
 fi
 
+# Check Node.js version (HakanMCP requires >= 20)
+NODE_MAJOR=$(node --version 2>/dev/null | sed 's/v//' | cut -d. -f1)
+if [ -n "$NODE_MAJOR" ] && [ "$NODE_MAJOR" -lt 20 ]; then
+    err "Node.js v$NODE_MAJOR detected, but HakanMCP requires >= 20. Please update Node.js."
+fi
+
 # npm
 if command -v npm &>/dev/null; then
     ok "npm : $(npm --version)"
@@ -263,6 +269,12 @@ else
         sed -i "s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\$USERNAME|g" "$HOME/.claude.json"
     fi
     ok ".claude.json created."
+    # Fix MCP path for Linux/macOS
+    if [ ! -d "/c/" ] && [ -f "$HOME/.claude.json" ]; then
+        sed -i "s|C:\\\\\\\\dev\\\\\\\\HakanMCP|$(echo "$HOME/dev/HakanMCP" | sed 's/\//\\\\\\\\/g')|g" "$HOME/.claude.json"
+        sed -i 's|"cwd": "C:\\\\dev\\\\HakanMCP"|"cwd": "'"$HOME/dev/HakanMCP"'"|g' "$HOME/.claude.json"
+        ok ".claude.json paths fixed for $(uname -s)"
+    fi
 fi
 
 # -- STEP 8: Memory --
@@ -294,7 +306,28 @@ else
         MCP_DIR="$HOME/dev/HakanMCP"
     fi
     if [ -d "$MCP_DIR" ]; then
-        ok "HakanMCP already exists: $MCP_DIR"
+        info "HakanMCP exists: $MCP_DIR — checking for updates..."
+        cd "$MCP_DIR"
+        LOCAL_HASH=$(git rev-parse HEAD 2>/dev/null)
+        git fetch origin main --quiet 2>/dev/null
+        REMOTE_HASH=$(git rev-parse origin/main 2>/dev/null)
+        if [ -n "$REMOTE_HASH" ] && [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
+            info "Updates available. Pulling latest..."
+            git pull origin main --quiet 2>/dev/null
+            info "Running npm install..."
+            npm install || warn "npm install had errors"
+            info "Running npm run build..."
+            npm run build || warn "npm run build had errors"
+            ok "HakanMCP updated."
+        else
+            ok "HakanMCP is up to date."
+        fi
+        # Ensure .env exists
+        if [ -f "$MCP_DIR/.env.example" ] && [ ! -f "$MCP_DIR/.env" ]; then
+            cp "$MCP_DIR/.env.example" "$MCP_DIR/.env"
+            warn ".env created from .env.example — configure API keys in $MCP_DIR/.env"
+        fi
+        cd "$SCRIPT_DIR"
     else
         if command -v git &>/dev/null; then
             info "Cloning HakanMCP..."
@@ -302,11 +335,24 @@ else
             if git clone https://github.com/sudohakan/hakanmcp.git "$MCP_DIR" 2>/dev/null; then
                 cd "$MCP_DIR"
                 info "Running npm install..."
-                npm install 2>/dev/null
-                info "Running npm run build..."
-                npm run build 2>/dev/null
-                cd "$SCRIPT_DIR"
-                ok "HakanMCP installed: $MCP_DIR"
+                if ! npm install; then
+                    err "npm install failed. Check Node.js version and network connection."
+                    cd "$SCRIPT_DIR"
+                else
+                    info "Running npm run build..."
+                    if ! npm run build; then
+                        err "npm run build failed. Check build errors above."
+                        cd "$SCRIPT_DIR"
+                    else
+                        cd "$SCRIPT_DIR"
+                        # Setup .env from example
+                        if [ -f "$MCP_DIR/.env.example" ] && [ ! -f "$MCP_DIR/.env" ]; then
+                            cp "$MCP_DIR/.env.example" "$MCP_DIR/.env"
+                            warn ".env created from .env.example — configure API keys in $MCP_DIR/.env"
+                        fi
+                        ok "HakanMCP installed: $MCP_DIR"
+                    fi
+                fi
             else
                 err "HakanMCP clone failed."
                 echo "       Manual: git clone https://github.com/sudohakan/hakanmcp.git /c/dev/HakanMCP"

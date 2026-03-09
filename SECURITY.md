@@ -1,5 +1,20 @@
 # Security Policy
 
+> For installation, see [SETUP.md](SETUP.md). For contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Supported Versions](#supported-versions)
+- [Reporting a Vulnerability](#reporting-a-vulnerability)
+- [Response Timeline](#response-timeline)
+- [Credential Safety](#credential-safety)
+- [Install Script Security](#install-script-security)
+- [Hooks Security](#hooks-security)
+- [Third-Party Components](#third-party-components)
+
+---
+
 ## Overview
 
 This repository contains **configuration files only** — no executable application code that processes external input. The security surface is limited to:
@@ -7,6 +22,35 @@ This repository contains **configuration files only** — no executable applicat
 - Shell scripts (`install.ps1`, `install.sh`) that run locally with user privileges
 - JavaScript hooks that execute within the Claude Code CLI sandbox
 - JSON/Markdown configuration files
+
+## Supported Versions
+
+| Version | Supported |
+|---------|-----------|
+| Latest `main` branch | Yes |
+| Older commits | No |
+
+## Reporting a Vulnerability
+
+If you discover a security issue in this configuration:
+
+1. **Do NOT open a public issue**
+2. Email: Open a [private security advisory](https://github.com/sudohakan/claude-code-dotfiles/security/advisories/new) on this repository
+3. Include:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+4. Expected response time: **72 hours**
+
+## Response Timeline
+
+| Stage | Timeline | Description |
+|-------|----------|-------------|
+| Acknowledgment | 48 hours | Confirm receipt of report |
+| Assessment | 5 business days | Evaluate severity and impact |
+| Fix (Critical) | 7 days | Patch developed and released |
+| Fix (Non-critical) | Next release | Included in regular cycle |
+| Disclosure | After fix | Coordinated with reporter |
 
 ## Credential Safety
 
@@ -31,6 +75,9 @@ These are **not real credentials** and exist solely for educational/testing purp
 
 ## Install Script Security
 
+<details>
+<summary>Install script operations and review guidance</summary>
+
 The install scripts (`install.ps1` / `install.sh`) perform the following operations:
 
 1. **Read-only checks** — verify installed software versions
@@ -50,7 +97,12 @@ Review the install script source code before execution:
 Get-Content install.ps1 | more
 ```
 
+</details>
+
 ## Hooks Security
+
+<details>
+<summary>Hooks security matrix</summary>
 
 All hooks run within the Claude Code CLI hook system:
 
@@ -64,26 +116,12 @@ All hooks run within the Claude Code CLI hook system:
 | `dotfiles-check-update.js` | Checks dotfiles version on startup (fetches GitHub) | Read-only (outbound HTTPS) |
 | `post-autoformat.js` | Auto-formats edited files (disabled by default) | File write (edited files only) |
 
-## Reporting a Vulnerability
-
-If you discover a security issue in this configuration:
-
-1. **Do NOT open a public issue**
-2. Email: Open a [private security advisory](https://github.com/sudohakan/claude-code-dotfiles/security/advisories/new) on this repository
-3. Include:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-4. Expected response time: **72 hours**
-
-## Supported Versions
-
-| Version | Supported |
-|---------|-----------|
-| Latest `main` branch | Yes |
-| Older commits | No |
+</details>
 
 ## Third-Party Components
+
+<details>
+<summary>Third-party skill sets and plugins</summary>
 
 This configuration includes third-party skill sets and plugins:
 
@@ -95,3 +133,17 @@ This configuration includes third-party skill sets and plugins:
 | ui-ux-pro-max | Claude plugins marketplace | Community maintained |
 
 Report vulnerabilities in third-party components directly to their maintainers.
+
+</details>
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README.md](README.md) | Project overview and quick start |
+| [SETUP.md](SETUP.md) | Installation and setup guide |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [SECURITY.md](SECURITY.md) | This file |

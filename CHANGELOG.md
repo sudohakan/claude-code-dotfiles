@@ -5,6 +5,20 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.10.0] - 2026-03-09
+
+### Added
+- **CONTRIBUTING.md** — Contribution guidelines
+- **Node.js version check** — install.ps1/install.sh now verify Node.js >= 20 (required by HakanMCP)
+- **HakanMCP auto-update** — Install scripts detect remote changes, auto-pull and rebuild if updates available
+- **HakanMCP .env setup** — Creates `.env` from `.env.example` on fresh install or update
+- **Linux/macOS path fixing** — install.sh auto-fixes `.claude.json` MCP paths for non-Windows platforms
+
+### Changed
+- **README.md** — Major restructure: collapsible `<details>` sections, Table of Contents, mermaid safety diagram, agent count 11→12, GSD command count 33→34
+- **SECURITY.md** — Added supported versions, response timeline (72h SLA), collapsible sections, documentation links
+- **home-config/.claude.json** — Added `--no-warnings` flag to HakanMCP Node.js args
+
 ## [1.9.3] - 2026-03-09
 
 ### Changed
