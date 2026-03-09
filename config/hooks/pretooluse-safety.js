@@ -160,7 +160,6 @@ const ALLOWLIST_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 function loadAllowlist() {
   try {
-    if (!fs.existsSync(ALLOWLIST_FILE)) return [];
     const stat = fs.statSync(ALLOWLIST_FILE);
     if (Date.now() - stat.mtimeMs > ALLOWLIST_MAX_AGE_MS) {
       fs.unlinkSync(ALLOWLIST_FILE);
@@ -168,7 +167,7 @@ function loadAllowlist() {
     }
     return JSON.parse(fs.readFileSync(ALLOWLIST_FILE, "utf8"));
   } catch (e) {
-    // Allowlist read failed — continue without it (security not affected)
+    // File doesn't exist or read failed — continue without it (security not affected)
     if (process.env.DEBUG) process.stderr.write(`[safety] loadAllowlist error: ${e.message}\n`);
     return [];
   }
@@ -182,7 +181,7 @@ function saveToAllowlist(command) {
     if (!list.includes(normalized)) {
       list.push(normalized);
     }
-    fs.writeFileSync(ALLOWLIST_FILE, JSON.stringify(list, null, 2));
+    fs.writeFileSync(ALLOWLIST_FILE, JSON.stringify(list, null, 2), { mode: 0o600 });
   } catch (e) {
     // Allowlist write failed — security still works, just won't remember approval
     if (process.env.DEBUG) process.stderr.write(`[safety] saveToAllowlist error: ${e.message}\n`);

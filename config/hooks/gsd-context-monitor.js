@@ -51,11 +51,13 @@ process.stdin.on('end', () => {
     const tmpDir = os.tmpdir();
     const metricsPath = path.join(tmpDir, `claude-ctx-${sessionId}.json`);
 
-    if (!fs.existsSync(metricsPath)) {
+    let metrics;
+    try {
+      metrics = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
+    } catch (e) {
+      // File doesn't exist or can't be read — no metrics available
       process.exit(0);
     }
-
-    const metrics = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
     const now = Math.floor(Date.now() / 1000);
 
     if (metrics.timestamp && (now - metrics.timestamp) > STALE_SECONDS) {
@@ -70,15 +72,13 @@ process.stdin.on('end', () => {
     let warnData = { callsSinceWarn: 0, callsSinceCheckpoint: 0, lastLevel: null, checkpointSaved: false };
     let firstWarn = true;
 
-    if (fs.existsSync(warnPath)) {
-      try {
-        warnData = JSON.parse(fs.readFileSync(warnPath, 'utf8'));
-        if (warnData.callsSinceCheckpoint == null) warnData.callsSinceCheckpoint = 0;
-        if (warnData.checkpointSaved == null) warnData.checkpointSaved = false;
-        firstWarn = false;
-      } catch (e) {
-        // Corrupted file, reset
-      }
+    try {
+      warnData = JSON.parse(fs.readFileSync(warnPath, 'utf8'));
+      if (warnData.callsSinceCheckpoint == null) warnData.callsSinceCheckpoint = 0;
+      if (warnData.checkpointSaved == null) warnData.checkpointSaved = false;
+      firstWarn = false;
+    } catch (e) {
+      // File doesn't exist or corrupted — use defaults
     }
 
     warnData.callsSinceWarn = (warnData.callsSinceWarn || 0) + 1;
@@ -116,7 +116,7 @@ process.stdin.on('end', () => {
 
     // No warning needed above checkpoint threshold
     if (remaining > CHECKPOINT_THRESHOLD) {
-      fs.writeFileSync(warnPath, JSON.stringify(warnData));
+      fs.writeFileSync(warnPath, JSON.stringify(warnData), { mode: 0o600 });
       process.exit(0);
     }
 
@@ -133,7 +133,7 @@ process.stdin.on('end', () => {
 
     // Checkpoint zone (45-35%): only inject message every CHECKPOINT_INTERVAL calls
     if (isCheckpointOnly && !shouldCheckpoint) {
-      fs.writeFileSync(warnPath, JSON.stringify(warnData));
+      fs.writeFileSync(warnPath, JSON.stringify(warnData), { mode: 0o600 });
       process.exit(0);
     }
 
@@ -142,7 +142,7 @@ process.stdin.on('end', () => {
       const severityOrder = { checkpoint: 0, warning: 1, critical: 2, compact_suggest: 3, compact_urgent: 4 };
       const severityEscalated = (severityOrder[currentLevel] || 0) > (severityOrder[warnData.lastLevel] || 0);
       if (warnData.callsSinceWarn < DEBOUNCE_CALLS && !severityEscalated) {
-        fs.writeFileSync(warnPath, JSON.stringify(warnData));
+        fs.writeFileSync(warnPath, JSON.stringify(warnData), { mode: 0o600 });
         process.exit(0);
       }
     }
@@ -150,7 +150,7 @@ process.stdin.on('end', () => {
     // Reset debounce counter
     warnData.callsSinceWarn = 0;
     warnData.lastLevel = currentLevel;
-    fs.writeFileSync(warnPath, JSON.stringify(warnData));
+    fs.writeFileSync(warnPath, JSON.stringify(warnData), { mode: 0o600 });
 
     // Auto-save session-continuity at compact_urgent (90%+ used)
     if (isCompactUrgent) {

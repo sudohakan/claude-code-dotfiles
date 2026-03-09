@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { getClaudeDir, getTodosDir, getCacheDir } = require('./lib/paths');
+const { getTodosDir, getCacheDir } = require('./lib/paths');
 
 // Read JSON from stdin
 let input = '';
@@ -39,7 +39,7 @@ process.stdin.on('end', () => {
             used_pct: used,
             timestamp: Math.floor(Date.now() / 1000)
           });
-          fs.writeFileSync(bridgePath, bridgeData);
+          fs.writeFileSync(bridgePath, bridgeData, { mode: 0o600 });
         } catch (e) {
           // Silent fail -- bridge is best-effort, don't break statusline
         }
