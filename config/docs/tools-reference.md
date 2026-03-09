@@ -30,13 +30,6 @@ cs-spawn.sh --kill "name"   # Terminate session
 
 Each spawned agent works on its own git branch. Results are written to file, main context stays clean.
 
-## ccusage — Token Usage Tracking
-```bash
-npx ccusage daily --json              # Daily usage (JSON)
-npx ccusage session --json            # Session-based usage
-npx ccusage blocks --json             # 5-hour billing blocks
-```
-
 ## Trail of Bits — Security Audit
 6 security skills active. Triggered automatically or called explicitly:
 - `static-analysis` — CodeQL/Semgrep integration
@@ -54,14 +47,13 @@ Connected as MCP server. Agents can use it as a tool:
 - Each agent in its own container + git branch
 - MCP protocol via `container-use.exe stdio`
 
-## PostToolUse Hooks (Automatic)
-| Hook | Trigger | Function |
-|------|---------|---------|
-| `post-autoformat.js` | Edit/Write/MultiEdit | Project-based prettier/biome format |
-| `post-observability.js` | All tools | Log to `~/.claude/logs/tool-activity-{date}.jsonl` |
-| `post-notify.js` | AskUserQuestion/Task/Bash | Windows toast notification (long task + waiting for input) |
-
-**Agent log query:** `cat ~/.claude/logs/tool-activity-$(date +%Y-%m-%d).jsonl | jq '.tool_name'`
+## Pre/PostToolUse Hooks (Automatic)
+| Hook | Type | Function |
+|------|------|----------|
+| `dippy/` | PreToolUse | Smart bash auto-approve (Python) |
+| `pretooluse-safety.js` | PreToolUse | Blocks dangerous commands and credential leaks |
+| `gsd-context-monitor.js` | PostToolUse | Monitors context budget (warns at thresholds) |
+| `post-autoformat.js` | PostToolUse | Project-based prettier/biome format (disabled by default) |
 
 ## recall — Session Search
 ```bash

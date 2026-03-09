@@ -30,7 +30,7 @@ bash /c/dev/claude-code-dotfiles/install.sh
 | 7 | Fix paths | Auto-updates if username differs |
 | 8 | **Transfer memory** | Cross-project knowledge base files |
 | 9 | **Install HakanMCP** | `git clone` + `npm install` + `npm run build` |
-| 10 | **Install plugins** | 7 official + 6 Trail of Bits = 13 plugins |
+| 10 | **Install plugins** | 15 official + 11 Trail of Bits + 3 Anthropic = 29 plugins |
 
 **After installation, just run `claude login` and you're ready.**
 
@@ -67,7 +67,7 @@ The script auto-installs missing software (via winget):
 | **jq** | Required by some hooks | Yes (winget) |
 | **Claude Code CLI** | Main tool | Yes (npm) |
 | **HakanMCP** | 200+ tool MCP server | Yes (git clone + build) |
-| **13 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
+| **29 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
 
 ### Optional (Manual install):
 
@@ -114,8 +114,9 @@ config/
 │   └── gsd/                     # /gsd:* (33 commands)
 ├── agents/                   # 12 GSD agent definitions
 ├── get-shit-done/            # GSD core engine
-├── skills/                   # 3 skill sets
+├── skills/                   # 4 skill sets
 │   ├── cc-devops-skills/
+│   ├── community-skills/
 │   ├── trailofbits-security/
 │   └── ui-ux-pro-max/
 ├── plugins/                  # Marketplace settings
