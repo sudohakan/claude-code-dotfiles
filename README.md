@@ -5,7 +5,7 @@
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 29 plugins across 4 marketplaces, and 200+ MCP tools.
+Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 29 plugins across 4 marketplaces, and comprehensive MCP tools.
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@ Production-ready Claude Code configuration with GSD workflow, multi-agent coordi
 
 - GSD (Get Shit Done) workflow with 34 commands for full project lifecycle management
 - Multi-agent coordination with 12 specialized agents and wave-based parallelization
-- 200+ MCP tools via HakanMCP integration (DB, Git, AI, monitoring, orchestration)
+- Comprehensive MCP tools via [HakanMCP](https://github.com/sudohakan/HakanMCP) integration (DB, Git, AI, monitoring, orchestration)
 - 3-layer safety system (Dippy auto-approve, pretooluse-safety blocker, context monitor)
 - Auto-update with version tracking and dotfiles sync
 
