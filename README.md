@@ -4,7 +4,7 @@
     My personal Claude Code CLI configuration — portable, automated, production-ready.
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/version-1.8.1-blue?style=flat-square" alt="Version: 1.8.1">
+    <img src="https://img.shields.io/badge/version-1.9.0-blue?style=flat-square" alt="Version: 1.9.0">
     <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows" alt="Platform: Windows">
     <img src="https://img.shields.io/badge/Claude_Code-CLI-7C3AED?style=flat-square" alt="Claude Code CLI">
     <img src="https://img.shields.io/badge/license-MIT-22C55E?style=flat-square" alt="License: MIT">

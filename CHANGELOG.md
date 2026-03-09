@@ -5,6 +5,18 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.9.0] - 2026-03-09
+
+### Changed
+- **CLAUDE.md restructured** — Subagent model selection (§5), context engineering (§6) extracted from GSD-only section to top-level. Rules now apply in ALL conversations, not just GSD workflows
+- **Section numbering** — Renumbered from §1-§9 to §5-§15 with logical grouping (shared rules first, then workflow-specific)
+- **GSD section** — Removed duplicate context management, subagent preference, and context budget subsections (now in §5-§6)
+- **Superpowers Triggering** — Extracted from Task Classification into standalone §8
+
+### Added
+- **`-bs` shortcut** — User message containing `-bs` triggers `superpowers:brainstorming` skill immediately
+- **Context %95 threshold** — Auto-update session-continuity.md, run `/compact`, show post-compact summary with last point and next step
+
 ## [1.8.1] - 2026-03-08
 
 ### Fixed

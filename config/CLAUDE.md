@@ -1,7 +1,10 @@
 # Global Claude Instructions
 
-## Language
+## Language & Shortcuts
 Respond in the same language the user writes in (Turkish → Turkish, English → English).
+
+### Shortcuts
+- **`-bs`** — When user message contains `-bs`, trigger `superpowers:brainstorming` skill immediately.
 
 ## Git Rule
 **Git commands (commit, push, pull, checkout, branch, merge, rebase, reset, stash, etc.) are ONLY executed when the user explicitly requests them.** No auto-commit, auto-push, or GSD atomic commit — never run git commands without user request.
@@ -21,35 +24,87 @@ When `claude-code-dotfiles` (`C:\dev\claude-code-dotfiles`) is updated:
 
 ---
 
-## 1. Task Classification
+## 5. Subagent & Model Selection
+
+These rules apply in ALL conversations — GSD and non-GSD alike.
+
+### Model Selection
+
+Agent tool subagents get automatic model selection based on task complexity:
+
+| Task Type | Model | Examples |
+|-----------|-------|----------|
+| Simple search/lookup | haiku | File search, single file read, simple grep, variable name search |
+| Standard research/analysis | sonnet | Codebase exploration, multi-file analysis, refactoring plan, test writing |
+| Deep analysis/architecture | opus | Security audit, architectural decision, complex debug, cross-module analysis |
+
+### Delegation Rules
+
+**Always delegate to subagent (regardless of context level):**
+- Codebase research requiring 5+ file reads
+- Test suite execution
+- Large file reads (500+ lines)
+
+**Delegate at context 45%+:**
+- All research (Explore agent instead of Read/Grep/Glob)
+- New task initiation
+- File read operations
+
+**Keep in main context:**
+- Direct user communication
+- Small edits in single file
+- Git commands
+- Short, known file reads (<100 lines)
+
+### Work Size Strategy
+
+| Estimated Size | Strategy |
+|----------------|----------|
+| < 50 lines changed | Work in main context |
+| 50–200 lines | Research → subagent, implement → main context |
+| 200+ lines or 3+ file groups | Multi-agent (research + implement + test parallel) |
+| Cross-class refactoring | Worktree agents |
+| Security audit / comprehensive test | Background subagent (main session not blocked) |
+| 2+ project directories simultaneously | Separate sessions per project |
+
+---
+
+## 6. Context Engineering
+
+These rules apply in ALL conversations — GSD and non-GSD alike.
+
+### Context Budget (hook warns automatically)
+
+| Threshold | Action |
+|-----------|--------|
+| **45%** | Route research and large tasks to subagents |
+| **55%** | All new tasks via subagent only |
+| **65%** | Complete current work, don't start new tasks |
+| **75%** | Update session-continuity.md, inform user: can continue with `claude --resume` |
+| **85%** | Suggest `/compact` |
+| **90%** | Update session-continuity.md, suggest `/compact` |
+| **95%** | Update session-continuity.md, run `/compact`, post-compact summary: "Son kalınan nokta: X. Devam edilecek: Y." |
+
+### Token Efficiency Principles
+
+- **Write to filesystem, not context** — save long outputs to files
+- **Subagent isolation** — each subagent starts with clean context
+- **Lazy loading** — MCP tools loaded via ToolSearch
+- **Progressive disclosure** — summary first, details if needed
+- Generate 3+ alternative hypotheses for critical decisions
+- Keep audit trail: why this approach, why not the others
+
+### Quality Gate Reinforcement
+
+- Define verification criteria before implementation
+- LLM-as-Judge: Score `superpowers:requesting-code-review` results with evidence-based scoring
+- Failed review → fix → review again (automatic retry loop)
+
+---
+
+## 7. Task Classification
 
 Every user request is classified first. **Class determines approach.**
-
-### Brainstorming (creative/ambiguous work)
-`superpowers:brainstorming` skill is triggered when user intent matches any of these:
-- Asking for ideas, suggestions, or alternatives (language-independent intent detection)
-- New feature, command, tool, or architectural design to be created
-- Multiple approaches possible and the best one is unclear
-- User is not requesting direct action, but exploring/questioning
-
-### Superpowers Triggering (intent-based, language-independent)
-The following skills are automatically triggered when matching intent is detected:
-
-| Intent | Skill | When |
-|--------|-------|------|
-| Creative/exploratory question | `brainstorming` | Ideas, suggestions, alternatives requested; unclear approach |
-| Bug, error, unexpected behavior | `systematic-debugging` | Problem report, error analysis |
-| Plan/spec ready, moving to implementation | `executing-plans` | Written plan exists, step-by-step execution needed |
-| Multiple independent tasks | `dispatching-parallel-agents` | 2+ independent tasks can run simultaneously |
-| New feature/major change planning | `writing-plans` | Multi-step task, spec/requirements available |
-| Test writing / TDD approach | `test-driven-development` | User requests tests or TDD is appropriate |
-| Isolated work requirement | `using-git-worktrees` | Feature isolation, parallel branch work |
-| Independent tasks within plan | `subagent-driven-development` | Parallel implementation in current session |
-| Branch/feature completed | `finishing-a-development-branch` | Merge/PR/cleanup decision needed |
-| Work completion claim | `verification-before-completion` | Prove it works before claiming completion |
-| Code review request/delivery | `requesting-code-review` | Major feature/milestone completed |
-| Review feedback received | `receiving-code-review` | Evaluate feedback with rigor, don't blindly accept |
-| New skill creation/editing | `writing-skills` | Skill file being written or modified |
 
 ### Direct Task (no GSD required)
 GSD is NOT used — execute directly in these cases:
@@ -76,7 +131,37 @@ GSD kicks in for these cases:
 
 ---
 
-## 2. GSD — Development Workflow
+## 8. Superpowers Triggering (intent-based, language-independent)
+
+### Brainstorming (creative/ambiguous work)
+`superpowers:brainstorming` skill is triggered when user intent matches any of these:
+- Asking for ideas, suggestions, or alternatives (language-independent intent detection)
+- New feature, command, tool, or architectural design to be created
+- Multiple approaches possible and the best one is unclear
+- User is not requesting direct action, but exploring/questioning
+
+### Intent → Skill Table
+The following skills are automatically triggered when matching intent is detected:
+
+| Intent | Skill | When |
+|--------|-------|------|
+| Creative/exploratory question | `brainstorming` | Ideas, suggestions, alternatives requested; unclear approach |
+| Bug, error, unexpected behavior | `systematic-debugging` | Problem report, error analysis |
+| Plan/spec ready, moving to implementation | `executing-plans` | Written plan exists, step-by-step execution needed |
+| Multiple independent tasks | `dispatching-parallel-agents` | 2+ independent tasks can run simultaneously |
+| New feature/major change planning | `writing-plans` | Multi-step task, spec/requirements available |
+| Test writing / TDD approach | `test-driven-development` | User requests tests or TDD is appropriate |
+| Isolated work requirement | `using-git-worktrees` | Feature isolation, parallel branch work |
+| Independent tasks within plan | `subagent-driven-development` | Parallel implementation in current session |
+| Branch/feature completed | `finishing-a-development-branch` | Merge/PR/cleanup decision needed |
+| Work completion claim | `verification-before-completion` | Prove it works before claiming completion |
+| Code review request/delivery | `requesting-code-review` | Major feature/milestone completed |
+| Review feedback received | `receiving-code-review` | Evaluate feedback with rigor, don't blindly accept |
+| New skill creation/editing | `writing-skills` | Skill file being written or modified |
+
+---
+
+## 9. GSD — Development Workflow
 
 > GSD only works project-scoped. Active in projects with `.planning/` infrastructure.
 
@@ -97,53 +182,30 @@ GSD kicks in for these cases:
 - **Verification:** When code is written, prove it works. Run tests, show output, report results. Formal skill invocation only mandatory for 200+ line changes.
 - `.planning/` STATE.md and ROADMAP.md are always kept up to date.
 
-### Context management
-
-| Estimated Size | Strategy |
-|----------------|----------|
-| < 50 lines changed | Work in main context |
-| 50–200 lines | Research → subagent, implement → main context |
-| 200+ lines or 3+ file groups | Multi-agent (research + implement + test parallel) → **CS triggered** |
-| Cross-class refactoring | Worktree agents → **CS preferred** |
-| Security audit / comprehensive test | **CS background** (main session not blocked) |
-| 2+ project directories simultaneously | **CS required** (each project in its own session) |
-
-### Subagent preference
-- When context is above 45%, use Explore agent instead of Read/Grep/Glob
-- Large file reads, codebase scans, running tests — context-bloating tasks should always go to subagent
-
-### Context budget (hook warns automatically)
-- **45%** → Switch to subagent for research and large tasks
-- **55%** → All new tasks via subagent only
-- **65%** → Complete current work, don't start new tasks
-- **75%** → Update session-continuity.md, inform user: can continue with `claude --resume`
-- **85%** → Suggest `/compact`
-- **90%** → Update session-continuity.md, tell user to run `/compact`
-
 ---
 
-## 3. UI/UX Pro Max — Design System
+## 10. UI/UX Pro Max — Design System
 > Details: `~/.claude/docs/ui-ux.md`
 
 Triggered when user intent is visual interface design/modification (UI creation, styling, colors, layout, typography, etc.).
 
 ---
 
-## 4. Decision Table + Integration Matrix
+## 11. Decision Table + Integration Matrix
 > Details: `~/.claude/docs/decision-matrix.md` | Review/Ralph: `~/.claude/docs/review-ralph.md`
 
 Which task → which workflow + which Superpowers + is Ralph appropriate — decided by this table.
 
 ---
 
-## 5. Multi-Agent Coordination Protocol
+## 12. Multi-Agent Coordination Protocol
 > Details: `~/.claude/docs/multi-agent.md`
 
 Agent roles, parallel agent rules, quality gates, failure protocol in docs file.
 
 ---
 
-## 6. Session Continuity (project-scoped)
+## 13. Session Continuity (project-scoped)
 
 Session-continuity is kept project-scoped. Created with `/init-hakan` for new projects.
 
@@ -166,7 +228,7 @@ Update `memory/session-continuity.md` (fully rewrite, don't append):
 
 ---
 
-## 7. Cross-Project Knowledge Base
+## 14. Cross-Project Knowledge Base
 
 | File | Content | When to Update |
 |------|---------|----------------|
@@ -178,23 +240,7 @@ Project name is included in every entry. **Project-specific context is preserved
 
 ---
 
-## 8. Advanced Toolset
+## 15. Advanced Toolset
 > Details: `~/.claude/docs/tools-reference.md`
 
 Claude Squad, Trail of Bits, Container Use, Dippy, recall, ClaudeCTX — tool details in docs file.
-
----
-
-## 9. Context Engineering — Token Efficiency
-
-- **Write to filesystem, not context:** Save long outputs to files
-- **Subagent isolation:** Each subagent starts with clean context
-- **Lazy loading:** MCP tools loaded via ToolSearch
-- **Progressive disclosure:** Summary first, details if needed
-- Generate 3+ alternative hypotheses for critical decisions
-- Keep audit trail: why this approach, why not the others
-
-### Quality Gate Reinforcement
-- Define verification criteria before implementation
-- LLM-as-Judge: Score `superpowers:requesting-code-review` results with evidence-based scoring
-- Failed review → fix → review again (automatic retry loop)
