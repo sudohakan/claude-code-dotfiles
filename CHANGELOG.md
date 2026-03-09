@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.12.1] - 2026-03-09
+
+### Changed
+- **Ship command** — Redesigned with Approval Philosophy: fewer prompts, autonomous flow with only 4 approval points (version bump, critical security, unfixable CI, merge failure). Reordered steps: security scan before commit, cleanup before commit.
+
 ## [1.12.0] - 2026-03-09
 
 ### Added
