@@ -15,6 +15,37 @@ const os = require("os");
 // Set to true to enable exfiltration detection (disabled by default)
 const ENABLE_EXFILTRATION_CHECK = false;
 
+// --- Safe development directories (rm -rf allowed here) ---
+const SAFE_DEV_DIRS = [
+  /^\/c\/dev\//i,
+  /^C:\\\\dev\\/i,
+  /^C:\/dev\//i,
+  /^\/c\/Users\/Hakan\/source\//i,
+  /^C:\\\\Users\\\\Hakan\\\\source\\/i,
+];
+
+function isInSafeDevDir(command) {
+  // Extract paths from rm -rf
+  const rmMatch = command.match(/rm\s+-[a-z]*r[a-z]*f\s+(.+)/i) || command.match(/rm\s+-[a-z]*f[a-z]*r\s+(.+)/i);
+  // Extract paths from rmdir /s /q
+  const rmdirMatch = command.match(/rmdir\s+\/s\s+(?:\/q\s+)?(.+)/i);
+  // Extract paths from cmd.exe /c "rmdir /s /q PATH"
+  const cmdRmdirPaths = [...command.matchAll(/rmdir\s+\/s\s+(?:\/q\s+)?"?([^"]+)"?/gi)].map(m => m[1].trim());
+
+  let paths = [];
+  if (rmMatch) {
+    paths = rmMatch[1].trim().split(/\s+/).filter(p => !p.startsWith('-'));
+  } else if (cmdRmdirPaths.length > 0) {
+    paths = cmdRmdirPaths;
+  } else if (rmdirMatch) {
+    paths = rmdirMatch[1].trim().split(/\s+/).filter(p => !p.startsWith('/'));
+  }
+
+  if (paths.length === 0) return false;
+  // ALL paths must be in safe dirs — if any is outside, block
+  return paths.every(p => SAFE_DEV_DIRS.some(re => re.test(p)));
+}
+
 const DANGEROUS_PATTERNS = [
   // Git destructive
   { pattern: /git\s+push\s+.*--force/i, reason: "Force push may cause data loss" },
@@ -296,6 +327,10 @@ async function main() {
     // Check 4: Destructive commands
     for (const { pattern, reason } of DANGEROUS_PATTERNS) {
       if (pattern.test(command)) {
+        // Allow destructive file ops in safe development directories
+        if ((/rm\s+-[a-z]*r[a-z]*f|rm\s+-[a-z]*f[a-z]*r/i.test(command) || /rmdir\s+\/s/i.test(command)) && isInSafeDevDir(command)) {
+          continue;
+        }
         saveToAllowlist(command);
         const result = {
           decision: "block",
@@ -316,6 +351,8 @@ if (require.main !== module) {
     DANGEROUS_PATTERNS,
     CREDENTIAL_PATTERNS,
     EXFILTRATION_PATTERNS,
+    SAFE_DEV_DIRS,
+    isInSafeDevDir,
     checkUnicodeInjection,
     loadAllowlist,
     saveToAllowlist,

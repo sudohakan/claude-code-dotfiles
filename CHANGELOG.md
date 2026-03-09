@@ -5,6 +5,13 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.10.1] - 2026-03-09
+
+### Added
+- **Safe dev directories** — Destructive file commands allowed without blocking in `C:\dev\` and `C:\Users\Hakan\source\` directories
+- **Windows cmd.exe rmdir support** — `cmd.exe /c "rmdir /s /q PATH"` pattern now parsed correctly
+- **Module exports** — Added `SAFE_DEV_DIRS` and `isInSafeDevDir` to test exports
+
 ## [1.10.0] - 2026-03-09
 
 ### Added
