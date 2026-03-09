@@ -5,6 +5,13 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.11.1] - 2026-03-09
+
+### Fixed
+- **Statusline update notifications** — Now shows version numbers: `Updates: GSD 1.2.3→1.3.0, Dotfiles 1.10.1→1.11.0` instead of just `Updates: GSD, Dotfiles`
+- **HakanMCP clone URL** — Fixed case mismatch in both install scripts: `hakanmcp.git` → `HakanMCP.git`
+- **PowerShell npm error handling** — `npm install` and `npm run build` failures are now detected and reported instead of silently swallowed by `Out-Null`
+
 ## [1.11.0] - 2026-03-09
 
 ### Added
