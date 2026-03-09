@@ -129,11 +129,13 @@ else
 fi
 
 # Python (required by hookify plugin)
+# Note: On Windows, python3 may exist as MS Store redirect (WindowsApps)
+# that doesn't actually work. We verify with --version exit code.
 PYTHON_CMD=""
-if command -v python3 &>/dev/null; then
+if python3 --version &>/dev/null; then
     PYTHON_CMD="python3"
     ok "Python : $(python3 --version 2>&1)"
-elif command -v python &>/dev/null; then
+elif python --version &>/dev/null; then
     PYTHON_CMD="python"
     ok "Python : $(python --version 2>&1)"
 else

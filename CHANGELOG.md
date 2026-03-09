@@ -5,6 +5,12 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.13.2] - 2026-03-10
+
+### Fixed
+- **review-ralph.md** — Translated from Turkish to English
+- **Python detection** — Use `python3 --version` exit code instead of `command -v` to detect Windows MS Store redirect that appears available but doesn't work
+
 ## [1.13.1] - 2026-03-09
 
 ### Fixed

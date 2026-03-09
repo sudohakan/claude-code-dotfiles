@@ -1,28 +1,28 @@
-# Review Araci Secim Tablosu
+# Review Tool Selection Table
 
-| Durum | Arac | Neden |
-|-------|------|-------|
-| PR olusturuldu, merge oncesi review | `code-review:code-review` | PR baglaminda diff-bazli review |
-| Faz sonu kalite kontrolu | `superpowers:requesting-code-review` | Mimari uyum + plan uyumu |
-| Wave ici hizli kontrol (agent ciktisi) | `feature-dev:code-reviewer` | Tek modul, bug/logic odakli |
-| UI komponenti teslimi | `superpowers:requesting-code-review` | Tasarim + erisilebilirlik dahil |
+| Situation | Tool | Reason |
+|-----------|------|--------|
+| PR created, pre-merge review | `code-review:code-review` | Diff-based review in PR context |
+| End-of-phase quality check | `superpowers:requesting-code-review` | Architecture alignment + plan conformance |
+| Quick in-wave check (agent output) | `feature-dev:code-reviewer` | Single module, bug/logic focused |
+| UI component delivery | `superpowers:requesting-code-review` | Includes design + accessibility |
 
-**Kural:** Bir review araci gectiyse, ayni degisiklik icin ikincisini calistirma — gereksiz tekrar.
+**Rule:** If one review tool passes, do not run a second one on the same changes — unnecessary repetition.
 
 ---
 
-# Ralph Kullanim Kurallari
+# Ralph Usage Rules
 
-**Tetikleme Checklist — 5 kosulun tumu saglanmali:**
-1. Basari kriteri tek cumleyle ifade edilebilir → **EVET ise devam**
-2. Dogrulama otomatik calistirilanilir (test, lint, build) → **EVET ise devam**
-3. Maksimum iterasyon tahmin edilebilir (genellikle 3-5) → **EVET ise devam**
-4. Tasarim karari gerektiriyor mu? → **HAYIR ise devam**, evet ise Ralph kullanma
-5. Kullanici onayi gerektiriyor mu? → **HAYIR ise devam**, evet ise Ralph kullanma
+**Trigger Checklist — all 5 conditions must be met:**
+1. Success criteria can be expressed in a single sentence → **YES = continue**
+2. Verification can be automated (test, lint, build) → **YES = continue**
+3. Maximum iterations are predictable (typically 3-5) → **YES = continue**
+4. Does it require a design decision? → **NO = continue**, if yes don't use Ralph
+5. Does it require user approval? → **NO = continue**, if yes don't use Ralph
 
-**Uygun gorev ornekleri:** "tum testler gecsin", "lint hatasiz olsun", "build basarili olsun", "type error'lar duzeltilsin"
-**Uygun olmayan:** "UI'i iyilestir", "mimariyi refactor et", "yeni ozellik tasarla"
+**Suitable task examples:** "all tests pass", "lint error-free", "build succeeds", "fix type errors"
+**Not suitable:** "improve UI", "refactor architecture", "design new feature"
 
-**Zorunlu parametreler:**
-- `--completion-promise` → ne basarilacak (orn: "all tests pass")
-- `--max-iterations` → ust sinir (varsayilan: 5, max: 10)
+**Required parameters:**
+- `--completion-promise` → what will be achieved (e.g., "all tests pass")
+- `--max-iterations` → upper limit (default: 5, max: 10)
