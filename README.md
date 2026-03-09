@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-1.10.1-blue)
+![Version](https://img.shields.io/badge/version-1.11.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
@@ -77,7 +77,7 @@ StatusLine    ->  gsd-statusline.js                Render profile + phase + cont
 Safety details:
 - Session-based allowlist remembers approved dangerous commands (12h TTL)
 - Credentials and unicode injection are always hard-blocked (no allowlist bypass)
-- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test` (19 tests)
+- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test` (30 tests)
 - Optional data exfiltration detection (curl POST, scp, netcat, rsync) via `ENABLE_EXFILTRATION_CHECK`
 
 </details>
