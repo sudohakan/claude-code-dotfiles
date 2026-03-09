@@ -83,33 +83,31 @@ process.stdin.on('end', () => {
       }
     }
 
-    // GSD update available?
-    let gsdUpdate = '';
+    // Check for available updates
     const cacheDir = getCacheDir();
-    const cacheFile = path.join(cacheDir, 'gsd-update-check.json');
-    if (fs.existsSync(cacheFile)) {
+    const updateSources = [];
+
+    const gsdCacheFile = path.join(cacheDir, 'gsd-update-check.json');
+    if (fs.existsSync(gsdCacheFile)) {
       try {
-        const cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-        if (cache.update_available) {
-          gsdUpdate = '\x1b[33m⬆ /gsd:update\x1b[0m │ ';
-        }
+        const cache = JSON.parse(fs.readFileSync(gsdCacheFile, 'utf8'));
+        if (cache.update_available) updateSources.push('GSD');
       } catch (e) {}
     }
 
-    // Dotfiles update available?
-    let dotfilesUpdate = '';
     const dotfilesCacheFile = path.join(cacheDir, 'dotfiles-update-check.json');
     if (fs.existsSync(dotfilesCacheFile)) {
       try {
         const cache = JSON.parse(fs.readFileSync(dotfilesCacheFile, 'utf8'));
-        if (cache.update_available) {
-          dotfilesUpdate = `\x1b[33m⬆ dotfiles ${cache.installed}\u2192${cache.latest} /dotfiles-update\x1b[0m │ `;
-        }
+        if (cache.update_available) updateSources.push('Dotfiles');
       } catch (e) {}
     }
 
+    const updates = updateSources.length > 0
+      ? `\x1b[33mUpdates: ${updateSources.join(', ')}\x1b[0m │ `
+      : '';
+
     // Output
-    const updates = `${dotfilesUpdate}${gsdUpdate}`;
     const dirname = path.basename(dir);
     if (task) {
       process.stdout.write(`${updates}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
