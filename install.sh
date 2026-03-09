@@ -454,6 +454,23 @@ else
             fi
         fi
 
+        # Fix hookify PLUGIN_ROOT fallback (env var may not be set at runtime)
+        info "Applying hookify PLUGIN_ROOT fallback..."
+        HOOKIFY_ROOT_FIXED=0
+        for pyfile in "$CLAUDE_DIR"/plugins/cache/claude-plugins-official/hookify/*/hooks/*.py \
+                      "$CLAUDE_DIR"/plugins/marketplaces/claude-code-plugins/plugins/hookify/hooks/*.py \
+                      "$CLAUDE_DIR"/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/*.py; do
+            if [ -f "$pyfile" ]; then
+                if grep -q "PLUGIN_ROOT = os.environ.get('CLAUDE_PLUGIN_ROOT')$" "$pyfile" 2>/dev/null; then
+                    sed -i'' -e "s|PLUGIN_ROOT = os.environ.get('CLAUDE_PLUGIN_ROOT')$|PLUGIN_ROOT = os.environ.get('CLAUDE_PLUGIN_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))|" "$pyfile"
+                    HOOKIFY_ROOT_FIXED=$((HOOKIFY_ROOT_FIXED + 1))
+                fi
+            fi
+        done
+        if [ "$HOOKIFY_ROOT_FIXED" -gt 0 ]; then
+            ok "Hookify PLUGIN_ROOT fallback applied ($HOOKIFY_ROOT_FIXED files)"
+        fi
+
         ok "Plugin installation complete."
     else
         warn "Claude CLI not yet in PATH."

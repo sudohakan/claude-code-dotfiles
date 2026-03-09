@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Context Monitor - PostToolUse hook
+// Context Monitor - PostToolUse/AfterTool hook (Gemini uses AfterTool)
 // Reads context metrics from the statusline bridge file and injects
 // warnings when context usage is high. Also auto-saves session state
 // at checkpoints so context exhaustion doesn't lose work.
@@ -24,7 +24,6 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { getMemoryDirCandidates } = require('./lib/paths');
 
 const CHECKPOINT_THRESHOLD = 45;      // remaining <= 45% (used ~55%) -> auto-checkpoint
 const WARNING_THRESHOLD = 35;         // remaining <= 35% (used ~65%)
@@ -35,10 +34,24 @@ const STALE_SECONDS = 60;
 const DEBOUNCE_CALLS = 5;
 const CHECKPOINT_INTERVAL = 15;  // min tool uses between checkpoints
 
+// Inline helper: memory dir candidates (avoids lib/paths dependency)
+function getMemoryDirCandidates(cwd) {
+  const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+  const projectKey = cwd.replace(/[:\\/]/g, '-').replace(/^-+/, '');
+  return [
+    path.join(cwd, 'memory'),
+    path.join(claudeDir, 'projects', projectKey, 'memory'),
+  ];
+}
+
 let input = '';
+// Timeout guard: if stdin doesn't close within 3s (e.g. pipe issues on
+// Windows/Git Bash), exit silently instead of hanging. See #775.
+const stdinTimeout = setTimeout(() => process.exit(0), 3000);
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', chunk => input += chunk);
 process.stdin.on('end', () => {
+  clearTimeout(stdinTimeout);
   try {
     const data = JSON.parse(input);
     const sessionId = data.session_id;
@@ -208,7 +221,7 @@ process.stdin.on('end', () => {
 
     const output = {
       hookSpecificOutput: {
-        hookEventName: "PostToolUse",
+        hookEventName: process.env.GEMINI_API_KEY ? "AfterTool" : "PostToolUse",
         additionalContext: message
       }
     };

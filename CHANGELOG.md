@@ -5,6 +5,13 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.13.1] - 2026-03-09
+
+### Fixed
+- **gsd-statusline.js** — Added stdinTimeout guard, CLAUDE_CONFIG_DIR support, normalized context scaling (16.5% autocompact buffer), inlined path helpers, secure bridge file mode
+- **gsd-context-monitor.js** — Added stdinTimeout guard, inlined getMemoryDirCandidates, Gemini AfterTool hook support
+- **Hookify PLUGIN_ROOT** — Installer now patches hookify Python scripts to find core module via `__file__` fallback when `CLAUDE_PLUGIN_ROOT` env var is missing
+
 ## [1.13.0] - 2026-03-09
 
 ### Added
