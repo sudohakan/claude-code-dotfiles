@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * PreToolUse Safety Hook v1.3.0
+ * PreToolUse Safety Hook v1.4.0
  * Detects dangerous commands, credential leaks, data exfiltration, and unicode injection.
  * If the user has approved, does not ask again in the same session.
  * Supports allowed directories — destructive file ops are auto-allowed when CWD is inside.

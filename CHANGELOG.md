@@ -5,6 +5,29 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.12.0] - 2026-03-09
+
+### Added
+- **Community skills** — 4 new skills from awesome-claude-skills: d3js-visualization, ffuf-web-fuzzing, frontend-slides, web-asset-generator
+- **Plugin marketplaces** — 4 new marketplace sources in known_marketplaces.json
+- **Ship code review** — New Step 5.5 in ship command invokes `superpowers:requesting-code-review` before push
+- **Multi-runtime GSD detection** — `gsd-check-update.js` now supports OpenCode, Gemini, and `CLAUDE_CONFIG_DIR` env var
+- **PowerShell installer enhancements** — Community skills installation, improved error handling
+
+### Fixed
+- **Semgrep bash findings (13)** — install.sh: unquoted variable expansions, boolean flag patterns (`if $VAR` → `if [ "$VAR" = true ]`), useless cat
+- **CodeQL TOCTOU findings** — Removed `fs.existsSync()` before `fs.readFileSync()` race conditions in hooks (gsd-context-monitor, pretooluse-safety)
+- **CodeQL insecure temp files** — Added `{ mode: 0o600 }` to all `writeFileSync` calls for temp/bridge files
+- **CodeQL unused imports** — Removed unused `os` import (dotfiles-check-update) and `getClaudeDir` import (gsd-statusline)
+- **Premature allowlist save** — `saveToAllowlist` removed from block paths; commands no longer auto-approved without user consent
+- **Cross-session allowlist leak** — Session ID fallback now includes `process.ppid` to prevent daily allowlist sharing
+- **Code injection via env var** — `gsd-check-update.js` passes paths via env vars instead of `JSON.stringify` interpolation in `node -e`
+- **macOS sed compatibility** — `sed -i` → `sed -i'' -e` for BSD sed compatibility
+
+### Changed
+- **pretooluse-safety.js** — Bumped to v1.4.0 (security hardening)
+- **README.md** — Updated skills/plugins section with community skills and marketplace tables
+
 ## [1.11.1] - 2026-03-09
 
 ### Fixed
