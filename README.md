@@ -1,11 +1,11 @@
-![Version](https://img.shields.io/badge/version-1.12.1-blue)
+![Version](https://img.shields.io/badge/version-1.13.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 28 plugins across 4 marketplaces, and 200+ MCP tools.
+Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 29 plugins across 4 marketplaces, and 200+ MCP tools.
 
 ## Table of Contents
 
@@ -173,7 +173,7 @@ Full project lifecycle management:
 </details>
 
 <details>
-<summary><strong>Skills & Plugins (4 marketplaces, 28 plugins)</strong></summary>
+<summary><strong>Skills & Plugins (4 marketplaces, 29 plugins)</strong></summary>
 
 **Bundled Skill Sets (local):**
 
@@ -201,7 +201,7 @@ Full project lifecycle management:
 | **trailofbits** | `trailofbits/skills` | 11 plugins |
 | **anthropic-agent-skills** | `anthropics/skills` | 3 plugins (document-skills, example-skills, claude-api) |
 
-**Enabled Plugins (28 total):**
+**Enabled Plugins (29 total):**
 
 | Plugin | Marketplace | Description |
 |--------|-------------|-------------|
@@ -211,6 +211,7 @@ Full project lifecycle management:
 | feature-dev | official | Guided feature development |
 | ralph-loop | official | Continuous code review loop |
 | typescript-lsp | official | TypeScript language server |
+| playwright | official | Browser automation (disabled by default) |
 | frontend-design | official | Production-grade frontend UI design |
 | skill-creator | official | Create and improve custom skills |
 | commit-commands | official | Git commit + push + PR automation |
@@ -422,7 +423,7 @@ flowchart TD
 
 - **OS:** Windows 10/11 (Linux/macOS via `install.sh`)
 - **Node.js:** v18+ (auto-installed)
-- **Python:** 3.8+ (required for Dippy hook)
+- **Python:** 3.8+ (auto-installed; required for Dippy hook and hookify plugin)
 - **Git:** Any recent version (auto-installed)
 - **Claude Code:** Installed automatically by the script
 

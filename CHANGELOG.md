@@ -5,6 +5,18 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.13.0] - 2026-03-09
+
+### Added
+- **Python auto-install** — Python added as dependency in installer with auto-install via winget (Windows), Homebrew (macOS), apt (Linux)
+- **Full plugin sync** — 7 missing official plugins added to installer: frontend-design, skill-creator, commit-commands, code-simplifier, pr-review-toolkit, security-guidance, claude-md-management. All 29 plugins now installed automatically
+- **Hookify python3 fix** — Auto-fixes hookify's hardcoded `python3` to `python` on Windows/systems without python3
+
+### Fixed
+- **HakanMCP false success** — "HakanMCP updated" message now gated on actual npm install/build success
+- **sed username injection** — Escaped USERNAME for sed to handle domain usernames (e.g., `CORP\user`)
+- **Duplicate Python check** — Removed redundant Dippy Python check (covered by new dependency check)
+
 ## [1.12.1] - 2026-03-09
 
 ### Changed
