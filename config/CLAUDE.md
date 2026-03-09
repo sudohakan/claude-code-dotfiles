@@ -5,6 +5,8 @@ Respond in the same language the user writes in (Turkish → Turkish, English �
 
 ### Shortcuts
 - **`-bs`** — When user message contains `-bs`, trigger `superpowers:brainstorming` skill immediately.
+- **`-ep`** — When user message contains `-ep`, trigger `superpowers:executing-plans` skill immediately.
+- If both `-bs` and `-ep` are present, run brainstorming first, then executing-plans.
 
 ## Git Rule
 **Git commands (commit, push, pull, checkout, branch, merge, rebase, reset, stash, etc.) are ONLY executed when the user explicitly requests them.** No auto-commit, auto-push, or GSD atomic commit — never run git commands without user request.
