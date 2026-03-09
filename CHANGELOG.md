@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.9.3] - 2026-03-09
+
+### Changed
+- **Statusline updates** — Replaced emoji-heavy individual update lines (`⬆ dotfiles 1.7.0→1.9.2 /dotfiles-update │ ⬆ /gsd:update`) with clean unified format: `Updates: GSD, Dotfiles`
+
 ## [1.9.2] - 2026-03-09
 
 ### Fixed
