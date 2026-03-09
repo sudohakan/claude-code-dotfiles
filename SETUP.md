@@ -66,7 +66,7 @@ The script auto-installs missing software (via winget):
 | **Git** | HakanMCP clone, version control | Yes (winget) |
 | **jq** | Required by some hooks | Yes (winget) |
 | **Claude Code CLI** | Main tool | Yes (npm) |
-| **HakanMCP** | 200+ tool MCP server | Yes (git clone + build) |
+| **HakanMCP** | Comprehensive MCP server | Yes (git clone + build) |
 | **29 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
 
 ### Optional (Manual install):
