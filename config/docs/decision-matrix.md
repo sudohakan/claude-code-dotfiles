@@ -2,7 +2,7 @@
 
 ## Main Routing Table
 
-| What Did the User Ask? | GSD Flow | Superpowers | Ralph |
+| What Did the User Ask? | GSD Flow | Skill / Tool | Ralph |
 |---|---|---|---|
 | New project / application | `new-project` → full cycle | brainstorming (REQUIRED) | — |
 | New feature / module | `discuss` → `plan` → `execute` → `verify` | writing-plans | — |
@@ -11,7 +11,7 @@
 | Write / design UI | UI/UX Pro Max flow | — | — |
 | During execute-phase | wave-based execution | TDD + verification | Optional |
 | End of each phase | — | requesting-code-review | — |
-| Research / learn / explore (codebase) | — | Explore agent | — |
+| Research / learn / explore (codebase) | — | Agent tool (Explore) | — |
 | Research / learn / explore (external source) | — | WebSearch + Context7 | — |
 | 2+ independent tasks (outside GSD) | `dispatching-parallel-agents` skill | — | — |
 
@@ -20,7 +20,7 @@
 GSD and commit are not required. Two types of research flows:
 
 ### Codebase research (internal)
-1. Scan codebase with Explore agent (patterns, file structure, dependencies)
+1. Scan codebase with Agent tool (Explore) (patterns, file structure, dependencies)
 2. Use Grep/Glob for specific searches if needed
 3. Present result as a structured summary
 

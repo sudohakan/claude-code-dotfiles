@@ -1,4 +1,4 @@
-# Claude Code Portable Setup Guide
+# claude-code-dotfiles Setup Guide
 
 > Hakan's Claude Code configuration — portable transfer package for other machines.
 > Created: 2026-03-01
@@ -61,7 +61,7 @@ The script auto-installs missing software (via winget):
 
 | Software | Why Needed | Automatic? |
 |----------|-----------|------------|
-| **Node.js v18+** | Hooks, Claude CLI, HakanMCP | Yes (winget) |
+| **Node.js v20+** | Hooks, Claude CLI, HakanMCP | Yes (winget) |
 | **Python 3.8+** | Dippy hook | Yes (winget) |
 | **Git** | HakanMCP clone, version control | Yes (winget) |
 | **jq** | Required by some hooks | Yes (winget) |
@@ -101,7 +101,7 @@ config/
 │   ├── dotfiles-check-update.js # Dotfiles update check
 │   └── post-autoformat.js       # Auto format (disabled by default)
 ├── docs/                     # 5 reference documents
-├── commands/                 # 10 + 34 slash commands
+├── commands/                 # 11 + 34 slash commands
 │   ├── init-hakan.md            # /init-hakan — project scaffolding
 │   ├── browser.md               # /browser — Playwright MCP browser launcher
 │   ├── commit.md                # /commit — conventional commit
@@ -111,7 +111,8 @@ config/
 │   ├── release.md               # /release — version bump, changelog, tag
 │   ├── run-ci.md                # /run-ci — auto-detect and run CI
 │   ├── ship.md                  # /ship — end-to-end git workflow
-│   └── gsd/                     # /gsd:* (33 commands)
+│   ├── dotfiles-update.md       # /dotfiles-update — auto-update from GitHub
+│   └── gsd/                     # /gsd:* (34 commands)
 ├── agents/                   # 12 GSD agent definitions
 ├── get-shit-done/            # GSD core engine
 ├── skills/                   # 4 skill sets

@@ -118,6 +118,30 @@ All hooks run within the Claude Code CLI hook system:
 
 </details>
 
+## ALLOWED_DIRS — Development Directory Allowlist
+
+The `pretooluse-safety.js` hook includes an `ALLOWED_DIRS` feature that automatically allows certain destructive file operations (e.g., `rm -rf`, `git clean`) when the current working directory is inside a pre-approved development directory.
+
+**Default allowed directories:**
+
+| Directory | Purpose |
+|-----------|---------|
+| `c:/dev` | Main development workspace |
+| `c:/users/hakan/source` | Visual Studio source repos |
+
+**How it works:**
+
+1. When a destructive command is detected, the hook checks if the current working directory falls inside any `ALLOWED_DIRS` path
+2. If yes, the command is auto-approved without user prompt (it is considered a safe development context)
+3. If no, the standard dangerous-command flow applies (user prompt or block)
+4. Path comparison is case-insensitive and uses normalized forward-slash paths
+
+**Customization:** Edit the `ALLOWED_DIRS` array in `config/hooks/pretooluse-safety.js` to add or remove allowed directories. The installer automatically adjusts the username in paths during installation.
+
+> **Note:** Credential leaks and unicode injection are always hard-blocked regardless of `ALLOWED_DIRS`. This allowlist only applies to destructive file/git operations.
+
+---
+
 ## Third-Party Components
 
 <details>

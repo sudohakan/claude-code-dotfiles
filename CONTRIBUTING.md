@@ -23,7 +23,7 @@
 
 | Tool | Version | Check Command | Purpose |
 |------|---------|---------------|---------|
-| Node.js | >= 18 | `node --version` | Hook execution, GSD runtime |
+| Node.js | >= 20 | `node --version` | Hook execution, GSD runtime |
 | Python | >= 3.8 | `python --version` | Dippy hook, security skills |
 | Git | >= 2.x | `git --version` | Version control |
 | Claude Code | latest | `claude --version` | CLI that consumes this config |
@@ -37,7 +37,7 @@
 ### 1. Fork & Clone
 
 ```bash
-gh repo fork user/claude-code-dotfiles --clone
+gh repo fork sudohakan/claude-code-dotfiles --clone
 cd claude-code-dotfiles
 ```
 
@@ -262,24 +262,32 @@ Claude follows these instructions when the user invokes /command-name.
 Located in `config/hooks/`. Rules:
 
 - **Vanilla JavaScript only** — no TypeScript, no transpilation, no bundling
-- **ESM** (`.js`) — matches the existing convention in this project
+- **CommonJS** — hooks use `require()` with stdin-stdout JSON patterns (read JSON from stdin, write JSON to stdout)
 - **Error-safe:** Hooks must NEVER crash Claude Code. Always wrap in try/catch.
 - **No external dependencies** — use only Node.js built-in modules
 - **Fast execution** — hooks run on every tool call, keep them lightweight
 - **Shared utilities** go in `config/hooks/lib/` (currently contains `paths.js`)
 
 ```javascript
-// Example hook structure
-export default async function(event) {
+// Example hook structure (CommonJS, stdin-stdout JSON)
+const fs = require("fs");
+const path = require("path");
+
+async function main() {
   try {
+    let input = "";
+    for await (const chunk of process.stdin) input += chunk;
+    const event = JSON.parse(input);
+
     // Your logic here
-    return { proceed: true };
+    const result = { proceed: true };
+    process.stdout.write(JSON.stringify(result));
   } catch (error) {
     // Never crash — log and continue
-    console.error('Hook error:', error.message);
-    return { proceed: true };
+    process.stdout.write(JSON.stringify({ proceed: true }));
   }
 }
+main();
 ```
 
 **Existing hooks (7):**
@@ -417,8 +425,8 @@ Before submitting, verify:
 
 | File Type | Convention | Notes |
 |-----------|-----------|-------|
-| Hooks (`.js`) | Vanilla JavaScript (ESM) | No deps, no transpilation, error-safe |
-| Hook utilities (`lib/`) | Vanilla JavaScript (ESM) | Shared helpers, no external deps |
+| Hooks (`.js`) | Vanilla JavaScript (CommonJS) | No deps, no transpilation, error-safe, stdin-stdout JSON |
+| Hook utilities (`lib/`) | Vanilla JavaScript (CommonJS) | Shared helpers, no external deps |
 | Commands (`.md`) | Markdown | Clear description, parameters, examples |
 | Agents (`.md`) | Markdown | Role + constraints + output format |
 | GSD runtime (`.cjs`) | CommonJS | Defensive coding, no external deps |

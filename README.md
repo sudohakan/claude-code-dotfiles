@@ -422,7 +422,7 @@ flowchart TD
 ## Requirements
 
 - **OS:** Windows 10/11 (Linux/macOS via `install.sh`)
-- **Node.js:** v18+ (auto-installed)
+- **Node.js:** v20+ (auto-installed)
 - **Python:** 3.8+ (auto-installed; required for Dippy hook and hookify plugin)
 - **Git:** Any recent version (auto-installed)
 - **Claude Code:** Installed automatically by the script

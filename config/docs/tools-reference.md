@@ -31,17 +31,22 @@ cs-spawn.sh --kill "name"   # Terminate session
 Each spawned agent works on its own git branch. Results are written to file, main context stays clean.
 
 ## Trail of Bits — Security Audit
-6 security skills active. Triggered automatically or called explicitly:
+11 security skills active. Triggered automatically or called explicitly:
 - `static-analysis` — CodeQL/Semgrep integration
 - `differential-review` — Security-focused code review
 - `insecure-defaults` — Insecure default config detection
 - `sharp-edges` — Dangerous pattern detection
 - `supply-chain-risk-auditor` — Dependency security analysis
 - `audit-context-building` — Deep architectural context building
+- `property-based-testing` — Property-based test generation
+- `variant-analysis` — Variant analysis across codebase
+- `spec-to-code-compliance` — Spec-to-code compliance checking
+- `git-cleanup` — Git history cleanup and hygiene
+- `workflow-skill-design` — Workflow and skill design guidance
 
 **Required for fintech projects:** `static-analysis` + `insecure-defaults` run after each phase.
 
-## Container Use (Dagger) — Sandbox Environment
+## Container Use — Sandbox Environment
 Connected as MCP server. Agents can use it as a tool:
 - Run code in isolated Docker container
 - Each agent in its own container + git branch
@@ -54,6 +59,17 @@ Connected as MCP server. Agents can use it as a tool:
 | `pretooluse-safety.js` | PreToolUse | Blocks dangerous commands and credential leaks |
 | `gsd-context-monitor.js` | PostToolUse | Monitors context budget (warns at thresholds) |
 | `post-autoformat.js` | PostToolUse | Project-based prettier/biome format (disabled by default) |
+| `gsd-check-update.js` | SessionStart | GSD update check on session start |
+| `dotfiles-check-update.js` | SessionStart | Dotfiles update check on session start |
+| `gsd-statusline.js` | StatusLine | GSD status display in status line |
+
+## MCP Servers
+
+| Server | Command | Purpose |
+|--------|---------|---------|
+| `container-use` | `container-use.exe stdio` | Sandbox environment — run code in isolated Docker containers |
+| `HakanMCP` | `node HakanMCP/dist/src/index.js` | Custom MCP server (project tools, utilities) |
+| `playwright` | `npx @playwright/mcp@latest --cdp-endpoint http://localhost:9222` | Browser automation and E2E testing via CDP |
 
 ## recall — Session Search
 ```bash

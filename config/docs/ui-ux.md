@@ -3,9 +3,9 @@
 Kullanici UI olustur/duzelt/iyilestir dediginde veya stil/renk/layout sordugunda tetiklenir.
 
 ## Calisma akisi (her UI gorevinde zorunlu)
-1. `search.py "<urun_tipi> <sektor>" --design-system` (varsayilan stack: `html-tailwind`)
-2. Gerekirse: `--domain <ux|style|typography|chart|landing>`
-3. Gerekirse: `--stack <react|nextjs|vue|shadcn|html-tailwind|...>`
+1. WebSearch ile referans tasarim ve design system arastirmasi yap (urun tipi + sektor)
+2. Varsayilan stack: `html-tailwind`. Gerekirse: `--domain <ux|style|typography|chart|landing>`
+3. Gerekirse farkli stack sec: `react|nextjs|vue|shadcn|html-tailwind|...`
 
 ## Teslim oncesi zorunlu kontroller
 - [ ] Icon: SVG (Heroicons/Lucide), emoji yok
