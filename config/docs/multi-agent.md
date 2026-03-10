@@ -27,7 +27,7 @@
 |----------|----------------|-------------|---------------|
 | **Task tool subagent** | 10 concurrent | 4-6 | Queued (batch) |
 | **cs-spawn.sh (tmux)** | OS limit (~unlimited) | 4-6 | Each consumes separate API tokens |
-| **Container Use (Docker)** | Docker daemon limit | 3-4 | RAM/CPU pressure |
+| **Container Use** | Docker daemon limit | 3-4 | RAM/CPU pressure |
 | **Parallel tool calls in one message** | ~5 reliable | 3-4 | More is inconsistent |
 
 **Default parallel agents:** 4-6 (balance between rate limit + token overhead)
@@ -68,6 +68,10 @@
 
 **Recovery:** Error → stop dependent agents → apply strategy → after 2 retries fail → `/gsd:debug`
 **Escalation:** 1 agent fail → wave continues | 2+ agents fail → wave stops | Critical path fail → all dependent waves stop
+
+## Windows Compatibility Notes
+- **tmux not available on Windows:** `cs-spawn.sh` requires tmux which is Linux/macOS only. On Windows, use WSL or run Claude Squad inside a WSL session.
+- **cs-spawn.sh requires WSL/Linux:** The script uses bash and tmux. On native Windows, use Task tool subagents or Container Use as alternatives for parallel agent orchestration.
 
 ## Parallel Dispatch Trigger
 When the user provides 2+ independent tasks, the `dispatching-parallel-agents` skill is automatically called.

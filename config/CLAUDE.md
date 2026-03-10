@@ -249,3 +249,17 @@ Project name is included in every entry. **Project-specific context is preserved
 > Details: `~/.claude/docs/tools-reference.md`
 
 Claude Squad, Trail of Bits, Container Use, Dippy, recall, ClaudeCTX — tool details in docs file.
+
+---
+
+## 16. HakanMCP Tool Error Handling
+
+When any `mcp__HakanMCP__*` tool returns an error, **do NOT immediately fall back to alternative methods** (native tools, Bash commands, etc.). Instead, follow this protocol:
+
+1. **Diagnose the root cause** — Analyze the error message, check the tool's expected inputs, and identify why it failed (path issue, permission, config, CRLF, missing dependency, etc.)
+2. **Attempt at least 2 fix paths** — Identify and try a minimum of 2 different approaches to fix the HakanMCP tool issue directly:
+   - **Fix Path 1:** Address the most likely root cause (e.g., fix input parameters, correct paths, resolve environment issues)
+   - **Fix Path 2:** Alternative fix targeting a different hypothesis (e.g., restart/reconnect MCP, repair config, fix file permissions)
+3. **Fall back only after both fixes fail** — If both fix paths are unsuccessful, then switch to alternative methods (Bash, native tools, etc.) and inform the user that HakanMCP tool could not be repaired
+
+**Priority:** HakanMCP tools are the preferred toolset. Keeping them functional is more valuable than working around them.

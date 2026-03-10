@@ -26,3 +26,16 @@
 **Required parameters:**
 - `--completion-promise` → what will be achieved (e.g., "all tests pass")
 - `--max-iterations` → upper limit (default: 5, max: 10)
+
+## Ralph Invocation
+
+Plugin: `ralph-loop@claude-plugins-official`
+Skill: `ralph-loop:ralph-loop`
+
+### Usage Example
+
+```
+/ralph-loop:ralph-loop --completion-promise "all tests pass" --max-iterations 5
+```
+
+Ralph will iterate autonomously — run tests, fix failures, re-run — until the completion promise is satisfied or max iterations are reached. No user input needed during the loop.
