@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.13.4] - 2026-03-10
+
+### Added
+- **HakanMCP error handling rule** — New Section 16 in CLAUDE.md: when any `mcp__HakanMCP__*` tool fails, diagnose and attempt at least 2 fix paths before falling back to alternative methods
+
 ## [1.13.3] - 2026-03-10
 
 ### Fixed
