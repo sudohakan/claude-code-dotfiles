@@ -50,6 +50,30 @@ function Install-IfMissing($name, $testCmd, $installCmd, $manualMsg) {
     }
 }
 
+function Repair-StaleHookifyCache {
+    param([string]$ClaudeDir)
+
+    $hookRoots = Get-ChildItem -Path "$ClaudeDir\plugins\cache\claude-plugins-official\hookify" -Directory -ErrorAction SilentlyContinue
+    if (-not $hookRoots) { return }
+
+    $repairedCount = 0
+    foreach ($root in $hookRoots) {
+        $hooksDir = Join-Path $root.FullName "hooks"
+        $preToolUseHook = Join-Path $hooksDir "pretooluse.py"
+        $userPromptSubmitHook = Join-Path $hooksDir "userpromptsubmit.py"
+
+        if ((Test-Path $preToolUseHook) -and -not (Test-Path $userPromptSubmitHook)) {
+            Set-Content -Path $userPromptSubmitHook -Value 'import sys, json; json.dump({}, sys.stdout)' -NoNewline
+            $repairedCount++
+        }
+    }
+
+    if ($repairedCount -gt 0) {
+        $entryLabel = if ($repairedCount -eq 1) { "entry" } else { "entries" }
+        Write-Host "  [OK] Repaired stale hookify userpromptsubmit hook ($repairedCount cache $entryLabel)" -ForegroundColor Green
+    }
+}
+
 # ========================================
 Write-Host ""
 Write-Host "  ============================================" -ForegroundColor Cyan
@@ -489,6 +513,8 @@ if ($SkipPlugins) {
         Write-Host "  (other plugins will auto-install on first launch)" -ForegroundColor DarkGray
     }
 }
+
+Repair-StaleHookifyCache -ClaudeDir $ClaudeDir
 
 # -- Dotfiles Meta (version tracking for auto-update) --
 $dotfilesMeta = @{

@@ -39,6 +39,26 @@ warn() { echo -e "  \033[33m[--] $1\033[0m"; }
 err()  { echo -e "  \033[31m[!!] $1\033[0m"; }
 info() { echo -e "  \033[36m$1\033[0m"; }
 
+repair_stale_hookify_cache() {
+    local hookify_root="$CLAUDE_DIR/plugins/cache/claude-plugins-official/hookify"
+    local repaired_count=0
+
+    [ -d "$hookify_root" ] || return 0
+
+    while IFS= read -r hooks_dir; do
+        [ -f "$hooks_dir/pretooluse.py" ] || continue
+        [ -f "$hooks_dir/userpromptsubmit.py" ] && continue
+        printf '%s' 'import sys, json; json.dump({}, sys.stdout)' > "$hooks_dir/userpromptsubmit.py"
+        repaired_count=$((repaired_count + 1))
+    done < <(find "$hookify_root" -type d -name hooks 2>/dev/null)
+
+    if [ "$repaired_count" -gt 0 ]; then
+        local entry_label="entries"
+        [ "$repaired_count" -eq 1 ] && entry_label="entry"
+        ok "Repaired stale hookify userpromptsubmit hook ($repaired_count cache $entry_label)"
+    fi
+}
+
 install_if_missing() {
     local name="$1" cmd="$2" install_cmd="$3" manual_msg="$4"
     if command -v "$cmd" &>/dev/null; then
@@ -445,6 +465,8 @@ else
         echo "    Plugins will auto-install after reopening the terminal."
     fi
 fi
+
+repair_stale_hookify_cache
 
 # -- Dotfiles Meta (version tracking for auto-update) --
 DOTFILES_VERSION=$(tr -d '[:space:]' < "$SCRIPT_DIR/VERSION")

@@ -1,11 +1,11 @@
-![Version](https://img.shields.io/badge/version-1.14.0-blue)
+![Version](https://img.shields.io/badge/version-1.14.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 28 plugins across 4 marketplaces, and comprehensive MCP tools.
+Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 28 plugins across 4 marketplaces, comprehensive MCP tools, and installer self-healing for stale hook caches.
 
 ## Table of Contents
 
@@ -201,7 +201,7 @@ Full project lifecycle management:
 | **trailofbits** | `trailofbits/skills` | 11 plugins |
 | **anthropic-agent-skills** | `anthropics/skills` | 3 plugins (document-skills, example-skills, claude-api) |
 
-**Enabled Plugins (29 total):**
+**Enabled Plugins (28 total):**
 
 | Plugin | Marketplace | Description |
 |--------|-------------|-------------|
@@ -413,6 +413,7 @@ flowchart TD
 | GSD workflows failing | Ensure `jq` is installed: `jq --version` (used by GSD workflows) |
 | Path errors after install | Re-run `install.ps1` -- auto-fixes paths for your username |
 | Plugin install fails | Run `claude plugins install "plugin-name"` manually |
+| `UserPromptSubmit operation blocked by hook` | Re-run `install.ps1` or `install.sh`. As of `v1.14.1`, the installer recreates missing stale `hookify` `userpromptsubmit.py` files automatically |
 | `CLAUDE.md` not loading | Must be in `~/.claude/CLAUDE.md` (global) or project root (project-level) |
 | Session continuity missing | Run `/init-hakan` in project to create memory structure |
 | HakanMCP connection error | Check `C:\dev\HakanMCP`. Re-run `install.ps1` or use `-SkipHakanMCP` |
