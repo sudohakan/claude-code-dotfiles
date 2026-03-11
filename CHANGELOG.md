@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.14.0] - 2026-03-11
+
+### Removed
+- **hookify plugin** — Removed from installer, settings, and plugin list. Caused PreToolUse:Edit hook errors when no rules configured. Plugin count: 29 → 28
+
 ## [1.13.5] - 2026-03-11
 
 ### Changed
