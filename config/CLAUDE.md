@@ -86,9 +86,9 @@ These rules apply in ALL conversations — GSD and non-GSD alike.
 | **45%** | Route research and large tasks to subagents |
 | **55%** | All new tasks via subagent only |
 | **65%** | Complete current work, don't start new tasks |
-| **75%** | Update session-continuity.md, inform user: can continue with `claude --resume` |
+| **75%** | Update .memory/session-continuity.md, inform user: can continue with `claude --resume` |
 | **85%** | Suggest `/compact` |
-| **90%** | Update session-continuity.md, tell user to run `/compact` |
+| **90%** | Update .memory/session-continuity.md, tell user to run `/compact` |
 
 ### Token Efficiency Principles
 
@@ -215,14 +215,14 @@ Agent roles, parallel agent rules, quality gates, failure protocol in docs file.
 Session-continuity is kept project-scoped. Created with `/init-hakan` for new projects.
 
 **Session start:**
-- If `memory/session-continuity.md` exists → read it, summarize where it left off, last decisions, and next step
-- If `memory/MEMORY.md` + `.planning/STATE.md` exist → present short summary
+- If `.memory/session-continuity.md` exists → read it, summarize where it left off, last decisions, and next step
+- If `.memory/MEMORY.md` + `.planning/STATE.md` exist → present short summary
 - If files don't exist, skip silently
 
 **Session resume:** Remind user of `claude --resume` (select session) or `claude --continue` (last session).
 
 **Session end (if project work was done):**
-Update `memory/session-continuity.md` (fully rewrite, don't append):
+Update `.memory/session-continuity.md` (fully rewrite, don't append):
 ```
 ## Last Session — {date}
 **Project:** {project name}  **Phase:** {phase number and name}
@@ -237,9 +237,9 @@ Update `memory/session-continuity.md` (fully rewrite, don't append):
 
 | File | Content | When to Update |
 |------|---------|----------------|
-| `memory/solutions.md` | Bug fixes, root causes | After bug fix |
-| `memory/patterns.md` | Recurring architectural patterns | When pattern detected |
-| `memory/decisions.md` | Technical decisions and trade-offs | When architectural decision made |
+| `.memory/solutions.md` | Bug fixes, root causes | After bug fix |
+| `.memory/patterns.md` | Recurring architectural patterns | When pattern detected |
+| `.memory/decisions.md` | Technical decisions and trade-offs | When architectural decision made |
 
 Project name is included in every entry. **Project-specific context is preserved** — one project's decision does not bind another, but is offered as a reference in similar situations.
 

@@ -16,7 +16,7 @@
 
 ## Known Infrastructure
 - **HakanMCP:** `C:\dev\HakanMCP` — MCP server (if configured)
-- **Knowledge base:** `memory/solutions.md`, `memory/patterns.md`, `memory/decisions.md`
+- **Knowledge base:** `.memory/solutions.md`, `.memory/patterns.md`, `.memory/decisions.md`
 - **Trail of Bits:** 6 security skills active
 - **PostToolUse hooks:** auto-format, observability, CC Notify
 

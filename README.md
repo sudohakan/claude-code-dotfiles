@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-1.13.3-blue)
+![Version](https://img.shields.io/badge/version-1.13.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
@@ -140,7 +140,7 @@ Full project lifecycle management:
 | `/release` | Git | Version bump, changelog update, tag |
 | `/run-ci` | Git | Auto-detect and run CI checks |
 | `/ship` | Git | End-to-end git workflow |
-| `/init-hakan` | Utility | Project scaffolding (creates `.planning/` and `memory/` structure) |
+| `/init-hakan` | Utility | Project scaffolding (creates `.planning/` and `.memory/` structure) |
 | `/browser` | Utility | Playwright MCP browser launcher |
 | `/dotfiles-update` | Utility | Auto-update dotfiles from GitHub |
 
@@ -240,7 +240,7 @@ Full project lifecycle management:
 <details>
 <summary><strong>Memory and Context (6 files)</strong></summary>
 
-Cross-project knowledge base stored in `~/.claude/projects/`:
+Cross-project knowledge base stored in `~/.claude/projects/<project-key>/.memory/`:
 
 | File | Purpose |
 |------|---------|
@@ -354,7 +354,7 @@ claude-code-dotfiles/
     │   └── community-skills/                    # 4 community skills (d3js, web-assets, slides, ffuf)
     └── projects/                                # Per-project config and memory
         └── C--Users-Hakan/
-            └── memory/                          # Cross-project knowledge base
+            └── .memory/                         # Cross-project knowledge base
                 ├── MEMORY.md                    # Main memory index
                 ├── session-continuity.md        # Session state for resume
                 ├── auto-checkpoint.md           # Auto-checkpoint data

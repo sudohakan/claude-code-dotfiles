@@ -313,9 +313,9 @@ fi
 step 8 "Transferring memory files..."
 
 PROJECT_KEY="C--Users-${USERNAME}"
-MEM_DST="$CLAUDE_DIR/projects/$PROJECT_KEY/memory"
+MEM_DST="$CLAUDE_DIR/projects/$PROJECT_KEY/.memory"
 mkdir -p "$MEM_DST"
-cp "$CONFIG_DIR"/projects/C--Users-Hakan/memory/*.md "$MEM_DST/"
+cp "$CONFIG_DIR"/projects/C--Users-Hakan/.memory/*.md "$MEM_DST/"
 
 if [ "$USERNAME" != "Hakan" ]; then
     for mdfile in "$MEM_DST"/*.md; do

@@ -39,8 +39,8 @@ function getMemoryDirCandidates(cwd) {
   const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
   const projectKey = cwd.replace(/[:\\/]/g, '-').replace(/^-+/, '');
   return [
-    path.join(cwd, 'memory'),
-    path.join(claudeDir, 'projects', projectKey, 'memory'),
+    path.join(cwd, '.memory'),
+    path.join(claudeDir, 'projects', projectKey, '.memory'),
   ];
 }
 
@@ -116,7 +116,7 @@ process.stdin.on('end', () => {
               `**Session:** ${sessionId}\n` +
               `**CWD:** ${cwd}\n\n` +
               `> This file was automatically created by the context monitor.\n` +
-              `> In a new session, read \`memory/session-continuity.md\` and this file.\n` +
+              `> In a new session, read \`.memory/session-continuity.md\` and this file.\n` +
               `> You can resume with \`claude --resume\`.\n`;
             fs.writeFileSync(checkpointPath, content);
             break;

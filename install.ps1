@@ -293,8 +293,8 @@ if (Test-Path $homeConfig) {
 Write-Step 8 $totalSteps "Transferring memory files..."
 
 $newProjectKey = "C--Users-$env:USERNAME"
-$memSrc = "$configDir\projects\C--Users-Hakan\memory"
-$memDst = "$ClaudeDir\projects\$newProjectKey\memory"
+$memSrc = "$configDir\projects\C--Users-Hakan\.memory"
+$memDst = "$ClaudeDir\projects\$newProjectKey\.memory"
 
 if (-not (Test-Path $memDst)) {
     New-Item -ItemType Directory -Path $memDst -Force | Out-Null
@@ -518,7 +518,7 @@ $checks = @(
     @{ Name = "Config";      Ok = (Test-Path "$ClaudeDir\settings.json") },
     @{ Name = "Hooks";       Ok = (Test-Path "$ClaudeDir\hooks\pretooluse-safety.js") },
     @{ Name = "GSD";         Ok = (Test-Path "$ClaudeDir\get-shit-done\VERSION") },
-    @{ Name = "Memory";      Ok = (Test-Path "$ClaudeDir\projects\$newProjectKey\memory\MEMORY.md") }
+    @{ Name = "Memory";      Ok = (Test-Path "$ClaudeDir\projects\$newProjectKey\.memory\MEMORY.md") }
 )
 
 foreach ($check in $checks) {
