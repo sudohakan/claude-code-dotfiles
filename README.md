@@ -1,11 +1,11 @@
-![Version](https://img.shields.io/badge/version-1.13.5-blue)
+![Version](https://img.shields.io/badge/version-1.14.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 29 plugins across 4 marketplaces, and comprehensive MCP tools.
+Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 28 plugins across 4 marketplaces, and comprehensive MCP tools.
 
 ## Table of Contents
 
@@ -173,7 +173,7 @@ Full project lifecycle management:
 </details>
 
 <details>
-<summary><strong>Skills & Plugins (4 marketplaces, 29 plugins)</strong></summary>
+<summary><strong>Skills & Plugins (4 marketplaces, 28 plugins)</strong></summary>
 
 **Bundled Skill Sets (local):**
 
@@ -218,7 +218,7 @@ Full project lifecycle management:
 | code-simplifier | official | Refactor for clarity and reduce complexity |
 | pr-review-toolkit | official | 6 specialized PR review agents |
 | security-guidance | official | Security context and guidance |
-| hookify | official | Custom hook creation (block patterns, enforce rules) |
+
 | claude-md-management | official | Audit and improve CLAUDE.md files |
 | static-analysis | trailofbits | Semgrep + CodeQL scanning |
 | differential-review | trailofbits | Security-focused diff review |
@@ -423,7 +423,7 @@ flowchart TD
 
 - **OS:** Windows 10/11 (Linux/macOS via `install.sh`)
 - **Node.js:** v20+ (auto-installed)
-- **Python:** 3.8+ (auto-installed; required for Dippy hook and hookify plugin)
+- **Python:** 3.8+ (auto-installed; required for Dippy hook)
 - **Git:** Any recent version (auto-installed)
 - **Claude Code:** Installed automatically by the script
 

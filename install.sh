@@ -128,7 +128,7 @@ else
     warn "npm not found. Check your Node.js installation."
 fi
 
-# Python (required by hookify plugin)
+# Python (required by Dippy hook)
 # Note: On Windows, python3 may exist as MS Store redirect (WindowsApps)
 # that doesn't actually work. We verify with --version exit code.
 PYTHON_CMD=""
@@ -409,7 +409,7 @@ else
     if command -v claude &>/dev/null; then
         info "Installing official plugins..."
 
-        for plugin in superpowers code-review context7 feature-dev ralph-loop playwright typescript-lsp hookify frontend-design skill-creator commit-commands code-simplifier pr-review-toolkit security-guidance claude-md-management; do
+        for plugin in superpowers code-review context7 feature-dev ralph-loop playwright typescript-lsp frontend-design skill-creator commit-commands code-simplifier pr-review-toolkit security-guidance claude-md-management; do
             if claude plugins install "$plugin" 2>/dev/null; then
                 ok "$plugin"
             else
@@ -437,40 +437,6 @@ else
                     warn "$plugin@anthropic-agent-skills (can be installed manually later)"
                 fi
             done
-        fi
-
-        # Fix hookify python3 → python on systems where python3 doesn't exist
-        if [ -n "$PYTHON_CMD" ] && [ "$PYTHON_CMD" = "python" ]; then
-            info "Fixing hookify hooks for python compatibility..."
-            HOOKIFY_FIXED=0
-            for hfile in "$CLAUDE_DIR"/plugins/cache/claude-plugins-official/hookify/*/hooks/hooks.json \
-                         "$CLAUDE_DIR"/plugins/marketplaces/claude-code-plugins/plugins/hookify/hooks/hooks.json \
-                         "$CLAUDE_DIR"/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/hooks.json; do
-                if [ -f "$hfile" ]; then
-                    sed -i'' -e 's/python3 /python /g' "$hfile"
-                    HOOKIFY_FIXED=$((HOOKIFY_FIXED + 1))
-                fi
-            done
-            if [ "$HOOKIFY_FIXED" -gt 0 ]; then
-                ok "Hookify python3→python fix applied ($HOOKIFY_FIXED files)"
-            fi
-        fi
-
-        # Fix hookify PLUGIN_ROOT fallback (env var may not be set at runtime)
-        info "Applying hookify PLUGIN_ROOT fallback..."
-        HOOKIFY_ROOT_FIXED=0
-        for pyfile in "$CLAUDE_DIR"/plugins/cache/claude-plugins-official/hookify/*/hooks/*.py \
-                      "$CLAUDE_DIR"/plugins/marketplaces/claude-code-plugins/plugins/hookify/hooks/*.py \
-                      "$CLAUDE_DIR"/plugins/marketplaces/claude-plugins-official/plugins/hookify/hooks/*.py; do
-            if [ -f "$pyfile" ]; then
-                if grep -q "PLUGIN_ROOT = os.environ.get('CLAUDE_PLUGIN_ROOT')$" "$pyfile" 2>/dev/null; then
-                    sed -i'' -e "s|PLUGIN_ROOT = os.environ.get('CLAUDE_PLUGIN_ROOT')$|PLUGIN_ROOT = os.environ.get('CLAUDE_PLUGIN_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))|" "$pyfile"
-                    HOOKIFY_ROOT_FIXED=$((HOOKIFY_ROOT_FIXED + 1))
-                fi
-            fi
-        done
-        if [ "$HOOKIFY_ROOT_FIXED" -gt 0 ]; then
-            ok "Hookify PLUGIN_ROOT fallback applied ($HOOKIFY_ROOT_FIXED files)"
         fi
 
         ok "Plugin installation complete."
