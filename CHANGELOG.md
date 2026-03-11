@@ -5,6 +5,12 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.13.5] - 2026-03-11
+
+### Changed
+- **Memory folder renamed** — `memory/` → `.memory/` (dot-prefixed hidden folder) across all config, hooks, installer, and templates
+- Updated references in `config/CLAUDE.md`, `gsd-context-monitor.js`, `install.sh`, `README.md`, template `MEMORY.md`, and `auto-checkpoint.md`
+
 ## [1.13.4] - 2026-03-10
 
 ### Added
