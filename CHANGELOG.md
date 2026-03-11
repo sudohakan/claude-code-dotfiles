@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.14.1] - 2026-03-11
+
+### Fixed
+- **stale hookify cache repair** — Installer now recreates missing `userpromptsubmit.py` in old `hookify` cache entries so Claude no longer fails with `UserPromptSubmit operation blocked by hook`
+
 ## [1.14.0] - 2026-03-11
 
 ### Removed
