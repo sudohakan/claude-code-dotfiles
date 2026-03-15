@@ -5,6 +5,11 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [2.0.1] - 2026-03-15
+
+### Fixed
+- Convert install.sh line endings from CRLF to LF (bash syntax error on WSL/Linux)
+
 ## [2.0.0] - 2026-03-15
 
 ### Breaking Changes
