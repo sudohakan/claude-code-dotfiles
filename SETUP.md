@@ -17,6 +17,13 @@ PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps
 bash /c/dev/claude-code-dotfiles/install.sh
 ```
 
+### WSL (Ubuntu):
+```bash
+# Full WSL setup (Node.js, Claude CLI, symlink, tmux, SSH, Tailscale):
+bash /mnt/c/dev/claude-code-dotfiles/setup-wsl-claude.sh
+# Note: Edit WINDOWS_CLAUDE_DIR in script if username differs from "Hakan"
+```
+
 ### What the Script Does (10 Steps):
 
 | Step | Action | Details |
@@ -30,7 +37,7 @@ bash /c/dev/claude-code-dotfiles/install.sh
 | 7 | Fix paths | Auto-updates if username differs |
 | 8 | **Transfer memory** | Cross-project knowledge base files |
 | 9 | **Install HakanMCP** | `git clone` + `npm install` + `npm run build` |
-| 10 | **Install plugins** | 15 official + 11 Trail of Bits + 3 Anthropic = 29 plugins |
+| 10 | **Install plugins** | 14 official + 11 Trail of Bits + 3 Anthropic = 28 plugins |
 
 **After installation, just run `claude login` and you're ready.**
 
@@ -67,7 +74,7 @@ The script auto-installs missing software (via winget):
 | **jq** | Required by some hooks | Yes (winget) |
 | **Claude Code CLI** | Main tool | Yes (npm) |
 | **HakanMCP** | Comprehensive MCP server | Yes (git clone + build) |
-| **29 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
+| **28 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
 
 ### Optional (Manual install):
 
@@ -92,16 +99,27 @@ config/
 ├── settings.local.json       # Local permissions
 ├── package.json              # CommonJS setting
 ├── gsd-file-manifest.json    # GSD file manifest
-├── hooks/                    # 7 hooks
+├── hooks/                    # 14 hooks
 │   ├── dippy/                   # Smart bash auto-approve (Python)
+│   ├── lib/
+│   │   ├── paths.js             # Shared path resolution
+│   │   └── mcp-launcher.js      # MCP server launcher
 │   ├── pretooluse-safety.js     # Credential + destructive + unicode blocker
 │   ├── gsd-context-monitor.js   # Context budget monitoring
 │   ├── gsd-statusline.js        # Status line
 │   ├── gsd-check-update.js      # GSD update check
 │   ├── dotfiles-check-update.js # Dotfiles update check
-│   └── post-autoformat.js       # Auto format (disabled by default)
-├── docs/                     # 5 reference documents
-├── commands/                 # 11 + 34 slash commands
+│   ├── hook-health-check.js     # Hook health verification
+│   ├── retention-cleanup.js     # Old data cleanup
+│   ├── rotate-hook-approvals.js # Hook approval rotation
+│   ├── task-completed-check.js  # Task completion gate
+│   ├── team-active-reminder.js  # Active team reminder
+│   ├── teammate-idle-check.js   # Idle teammate nudge
+│   └── desktop-notify.ps1       # Windows notifications
+├── docs/                     # 13+ reference documents
+│   ├── agent-teams.md, mcp-usage-guide.md, claudeignore-templates.md, ...
+│   └── superpowers/specs/       # Workflow design specs
+├── commands/                 # 25 + 34 slash commands
 │   ├── init-hakan.md            # /init-hakan — project scaffolding
 │   ├── browser.md               # /browser — Playwright MCP browser launcher
 │   ├── commit.md                # /commit — conventional commit
@@ -112,12 +130,34 @@ config/
 │   ├── run-ci.md                # /run-ci — auto-detect and run CI
 │   ├── ship.md                  # /ship — end-to-end git workflow
 │   ├── dotfiles-update.md       # /dotfiles-update — auto-update from GitHub
+│   ├── buildteam.md             # /buildteam — build team creation
+│   ├── e2eteam.md               # /e2eteam — E2E team creation
+│   ├── opsteam.md               # /opsteam — ops team creation
+│   ├── growthteam.md            # /growthteam — growth team creation
+│   ├── researchteam.md          # /researchteam — research team creation
+│   ├── deploy.md                # /deploy — Azure deployment
+│   ├── desktop-notify.md        # /desktop-notify — Windows notifications
+│   ├── dippy-benchmark.md       # /dippy-benchmark — hook overhead benchmark
+│   ├── env-check.md             # /env-check — tooling health check
+│   ├── label-session.md         # /label-session — manual session naming
+│   ├── plugin-audit.md          # /plugin-audit — active plugin review
+│   ├── plugin-profile.md        # /plugin-profile — plugin set selection
+│   ├── status.md                # /status — workspace orientation
+│   ├── todo-overview.md         # /todo-overview — pending work overview
 │   └── gsd/                     # /gsd:* (34 commands)
 ├── agents/                   # 12 GSD agent definitions
+├── teams/                    # Agent team configuration
+│   ├── agents/                  # 17 role definitions
+│   │   ├── tech-lead.md, fullstack-dev.md, product-manager.md, ...
+│   │   └── launch-ops.md, qa-tester.md, security-engineer.md, ...
+│   ├── ACTIVE_AGENTS.md         # Active agent registry
+│   ├── ROLE_COMPRESSION_MAP.md  # Role compression reference
+│   └── favorites.json           # Favorite team configurations
 ├── get-shit-done/            # GSD core engine
-├── skills/                   # 4 skill sets
+├── skills/                   # 5 skill sets
 │   ├── cc-devops-skills/
 │   ├── community-skills/
+│   ├── local-workflows/         # Local workspace skills
 │   ├── trailofbits-security/
 │   └── ui-ux-pro-max/
 ├── plugins/                  # Marketplace settings
@@ -168,6 +208,8 @@ Replace `C:/Users/Hakan` with your own username in `settings.json` and `.claude.
 claude login
 claude plugins install superpowers
 claude plugins install code-review context7 feature-dev ralph-loop playwright typescript-lsp
+claude plugins install frontend-design skill-creator commit-commands code-simplifier
+claude plugins install pr-review-toolkit security-guidance claude-md-management
 claude plugins add-marketplace trailofbits https://github.com/trailofbits/skills
 claude plugins install static-analysis@trailofbits differential-review@trailofbits
 claude plugins install insecure-defaults@trailofbits sharp-edges@trailofbits
@@ -191,6 +233,42 @@ node ~/.claude/hooks/pretooluse-safety.js --test  # Are hooks active? (30/30)
 claude plugins list                           # Are plugins installed?
 # Inside Claude: /gsd:help                    # Is GSD working?
 ```
+
+---
+
+## Post-Installation Setup
+
+After installation, some features require additional configuration:
+
+### MCP Servers
+
+The installer sets up **HakanMCP** automatically. Other MCP servers need manual setup in `~/.claude.json`:
+
+| Server | Setup | Reference |
+|--------|-------|-----------|
+| HakanMCP | Automatic (installer) | — |
+| context7 | Automatic (plugin) | — |
+| Playwright | Automatic (plugin) | — |
+| NotebookLM | `nlm login` (Google auth) | Add to `.claude.json` mcpServers |
+| Gmail / Calendar | OAuth via Claude remote MCP | Only when explicitly needed |
+| container-use | Copy `container-use.exe` to `~/bin/` | Optional — Docker required |
+
+See `~/.claude/docs/mcp-usage-guide.md` for full MCP configuration details.
+
+### .claudeignore
+
+Create `.claudeignore` in your project root to exclude files from Claude's context:
+```bash
+# See templates: ~/.claude/docs/claudeignore-templates.md
+```
+
+### Agent Teams
+
+Agent Teams are enabled by default (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json).
+
+- 17 role definitions in `~/.claude/teams/agents/`
+- Coordination protocol in `~/.claude/docs/agent-teams.md`
+- Team commands: `/buildteam`, `/e2eteam`, `/opsteam`, `/growthteam`, `/researchteam`
 
 ---
 

@@ -143,7 +143,7 @@ Full project lifecycle management:
 </details>
 
 <details>
-<summary><strong>Utility and Git Commands (10 commands)</strong></summary>
+<summary><strong>Utility and Git Commands (24 commands)</strong></summary>
 
 | Command | Category | Description |
 |---------|----------|-------------|
@@ -157,6 +157,49 @@ Full project lifecycle management:
 | `/init-hakan` | Utility | Project scaffolding (creates `.planning/` and `.memory/` structure) |
 | `/browser` | Utility | Playwright MCP browser launcher |
 | `/dotfiles-update` | Utility | Auto-update dotfiles from GitHub |
+| `/buildteam` | Teams | Create a build team |
+| `/e2eteam` | Teams | Create an E2E team |
+| `/opsteam` | Teams | Create an ops team |
+| `/growthteam` | Teams | Create a growth team |
+| `/researchteam` | Teams | Create a research team |
+| `/deploy` | Ops | Azure-oriented deployment |
+| `/desktop-notify` | Utility | Send Windows desktop notification |
+| `/dippy-benchmark` | Utility | Measure PreToolUse hook overhead |
+| `/env-check` | Utility | Local tooling health check |
+| `/label-session` | Utility | Manual session naming |
+| `/plugin-audit` | Utility | Active plugin review |
+| `/plugin-profile` | Utility | Select a plugin set |
+| `/status` | Utility | Quick workspace orientation |
+| `/todo-overview` | Utility | Cross-session pending work overview |
+
+</details>
+
+<details>
+<summary><strong>Agent Teams (17 roles)</strong></summary>
+
+Mesh-model agent teams with self-claiming, plan approval, and hook-enforced quality gates.
+
+| Role | Specialization |
+|------|---------------|
+| **tech-lead** | Technical leadership and code review |
+| **fullstack-dev** | Full-stack implementation |
+| **product-manager** | Requirements and scope management |
+| **launch-ops** | Deployment and operations |
+| **qa-tester** | Quality assurance and testing |
+| **backend-architect** | Backend architecture design |
+| **cloud-architect** | Cloud infrastructure design |
+| **devops** | CI/CD and infrastructure |
+| **security-engineer** | Security analysis and hardening |
+| **research-lead** | Research coordination |
+| **ui-ux-designer** | UI/UX design guidance |
+| **observability-engineer** | Monitoring and observability |
+| **analytics-optimizer** | Analytics and performance |
+| **business-analyst** | Business analysis |
+| **content-strategist** | Content strategy |
+| **growth-lead** | Growth engineering |
+| **social-media-operator** | Social media operations |
+
+Team commands: `/buildteam`, `/e2eteam`, `/opsteam`, `/growthteam`, `/researchteam`
 
 </details>
 
