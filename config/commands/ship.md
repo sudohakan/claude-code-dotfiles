@@ -168,8 +168,9 @@ Version format: `MAJOR.MINOR.PATCH` — strictly follows [semver.org](https://se
 - Show PR URL
 
 ### Step 11: Merge (skip with --no-pr or --draft)
-- After PR is created, auto-merge: `gh pr merge <url> --squash --delete-branch`
+- After PR is created, auto-merge: `gh pr merge <url> --squash`
 - **If merge fails (CI required, review required, conflict): STOP and inform user** with PR URL
+- Ask before deleting the remote or local branch after merge.
 - After successful merge, switch local branch back to main/master and pull: `git checkout main && git pull`
 - If --release: verify the tag is on the merged commit
 

@@ -11,18 +11,23 @@ const cacheDir = getCacheDir();
 const cacheFile = path.join(cacheDir, 'dotfiles-update-check.json');
 const metaFile = getMetaFilePath();
 
+if (process.argv.includes('--self-test')) {
+  process.stdout.write(JSON.stringify({ ok: true, hook: 'dotfiles-check-update' }));
+  process.exit(0);
+}
+
 // Only check if dotfiles-meta.json exists (means dotfiles were installed via script)
 if (!fs.existsSync(metaFile)) {
   process.exit(0);
 }
 
-// Run check in background
+// Run check in background - pass paths via env to keep the child script static
 const child = spawn(process.execPath, ['-e', `
   const fs = require('fs');
   const https = require('https');
 
-  const cacheFile = ${JSON.stringify(cacheFile)};
-  const metaFile = ${JSON.stringify(metaFile)};
+  const cacheFile = process.env._DOTFILES_CACHE_FILE;
+  const metaFile = process.env._DOTFILES_META_FILE;
 
   let installed = '0.0.0';
   let repoPath = '';
@@ -35,6 +40,20 @@ const child = spawn(process.execPath, ['-e', `
   // Fetch latest VERSION from GitHub
   const url = 'https://raw.githubusercontent.com/sudohakan/claude-code-dotfiles/main/VERSION';
   https.get(url, { timeout: 10000 }, (res) => {
+    if (res.statusCode !== 200) {
+      const result = {
+        update_available: false,
+        installed,
+        latest: 'unknown',
+        repo_path: repoPath,
+        checked: Math.floor(Date.now() / 1000),
+        error: 'http_' + String(res.statusCode || 'unknown')
+      };
+      fs.writeFileSync(cacheFile, JSON.stringify(result));
+      res.resume();
+      return;
+    }
+
     let data = '';
     res.on('data', chunk => data += chunk);
     res.on('end', () => {
@@ -63,7 +82,12 @@ const child = spawn(process.execPath, ['-e', `
 `], {
   stdio: 'ignore',
   windowsHide: true,
-  detached: true
+  detached: true,
+  env: {
+    ...process.env,
+    _DOTFILES_CACHE_FILE: cacheFile,
+    _DOTFILES_META_FILE: metaFile
+  }
 });
 
 child.unref();

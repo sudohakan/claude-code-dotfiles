@@ -6,6 +6,11 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+if (process.argv.includes('--self-test')) {
+  process.stdout.write(JSON.stringify({ ok: true, hook: 'gsd-statusline' }));
+  process.exit(0);
+}
+
 // Read JSON from stdin
 let input = '';
 // Timeout guard: if stdin doesn't close within 3s (e.g. pipe issues on

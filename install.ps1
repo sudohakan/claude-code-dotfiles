@@ -195,10 +195,10 @@ if (Test-Path $ClaudeDir) {
 Write-Step 5 $totalSteps "Creating directory structure..."
 
 $dirs = @(
-    "$ClaudeDir\hooks", "$ClaudeDir\docs", "$ClaudeDir\commands\gsd",
-    "$ClaudeDir\agents", "$ClaudeDir\get-shit-done", "$ClaudeDir\skills",
-    "$ClaudeDir\plugins", "$ClaudeDir\projects", "$ClaudeDir\profiles",
-    "$ClaudeDir\cache"
+    "$ClaudeDir\hooks", "$ClaudeDir\hooks\lib", "$ClaudeDir\docs",
+    "$ClaudeDir\commands\gsd", "$ClaudeDir\agents", "$ClaudeDir\get-shit-done",
+    "$ClaudeDir\skills", "$ClaudeDir\plugins", "$ClaudeDir\projects",
+    "$ClaudeDir\profiles", "$ClaudeDir\cache", "$ClaudeDir\teams\agents"
 )
 foreach ($dir in $dirs) {
     if (-not (Test-Path $dir)) {
@@ -232,9 +232,9 @@ if (Test-Path "$configDir\hooks\lib") {
 }
 Write-Host "  + hooks/ (js files + lib)" -ForegroundColor DarkGray
 
-# Docs
-Copy-Item -Path "$configDir\docs\*" -Destination "$ClaudeDir\docs\" -Force
-Write-Host "  + docs/" -ForegroundColor DarkGray
+# Docs (including subdirectories like superpowers/specs/)
+Copy-Item -Path "$configDir\docs\*" -Destination "$ClaudeDir\docs\" -Recurse -Force
+Write-Host "  + docs/ (with subdirectories)" -ForegroundColor DarkGray
 
 # Commands (all *.md files + gsd/ subdirectory)
 Get-ChildItem "$configDir\commands\*.md" | Copy-Item -Destination "$ClaudeDir\commands\" -Force
@@ -252,6 +252,12 @@ Write-Host "  + get-shit-done/" -ForegroundColor DarkGray
 # Skills
 Copy-Item -Path "$configDir\skills\*" -Destination "$ClaudeDir\skills\" -Recurse -Force
 Write-Host "  + skills/ (3 skill sets)" -ForegroundColor DarkGray
+
+# Teams - Agent role definitions and team configuration
+if (Test-Path "$configDir\teams") {
+    Copy-Item -Path "$configDir\teams\*" -Destination "$ClaudeDir\teams\" -Recurse -Force
+    Write-Host "  + teams/ (agent roles + team config)" -ForegroundColor DarkGray
+}
 
 # Plugin configs
 Copy-Item -Path "$configDir\plugins\known_marketplaces.json" -Destination "$ClaudeDir\plugins\" -Force
@@ -450,7 +456,9 @@ if ($SkipPlugins) {
 
         $officialPlugins = @(
             "superpowers", "code-review", "context7", "feature-dev",
-            "ralph-loop", "playwright", "typescript-lsp"
+            "ralph-loop", "playwright", "typescript-lsp", "frontend-design",
+            "skill-creator", "commit-commands", "code-simplifier",
+            "pr-review-toolkit", "security-guidance", "claude-md-management"
         )
         foreach ($plugin in $officialPlugins) {
             try {

@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-1.14.1-blue)
+![Version](https://img.shields.io/badge/version-1.15.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
@@ -50,7 +50,7 @@ claude login
 ## What's Included
 
 <details>
-<summary><strong>Hooks and Safety System (7 hooks)</strong></summary>
+<summary><strong>Hooks and Safety System (14 hooks)</strong></summary>
 
 Every tool call passes through a multi-layer hook pipeline:
 
@@ -62,16 +62,30 @@ Every tool call passes through a multi-layer hook pipeline:
 | **gsd-statusline.js** | StatusLine | Renders profile, phase, and context percentage |
 | **gsd-check-update.js** | SessionStart | Checks for GSD version updates on session start |
 | **dotfiles-check-update.js** | SessionStart | Checks for dotfiles version updates on session start |
-| **post-autoformat.js** | PostToolUse | Code formatting via Prettier (disabled by default) |
+| **rotate-hook-approvals.js** | SessionStart | Rotates hook approval log entries |
+| **retention-cleanup.js** | SessionStart | Cleans up old retained data files |
+| **hook-health-check.js** | SessionStart | Verifies all hook files exist and are healthy |
+| **team-active-reminder.js** | SessionStart | Reminds about active agent teams on session start |
+| **teammate-idle-check.js** | TeammateIdle | Nudges idle teammates to self-claim tasks |
+| **task-completed-check.js** | TaskCompleted | Enforces verification before task completion |
+| **desktop-notify.ps1** | Utility | Sends Windows desktop notifications |
+| **lib/mcp-launcher.js** | Utility | MCP server launcher with health checks |
 
 **Hook execution order:**
 
 ```
-SessionStart  ->  gsd-check-update.js             GSD version check
-PreToolUse    ->  dippy                            Auto-approve safe bash commands
-              ->  pretooluse-safety.js             Block dangerous commands / credentials / unicode
-PostToolUse   ->  gsd-context-monitor.js           Track context budget %
-StatusLine    ->  gsd-statusline.js                Render profile + phase + context %
+SessionStart   ->  gsd-check-update.js             GSD version check
+               ->  dotfiles-check-update.js         Dotfiles version check
+               ->  rotate-hook-approvals.js          Hook approval rotation
+               ->  retention-cleanup.js              Old data cleanup
+               ->  hook-health-check.js              Hook health verification
+               ->  team-active-reminder.js           Active team reminder
+PreToolUse     ->  dippy                             Auto-approve safe bash commands
+               ->  pretooluse-safety.js              Block dangerous commands / credentials / unicode
+PostToolUse    ->  gsd-context-monitor.js            Track context budget %
+TeammateIdle   ->  teammate-idle-check.js            Self-claiming nudge
+TaskCompleted  ->  task-completed-check.js           Verification gate
+StatusLine     ->  gsd-statusline.js                 Render profile + phase + context %
 ```
 
 Safety details:
@@ -324,20 +338,36 @@ claude-code-dotfiles/
     │       ├── verify-work.md                   # UAT validation
     │       ├── progress.md                      # Status and next-action routing
     │       └── ... (25 more)                    # discuss, research, resume, pause, etc.
-    ├── docs/                                    # 5 reference documents (loaded on-demand)
+    ├── docs/                                    # 13 reference documents (loaded on-demand)
+    │   ├── agent-teams.md                       # Agent team coordination protocol
+    │   ├── agent-favorites.md                   # Favorite agent configurations
+    │   ├── claudeignore-templates.md            # .claudeignore template patterns
     │   ├── decision-matrix.md                   # Task → workflow routing rules
-    │   ├── multi-agent.md                       # Parallel agent coordination protocol
+    │   ├── dippy.md                             # Dippy hook configuration reference
+    │   ├── hook-standards.md                    # Hook development standards
+    │   ├── mcp-usage-guide.md                   # MCP server usage guide (131 tools)
+    │   ├── plan-naming.md                       # Plan file naming conventions
+    │   ├── plugin-profiles.md                   # Plugin profile definitions
     │   ├── tools-reference.md                   # External tool integration guide
     │   ├── ui-ux.md                             # UI/UX Pro Max design system
     │   └── review-ralph.md                      # Code review + Ralph Loop
-    ├── hooks/                                   # 7 automation hooks
+    ├── hooks/                                   # 14 automation hooks
     │   ├── dippy/                               # Smart bash auto-approve (Python, 14K+ tests)
+    │   ├── lib/
+    │   │   ├── paths.js                         # Shared path resolution utilities
+    │   │   └── mcp-launcher.js                  # MCP server launcher with health checks
     │   ├── pretooluse-safety.js                 # Credential + destructive + unicode blocker
     │   ├── gsd-context-monitor.js               # Context budget tracking (45–90%)
     │   ├── gsd-statusline.js                    # Status line (profile, phase, context %)
     │   ├── gsd-check-update.js                  # GSD version check on session start
     │   ├── dotfiles-check-update.js             # Dotfiles version check on session start
-    │   └── post-autoformat.js                   # Code formatting (disabled by default)
+    │   ├── hook-health-check.js                 # Hook system health verification
+    │   ├── retention-cleanup.js                 # Old data retention cleanup
+    │   ├── rotate-hook-approvals.js             # Hook approval rotation
+    │   ├── task-completed-check.js              # Task completion gate (TeammateMode)
+    │   ├── team-active-reminder.js              # Team active status reminder
+    │   ├── teammate-idle-check.js               # Idle teammate self-claiming nudge
+    │   └── desktop-notify.ps1                   # Windows desktop notifications
     ├── get-shit-done/                           # GSD runtime engine
     │   ├── VERSION                              # GSD version number
     │   ├── bin/                                 # Core libraries (gsd-tools.cjs)
@@ -352,6 +382,25 @@ claude-code-dotfiles/
     │   ├── trailofbits-security/                # Security: static analysis, audit
     │   ├── ui-ux-pro-max/                       # UI/UX: 67 styles, 96 palettes, 13 stacks
     │   └── community-skills/                    # 4 community skills (d3js, web-assets, slides, ffuf)
+    ├── teams/
+    │   └── agents/                              # 17 team member role definitions
+    │       ├── tech-lead.md                     # Technical lead and code review
+    │       ├── fullstack-dev.md                 # Full-stack implementation
+    │       ├── product-manager.md               # Requirements and scope management
+    │       ├── launch-ops.md                    # Deployment and operations
+    │       ├── qa-tester.md                     # Quality assurance and testing
+    │       ├── backend-architect.md             # Backend architecture design
+    │       ├── cloud-architect.md               # Cloud infrastructure design
+    │       ├── devops.md                        # CI/CD and infrastructure
+    │       ├── security-engineer.md             # Security analysis and hardening
+    │       ├── research-lead.md                 # Research coordination
+    │       ├── ui-ux-designer.md                # UI/UX design guidance
+    │       ├── observability-engineer.md        # Monitoring and observability
+    │       ├── analytics-optimizer.md           # Analytics and performance
+    │       ├── business-analyst.md              # Business analysis
+    │       ├── content-strategist.md            # Content strategy
+    │       ├── growth-lead.md                   # Growth engineering
+    │       └── social-media-operator.md         # Social media operations
     └── projects/                                # Per-project config and memory
         └── C--Users-Hakan/
             └── .memory/                         # Cross-project knowledge base

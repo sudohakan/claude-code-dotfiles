@@ -14,6 +14,7 @@ Restore complete project context and resume work seamlessly from previous sessio
 
 Routes to the resume-project workflow which handles:
 
+- `session-continuity.md` loading first
 - STATE.md loading (or reconstruction if missing)
 - Checkpoint detection (.continue-here files)
 - Incomplete work detection (PLAN without SUMMARY)

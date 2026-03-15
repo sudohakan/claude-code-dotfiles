@@ -15,6 +15,15 @@
 | Research / learn / explore (external source) | — | WebSearch + Context7 | — |
 | 2+ independent tasks (outside GSD) | `dispatching-parallel-agents` skill | — | — |
 
+## Model Selection
+
+| Task Type | Model | Reason |
+|---|---|---|
+| Read-only research, exploration, file scanning | `haiku` | Low token cost, sufficient for reading |
+| Standard coding, writing, editing | `sonnet` (default) | Best quality/cost balance |
+| Agent team members | `sonnet` | Default; escalate to opus only on request |
+| Complex architecture, multi-system reasoning | `opus` | Only when sonnet is insufficient |
+
 ## Research Task
 
 GSD and commit are not required. Two types of research flows:

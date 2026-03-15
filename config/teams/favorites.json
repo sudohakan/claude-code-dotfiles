@@ -1,0 +1,13 @@
+{
+  "recommended": [
+    "team-lead",
+    "tech-lead",
+    "analyst",
+    "research-lead",
+    "product-manager",
+    "fullstack-dev",
+    "frontend-developer",
+    "devops",
+    "security-engineer"
+  ]
+}

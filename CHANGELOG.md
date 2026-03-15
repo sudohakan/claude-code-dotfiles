@@ -5,6 +5,25 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.15.0] - 2026-03-15
+
+### Added
+- **MCP usage guide** (`docs/mcp-usage-guide.md`) — Comprehensive MCP server integration reference with 131-tool category breakdown, connection patterns for Windows + WSL, and avoidance rules
+- **Claudeignore templates** (`docs/claudeignore-templates.md`) — `.claudeignore` template patterns for common project types
+- **Agent teams: 8 new workflow sections** — Self-Claiming protocol, Task Dependencies (`addBlockedBy`), Plan Approval flow, Team Hooks (TeammateIdle, TaskCompleted), Troubleshooting guide, Graceful Shutdown, Display Modes, No Duplicate Work
+- **17 team agent role files** (`teams/agents/`) — Full role definitions for agent team members (tech-lead, fullstack-dev, product-manager, launch-ops, backend-architect, frontend-dev, qa-tester, devops-engineer, and more)
+- **14 new command files** — Additional slash commands for workflow automation
+- **6 new/updated hook files** — teammate-idle-check.js, task-completed-check.js, and supporting hook infrastructure in `hooks/lib/`
+
+### Changed
+- **CLAUDE.md §7 — MCP & Tool Integration** — New section with tool routing rules (context7, HakanMCP, NotebookLM, Playwright, Gmail, Calendar) and MCP avoidance guidelines
+- **CLAUDE.md §4 — Agent Teams workflow** — Upfront milestone task creation, self-claiming protocol, no-implement rule for team leader, task dependencies with `addBlockedBy`, plan approval via `plan_approval_response`, team hooks configuration, mandatory verification loop before handoff
+- **CLAUDE.md §3 — Task Routing** — Updated routing hierarchy with team-active check as top priority
+- **agent-teams.md** — Major expansion with 8 new production workflow sections and operational patterns
+- **Role files (4 updated)** — tech-lead, fullstack-dev, product-manager, launch-ops aligned with new self-claiming and dependency workflow
+- **Install scripts** (`install.ps1`, `install.sh`) — Added recursive copying for `teams/` and `docs/` directories, handle new file structure
+- **settings.json** — Hook configs updated, teammateMode added
+
 ## [1.14.1] - 2026-03-11
 
 ### Fixed

@@ -69,16 +69,36 @@ Create `CLAUDE.md` in the project root. Content is **shaped by the archetype**:
 Create `session-continuity.md` in the project's auto-memory directory:
 
 ```markdown
-# Session Continuity — {Project Name}
-
 ## Last Session — {date}
-**Project:** {project name}  **Phase:** —
+**Project:** {project name}
+**Phase:** —
 **Status:** new project
-**Next step:** —
-**Decisions:** —
+**Next:** —
+**Blockers:** none
+**Decisions:** none
 ```
 
-> Note: This file is fully rewritten at the end of each session (not appended). It only holds the latest state.
+> Note: This file is fully rewritten at the end of each session. Do not append history or long changelogs. Keep it short enough to read in one glance.
+
+Also create the following files if they do not exist:
+
+```markdown
+# Solutions
+
+Add bug fixes and root-cause notes here.
+```
+
+```markdown
+# Patterns
+
+Add reusable architectural and implementation patterns here.
+```
+
+```markdown
+# Decisions
+
+Add technical decisions and trade-offs here.
+```
 
 ## 4. Verification
 - Show created files to the user

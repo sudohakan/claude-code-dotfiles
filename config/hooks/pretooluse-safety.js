@@ -15,21 +15,32 @@ const os = require("os");
 // --- Feature flags ---
 // Set to true to enable exfiltration detection (disabled by default)
 const ENABLE_EXFILTRATION_CHECK = false;
+// Set to true to enable destructive command blocking (rm -rf, git reset --hard, etc.)
+// Disabled by default — set to true to re-enable protection
+const ENABLE_DANGEROUS_CHECK = false;
 
 // --- Allowed directories (destructive file ops auto-allowed when CWD is inside) ---
 // Normalized to lowercase forward-slash paths for comparison.
+// Includes both Windows and WSL /mnt/c/ variants for cross-platform support.
 const ALLOWED_DIRS = [
   "c:/dev",
   "c:/users/hakan/source",
+  "/mnt/c/dev",
+  "/mnt/c/users/hakan/source",
+  "/home/hakan/.claude",
+  "/mnt/c/users/hakan/.claude",
 ];
 
 // --- Safe development directories (rm -rf with explicit absolute paths allowed) ---
+// Includes Windows, Git Bash, and WSL /mnt/c/ path variants.
 const SAFE_DEV_DIRS = [
   /^\/c\/dev\//i,
   /^C:\\\\dev\\/i,
   /^C:\/dev\//i,
   /^\/c\/Users\/Hakan\/source\//i,
   /^C:\\\\Users\\\\Hakan\\\\source\\/i,
+  /^\/mnt\/c\/dev\//i,
+  /^\/mnt\/c\/[Uu]sers\/[Hh]akan\/source\//i,
 ];
 
 /**
@@ -38,6 +49,10 @@ const SAFE_DEV_DIRS = [
  */
 function normalizePath(p) {
   let n = p.replace(/\\/g, "/").toLowerCase();
+  // WSL style: /mnt/c/... → keep as /mnt/c/...
+  if (n.startsWith("/mnt/")) {
+    return n.replace(/\/+$/, "");
+  }
   // Git Bash style: /c/... → c:/...
   const gitBashMatch = n.match(/^\/([a-z])\/(.*)/);
   if (gitBashMatch) {
@@ -284,6 +299,9 @@ if (process.argv.includes("--test")) {
     { path: "/c/Users/Hakan/source/repos", expected: true, label: "Git Bash source" },
     { path: "C:\\Users\\Hakan\\Desktop", expected: false, label: "Desktop not allowed" },
     { path: "/tmp/evil", expected: false, label: "tmp not allowed" },
+    { path: "/mnt/c/dev/HakanMCP", expected: true, label: "WSL /mnt/c/dev" },
+    { path: "/mnt/c/Users/Hakan/source/repos", expected: true, label: "WSL /mnt/c/Users source" },
+    { path: "/mnt/c/Users/Hakan/Desktop", expected: false, label: "WSL Desktop not allowed" },
   ];
   for (const { path: p, expected, label } of ALLOWED_DIR_TESTS) {
     const result = isInAllowedDir(p);
@@ -393,21 +411,23 @@ async function main() {
       }
     }
 
-    // Check 4: Destructive commands
-    const cwd = event.cwd || process.cwd();
-    for (const { pattern, reason } of DANGEROUS_PATTERNS) {
-      if (pattern.test(command)) {
-        // Allow destructive file ops in safe/allowed development directories
-        const isFileDestructive = /rm\s+-[a-z]*r[a-z]*f|rm\s+-[a-z]*f[a-z]*r/i.test(command) || /rmdir\s+\/s/i.test(command) || /find\s+.*-exec\s+rm/i.test(command) || /rd\s+\/s/i.test(command);
-        if (isFileDestructive && isInSafeDevDir(command, cwd)) {
-          continue;
+    // Check 4: Destructive commands (only if enabled)
+    if (ENABLE_DANGEROUS_CHECK) {
+      const cwd = event.cwd || process.cwd();
+      for (const { pattern, reason } of DANGEROUS_PATTERNS) {
+        if (pattern.test(command)) {
+          // Allow destructive file ops in safe/allowed development directories
+          const isFileDestructive = /rm\s+-[a-z]*r[a-z]*f|rm\s+-[a-z]*f[a-z]*r/i.test(command) || /rmdir\s+\/s/i.test(command) || /find\s+.*-exec\s+rm/i.test(command) || /rd\s+\/s/i.test(command);
+          if (isFileDestructive && isInSafeDevDir(command, cwd)) {
+            continue;
+          }
+          const result = {
+            decision: "block",
+            reason: `⚠️ Dangerous command detected: ${reason}\nCommand: ${command}\nRequires explicit user approval.\n(Once approved, won't be asked again this session)`
+          };
+          process.stdout.write(JSON.stringify(result));
+          return;
         }
-        const result = {
-          decision: "block",
-          reason: `⚠️ Dangerous command detected: ${reason}\nCommand: ${command}\nRequires explicit user approval.\n(Once approved, won't be asked again this session)`
-        };
-        process.stdout.write(JSON.stringify(result));
-        return;
       }
     }
   } catch (e) {

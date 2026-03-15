@@ -35,6 +35,11 @@ const cacheFile = path.join(cacheDir, 'gsd-update-check.json');
 const projectVersionFile = path.join(projectConfigDir, 'get-shit-done', 'VERSION');
 const globalVersionFile = path.join(globalConfigDir, 'get-shit-done', 'VERSION');
 
+if (process.argv.includes('--self-test')) {
+  process.stdout.write(JSON.stringify({ ok: true, hook: 'gsd-check-update' }));
+  process.exit(0);
+}
+
 // Ensure cache directory exists
 if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir, { recursive: true });
@@ -60,15 +65,18 @@ const child = spawn(process.execPath, ['-e', `
   } catch (e) {}
 
   let latest = null;
+  let error = null;
   try {
     latest = execSync('npm view get-shit-done-cc version', { encoding: 'utf8', timeout: 10000, windowsHide: true }).trim();
   } catch (e) {}
+  if (!latest) error = 'npm_unavailable_or_lookup_failed';
 
   const result = {
     update_available: latest && installed !== latest,
     installed,
     latest: latest || 'unknown',
-    checked: Math.floor(Date.now() / 1000)
+    checked: Math.floor(Date.now() / 1000),
+    error
   };
 
   fs.writeFileSync(cacheFile, JSON.stringify(result));

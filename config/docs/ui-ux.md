@@ -1,15 +1,16 @@
-# UI/UX Pro Max — Tasarim Sistemi
+# UI/UX Pro Max Reference
 
-Kullanici UI olustur/duzelt/iyilestir dediginde veya stil/renk/layout sordugunda tetiklenir.
+This file is a lightweight pointer, not a second ruleset.
 
-## Calisma akisi (her UI gorevinde zorunlu)
-1. WebSearch ile referans tasarim ve design system arastirmasi yap (urun tipi + sektor)
-2. Varsayilan stack: `html-tailwind`. Gerekirse: `--domain <ux|style|typography|chart|landing>`
-3. Gerekirse farkli stack sec: `react|nextjs|vue|shadcn|html-tailwind|...`
+## Primary Source
+- Use the installed `ui-ux-pro-max` skill as the main workflow for UI tasks.
+- Keep this file short so the same guidance is not duplicated in multiple places.
 
-## Teslim oncesi zorunlu kontroller
-- [ ] Icon: SVG (Heroicons/Lucide), emoji yok
-- [ ] Tiklanabilir element → `cursor-pointer`
-- [ ] Kontrast >= 4.5:1, light mode'da border'lar gorunur
-- [ ] Responsive: 375/768/1024/1440px
-- [ ] Input'larda label var, focus state'leri gorunur
+## Trigger
+- When the user asks to create, fix, improve, review, or redesign UI, route to the `ui-ux-pro-max` skill.
+
+## Minimum Delivery Checks
+- Use SVG icons, not emoji.
+- Maintain visible hover and focus states.
+- Check responsive layouts at mobile, tablet, desktop, and wide widths.
+- Keep contrast accessible.

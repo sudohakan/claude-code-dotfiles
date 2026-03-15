@@ -12,6 +12,7 @@ Create well-structured commits with conventional commit messages.
 ### Step 0: Resolve Target Project
 - If `--path=<dir>` provided, verify it's a git repo and use it
 - If a project name/path argument is given, fuzzy-match against `~/.claude/project-registry.json` (case-insensitive partial match on directory name and path across `recent`, scanned `scan_roots`, and `extra_projects`)
+- Require a reasonable match threshold before auto-selecting a fuzzy match. If confidence is weak or two candidates are close, ask the user instead of guessing.
 - If multiple matches found, show numbered list and ask user to pick
 - If single match found, confirm with user
 - If cwd is a git repo and NOT the user's home directory, use cwd

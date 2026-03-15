@@ -31,15 +31,26 @@ Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_ex
 </step>
 
 <step name="load_state">
+Read `session-continuity.md` first if it exists. Use it as the primary fast-resume source.
 
-Read and parse STATE.md, then PROJECT.md:
+Read and parse STATE.md only when planning context is needed or session-continuity is insufficient.
+Read PROJECT.md only when STATE/session-continuity do not already answer the current direction.
 
 ```bash
-cat .planning/STATE.md
-cat .planning/PROJECT.md
+cat .memory/session-continuity.md 2>/dev/null
+cat .planning/STATE.md 2>/dev/null
+cat .planning/PROJECT.md 2>/dev/null
 ```
 
-**From STATE.md extract:**
+**From session-continuity.md extract first:**
+- Project
+- Phase
+- Status
+- Next step
+- Top blockers
+- Top decisions
+
+**From STATE.md extract only if needed:**
 
 - **Project Reference**: Core value and current focus
 - **Current Position**: Phase X of Y, Plan A of B, Status
@@ -49,7 +60,7 @@ cat .planning/PROJECT.md
 - **Blockers/Concerns**: Issues carried forward
 - **Session Continuity**: Where we left off, any resume files
 
-**From PROJECT.md extract:**
+**From PROJECT.md extract only if needed:**
 
 - **What This Is**: Current accurate description
 - **Requirements**: Validated, Active, Out of Scope
@@ -99,40 +110,28 @@ fi
 Present complete project status to user:
 
 ```
-╔══════════════════════════════════════════════════════════════╗
-║  PROJECT STATUS                                               ║
-╠══════════════════════════════════════════════════════════════╣
-║  Building: [one-liner from PROJECT.md "What This Is"]         ║
-║                                                               ║
-║  Phase: [X] of [Y] - [Phase name]                            ║
-║  Plan:  [A] of [B] - [Status]                                ║
-║  Progress: [██████░░░░] XX%                                  ║
-║                                                               ║
-║  Last activity: [date] - [what happened]                     ║
-╚══════════════════════════════════════════════════════════════╝
+Project: [name]
+Phase: [current phase]
+Status: [status]
+Next: [next step]
+Progress: [only if known and relevant]
 
 [If incomplete work found:]
-⚠️  Incomplete work detected:
-    - [.continue-here file or incomplete plan]
+- Incomplete work: [.continue-here file or incomplete plan]
 
 [If interrupted agent found:]
-⚠️  Interrupted agent detected:
-    Agent ID: [id]
-    Task: [task description from agent-history.json]
-    Interrupted: [timestamp]
-
-    Resume with: Task tool (resume parameter with agent ID)
+- Interrupted agent: [id] — [task description]
 
 [If pending todos exist:]
-📋 [N] pending todos — /gsd:check-todos to review
+- Pending todos: [N]
 
 [If blockers exist:]
-⚠️  Carried concerns:
-    - [blocker 1]
-    - [blocker 2]
+- Blockers:
+  - [blocker 1]
+  - [blocker 2]
 
 [If alignment is not ✓:]
-⚠️  Brief alignment: [status] - [assessment]
+- Alignment: [status] - [assessment]
 ```
 
 </step>
@@ -248,19 +247,8 @@ Based on user selection, route to appropriate workflow:
 </step>
 
 <step name="update_session">
-Before proceeding to routed workflow, update session continuity:
-
-Update STATE.md:
-
-```markdown
-## Session Continuity
-
-Last session: [now]
-Stopped at: Session resumed, proceeding to [action]
-Resume file: [updated if applicable]
-```
-
-This ensures if session ends unexpectedly, next resume knows the state.
+Do not rewrite STATE.md during resume unless the workflow actually changed project state.
+If a user picks a next action, let that downstream workflow update continuity/state only when needed.
 </step>
 
 </process>

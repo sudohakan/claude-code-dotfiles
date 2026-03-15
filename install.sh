@@ -243,7 +243,7 @@ fi
 # -- STEP 5: Directory structure --
 step 5 "Creating directory structure..."
 
-mkdir -p "$CLAUDE_DIR"/{hooks,docs,commands/gsd,agents,get-shit-done,skills,plugins,projects,profiles,cache}
+mkdir -p "$CLAUDE_DIR"/{hooks/lib,docs,commands/gsd,agents,get-shit-done,skills,plugins,projects,profiles,cache,teams/agents}
 ok "Directories created."
 
 # -- STEP 6: Copy configuration --
@@ -257,6 +257,14 @@ done
 echo "  + Core files"
 
 cp "$CONFIG_DIR"/hooks/*.js "$CLAUDE_DIR/hooks/"
+# Copy PowerShell hook scripts if present
+for ps1file in "$CONFIG_DIR"/hooks/*.ps1; do
+    [ -f "$ps1file" ] && cp "$ps1file" "$CLAUDE_DIR/hooks/"
+done
+# Copy hook shared libraries
+if [ -d "$CONFIG_DIR/hooks/lib" ]; then
+    cp "$CONFIG_DIR"/hooks/lib/* "$CLAUDE_DIR/hooks/lib/"
+fi
 # Install Dippy (Python-based bash auto-approve hook) via git clone
 if [ -d "$CLAUDE_DIR/hooks/dippy" ]; then
     ok "Dippy already installed"
@@ -267,10 +275,10 @@ else
         warn "Git not available, skipping Dippy"
     fi
 fi
-echo "  + hooks/ (js files + dippy/)"
+echo "  + hooks/ (js + ps1 + lib/ + dippy/)"
 
-cp "$CONFIG_DIR"/docs/*.md "$CLAUDE_DIR/docs/"
-echo "  + docs/"
+cp -r "$CONFIG_DIR"/docs/* "$CLAUDE_DIR/docs/"
+echo "  + docs/ (with subdirectories)"
 
 cp "$CONFIG_DIR"/commands/*.md "$CLAUDE_DIR/commands/"
 cp "$CONFIG_DIR"/commands/gsd/*.md "$CLAUDE_DIR/commands/gsd/"
@@ -286,6 +294,12 @@ fi
 
 cp "$CONFIG_DIR"/agents/*.md "$CLAUDE_DIR/agents/"
 echo "  + agents/"
+
+# Teams - Agent role definitions and team configuration
+if [ -d "$CONFIG_DIR/teams" ]; then
+    cp -r "$CONFIG_DIR"/teams/* "$CLAUDE_DIR/teams/"
+    echo "  + teams/ (agent roles + team config)"
+fi
 
 cp -r "$CONFIG_DIR"/get-shit-done/* "$CLAUDE_DIR/get-shit-done/"
 echo "  + get-shit-done/"

@@ -1,15 +1,35 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-check-update.js\""
+            "command": "node \"$HOME/.claude/hooks/gsd-check-update.js\""
           },
           {
             "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/dotfiles-check-update.js\""
+            "command": "node \"$HOME/.claude/hooks/dotfiles-check-update.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/rotate-hook-approvals.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/retention-cleanup.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/hook-health-check.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/team-active-reminder.js\""
           }
         ]
       }
@@ -20,21 +40,42 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"C:/Users/Hakan/.claude/hooks/dippy/bin/dippy-hook\""
+            "command": "python3 \"$HOME/.claude/hooks/dippy/bin/dippy-hook\""
           },
           {
             "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/pretooluse-safety.js\""
+            "command": "node \"$HOME/.claude/hooks/pretooluse-safety.js\""
           }
         ]
       }
     ],
     "PostToolUse": [
       {
+        "matcher": "Edit|Write|MultiEdit|Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-context-monitor.js\""
+            "command": "node \"$HOME/.claude/hooks/gsd-context-monitor.js\""
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/teammate-idle-check.js\""
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/task-completed-check.js\""
           }
         ]
       }
@@ -42,21 +83,14 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node \"C:/Users/Hakan/.claude/hooks/gsd-statusline.js\""
+    "command": "node \"$HOME/.claude/hooks/gsd-statusline.js\""
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": false,
-    "frontend-design@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "static-analysis@trailofbits": true,
@@ -69,36 +103,42 @@
     "variant-analysis@trailofbits": true,
     "spec-to-code-compliance@trailofbits": true,
     "git-cleanup@trailofbits": true,
-    "workflow-skill-design@trailofbits": true,
-    "document-skills@anthropic-agent-skills": true,
-    "example-skills@anthropic-agent-skills": true,
-    "claude-api@anthropic-agent-skills": true
+    "workflow-skill-design@trailofbits": true
   },
   "skipDangerousModePermissionPrompt": true,
+  "teammateMode": "auto",
   "mcpServers": {
     "container-use": {
-      "command": "C:/Users/Hakan/bin/container-use.exe",
+      "command": "bash",
       "args": [
-        "stdio"
+        "-c",
+        "exec node \"$HOME/.claude/hooks/lib/mcp-launcher.js\" container-use"
       ],
       "startup_timeout_sec": 120
     },
     "HakanMCP": {
-      "command": "node",
+      "command": "bash",
       "args": [
-        "C:\\dev\\HakanMCP\\dist\\src\\index.js"
+        "-c",
+        "exec node \"$HOME/.claude/hooks/lib/mcp-launcher.js\" hakanmcp"
       ],
-      "cwd": "C:\\dev\\HakanMCP",
       "startup_timeout_sec": 60
     },
     "playwright": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
+        "@playwright/mcp@1.52.0-alpha-2025-03-20",
         "--cdp-endpoint",
         "http://localhost:9222"
       ]
+    },
+    "notebooklm": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@m4ykeldev/notebooklm-mcp",
+        "serve"
+      ]
     }
-  },
-  "model": "opus"
+  }
 }
