@@ -59,8 +59,6 @@ Connected as MCP server. Agents can use it as a tool:
 | `pretooluse-safety.js` | PreToolUse | Blocks dangerous commands and credential leaks |
 | `gsd-context-monitor.js` | PostToolUse | Monitors context budget (warns at thresholds) |
 | `post-autoformat.js` | PostToolUse | Project-based prettier/biome format (disabled by default) |
-| `gsd-check-update.js` | SessionStart | GSD update check on session start |
-| `dotfiles-check-update.js` | SessionStart | Dotfiles update check on session start |
 | `gsd-statusline.js` | StatusLine | GSD status display in status line |
 
 ## MCP Servers

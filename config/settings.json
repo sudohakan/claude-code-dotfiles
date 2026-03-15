@@ -9,14 +9,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-check-update.js\""
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/dotfiles-check-update.js\""
-          },
-          {
-            "type": "command",
             "command": "node \"$HOME/.claude/hooks/rotate-hook-approvals.js\""
           },
           {

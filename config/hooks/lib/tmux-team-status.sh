@@ -39,17 +39,17 @@ team_name=$(grep -o '"name": *"[^"]*"' "$latest_config" | head -1 | sed 's/"name
 # Count active agents (isActive: true)
 agent_count=$(grep -c '"isActive": true' "$latest_config" 2>/dev/null || echo 0)
 
-# Find task directory — check all subdirs, prefer one with actual task files
+# Find task directory — match by team name first, then by team directory name
 task_dir=""
-best_count=0
-for d in "${TASKS_DIR}"/*/; do
-  [ -d "$d" ] || continue
-  count=$(find "$d" -maxdepth 1 -name '*.json' 2>/dev/null | wc -l)
-  if [ "$count" -gt "$best_count" ]; then
-    best_count=$count
-    task_dir="$d"
-  fi
-done
+team_dir_name=$(basename "$(dirname "$latest_config")")
+
+# Try exact team name match first
+if [ -d "${TASKS_DIR}/${team_dir_name}" ]; then
+  task_dir="${TASKS_DIR}/${team_dir_name}/"
+# Fallback: try team name from config
+elif [ -d "${TASKS_DIR}/${team_name}" ]; then
+  task_dir="${TASKS_DIR}/${team_name}/"
+fi
 
 # Count tasks by status
 total=0

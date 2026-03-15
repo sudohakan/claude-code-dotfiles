@@ -22,8 +22,6 @@ if (!process.argv.includes('--self-test') && !process.argv.includes('--force')) 
 }
 
 const expectedHooks = [
-  'gsd-check-update.js',
-  'dotfiles-check-update.js',
   'pretooluse-safety.js',
   'gsd-context-monitor.js',
   'task-completed-check.js',
