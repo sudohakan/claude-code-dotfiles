@@ -5,6 +5,29 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [2.0.0] - 2026-03-15
+
+### Breaking Changes
+- Major workflow overhaul: agent teams now use upfront planning, self-claiming, task dependencies, plan approval, and native hooks
+- CLAUDE.md restructured with MCP integration (§7), parallel execution rules, and token-optimized references
+- Removed dotfiles-check-update and gsd-check-update SessionStart hooks
+
+### Added
+- tmux team status panel (`hooks/lib/tmux-team-status.sh`) — live team info in status bar
+- WSL setup script (`setup-wsl-claude.sh`) — automated WSL environment setup
+- Post-Installation Setup section in SETUP.md (MCP auth, .claudeignore, Agent Teams)
+
+### Changed
+- VERSION bumped from 1.15.0 to 2.0.0 (aligns with HakanMCP v2.0.0)
+- All documentation updated (README, SETUP, CONTRIBUTING, SECURITY)
+- Install scripts updated with recursive teams/ and docs/ copying
+- settings.json cleaned (removed update hooks, added teammateMode)
+- hook-health-check.js and tools-reference.md updated
+
+### Removed
+- `hooks/dotfiles-check-update.js` — no longer needed
+- `hooks/gsd-check-update.js` — no longer needed
+
 ## [1.15.0] - 2026-03-15
 
 ### Added
