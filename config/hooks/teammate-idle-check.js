@@ -47,10 +47,16 @@ async function main() {
         const task = JSON.parse(
           fs.readFileSync(path.join(tasksDir, file), "utf8")
         );
-        if (task.status === "pending" && task.blocked !== true) {
+        // Check both blocked flag and blockedBy array
+        const isBlocked = task.blocked === true ||
+          (Array.isArray(task.blockedBy) && task.blockedBy.length > 0);
+
+        if (task.status === "pending" && !isBlocked && !task.owner) {
           pendingTasks++;
-          const desc = task.description || task.subject || "";
-          if (desc.includes(roleTag) || !desc.includes("[ROLE:")) {
+          const desc = (task.description || "") + " " + (task.subject || "");
+          // Only match if task explicitly has THIS teammate's role tag
+          // Untagged tasks do NOT auto-match — they require explicit assignment
+          if (desc.includes(roleTag)) {
             roleMatchTasks++;
           }
         }

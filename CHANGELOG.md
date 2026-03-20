@@ -5,6 +5,27 @@ All notable changes to claude-code-dotfiles will be documented in this file.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [3.0.0] - 2026-03-20
+
+### Added
+- 25 new agent definitions: language-specific reviewers (Go, Python, Rust, C++, Java, Kotlin), build error resolvers, architect, planner, TDD guide, security reviewer, code reviewer, and more
+- 60+ new slash commands: language-specific build/test/review commands, ECC session persistence, multi-model workflows, team orchestration, continuous learning, devfleet
+- 47 new skill sets: framework patterns (Django, Laravel, Spring Boot, Kotlin variants), language-specific testing and patterns, TDD workflow, verification loop, continuous learning, eval harness
+- 8 language-specific rule packs: TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl (extending common rules)
+- `config/mcp-configs/` directory with MCP server templates (31 available servers)
+- `sync.sh` script for automated live-to-repo synchronization with --dry-run support
+- `config/commands/deprecated/` directory for legacy team commands
+- New hooks: mcp-reconnect.js, session-end-check.js, context-statusline.sh
+
+### Changed
+- CLAUDE.md updated to production-simplified version with MCP/Rube integration guidance, Turkish WSLg rule, and connected apps table
+- settings.json updated: tmux teammate mode, Stop hook, MCP reconnect with timeout, Python statusline, ECC_HOOK_PROFILE=strict
+- .claude.json template updated with 7 MCP servers (HakanMCP, NotebookLM, gtasks, infoset, coupler-io, rube, magic-21st)
+- README updated with accurate component counts (37 agents, 118 commands, 51 skills, 50 rules)
+
+### Removed
+- Legacy team commands moved from root to deprecated/ (buildteam, e2eteam, growthteam, opsteam, researchteam)
+
 ## [2.0.1] - 2026-03-15
 
 ### Fixed

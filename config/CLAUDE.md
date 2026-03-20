@@ -1,201 +1,215 @@
 # Global Claude Instructions
 
 ## 1. Core Rules
-- Respond in the user's language.
-- Prefer short, direct, technical explanations.
-- Separate completed changes from open items clearly.
-- Only make changes that are explicitly requested or clearly necessary. Do not add unrequested features, refactoring, comments, or error handling.
-- Always read a file before modifying it. Never edit blindly.
-- Git commands only when the user explicitly asks. No auto-commit, auto-push, or GSD atomic commit. Git actions require explicit user approval even within a team.
-- Format only when the user requests it, or when formatting is clearly necessary. Ask first, then use the project's configured formatter (e.g., `prettier`, `black`, `gofmt`) — do not assume a specific tool.
-- User always runs with `--dangerously-skip-permissions`. Plan mode is not used in the main session; use superpowers skills instead. Within agent teams, teammates with `planModeRequired: true` in their team config use plan mode for risky implementations — the team leader approves or rejects plans via `plan_approval_response` protocol.
-- When encountering an unfamiliar tool, service, or term, research it via web search first. Do not ask the user to explain it.
-- Minimize token consumption: avoid unnecessary context, redundant agent spawns, and excessive plugin loads.
-- Verify every change before reporting completion. Re-read modified files, confirm file paths exist on disk, and check for logical consistency with surrounding rules. When a team is active, delegate verification to tech-lead (technical) or PM (logic/scope).
+- Respond in the user's language. Short, direct, technical.
+- Only make changes explicitly requested or clearly necessary. No unrequested features, refactoring, comments, or error handling.
+  - **Exception:** When creating teams/plans/tasks, proactively add edge cases, failure scenarios, and verification areas.
+- Always read a file before modifying it.
+- Git commands only when user explicitly asks. No auto-commit, auto-push. Applies within teams too.
+- In WSL, use `git.exe` for remote operations (Azure DevOps credential helper).
+- Format only on request. Use the project's configured formatter.
+- User runs with `--dangerously-skip-permissions`. No plan mode — use superpowers skills. In teams, use tech-lead review instead.
+- Unfamiliar tool/service/term → research via web search. Don't ask the user.
+- Minimize token consumption: no unnecessary context, redundant spawns, or speculative plugin loads.
+- Verify every change before reporting completion. Re-read files, confirm paths, check consistency.
+- Actionable problems → fix directly. Only explain if user-side steps are required.
+- Browser/GUI setups requiring interaction (login, OAuth, setup) → run directly via WSLg. Install any missing dependencies, fix errors, and retry. Do not leave manual steps for the user.
 
 ## 2. Model Selection
-- Default for all tasks: `sonnet`.
-- Subagents and team members: `sonnet` by default.
-- Read-only research / exploration subagents: prefer `haiku` to minimize token cost.
-- Complex architectural decisions or multi-system reasoning: `opus` — use when the decision spans 2+ services, is irreversible, or requires system-wide trade-off analysis.
-- Team leader (orchestrator): always `opus` — intentional choice to reduce decision errors; this overrides token minimization concerns for the orchestrator role.
-- Superpowers skills and Ralph loop: inherit default (`sonnet`).
-- When spawning agents or teammates, always pass `model` explicitly.
+- Default: `sonnet`. Always pass `model` explicitly when spawning agents/teammates.
+- Research/exploration subagents: `haiku`.
+- Complex architectural decisions (2+ services, irreversible): `opus`.
+- Team leader (orchestrator): always `opus`.
+- Superpowers/Ralph loop: inherit default (`sonnet`).
 
 ## 3. Task Routing
 
 ### Shortcuts
-- `-bs` → trigger `superpowers:brainstorming`. `-ep` → trigger `superpowers:executing-plans`. Both present → brainstorming first, then execution.
+- `-bs` → `superpowers:brainstorming`. `-ep` → `superpowers:executing-plans`. Both → brainstorming first.
 
-### Team Creation Rule
-When the user asks to create/set up a team → **always run `superpowers:brainstorming` first**. There are multiple team skills and brainstorming is required to understand the goal, scope, and pick the right one. Never skip brainstorming and never substitute it with ad-hoc questions.
+### Team Creation
+User asks to create a team → use `/team`. Individual team commands (`/buildteam`, etc.) are deprecated.
 
-### Routing Hierarchy
-Follow this order to decide how to handle incoming work:
-1. **Team active?** → Route all work through the team leader — do not spawn subagents or skills bypassing the team leader.
-2. **Single step, clear?** → Handle directly. No workflow needed.
-3. **Bug or unexpected behavior?** → `superpowers:systematic-debugging`
-4. **Isolated, independent task?** → Spawn a subagent.
-5. **Vague or needs direction?** → `superpowers:brainstorming`
-6. **Multi-step with clear requirements?** → `superpowers:writing-plans`
-7. **Multiple independent tasks?** → `superpowers:dispatching-parallel-agents`
-8. **Multi-phase or has `.planning/ROADMAP.md`?** → GSD workflow (except `gsd:quick` for small tasks with GSD guarantees)
-9. **Automated verification loop?** → Ralph Loop (see `~/.claude/docs/review-ralph.md` for args format)
+### Routing Signals
+Use judgment based on these signals. Multiple may apply — pick the best fit or combine.
 
-### Superpowers Skills
-| Skill | When to Use |
-|-------|-------------|
-| `superpowers:brainstorming` | Request is vague or needs direction before work begins |
-| `superpowers:writing-plans` | Task is clearly multi-step and needs a written plan |
-| `superpowers:dispatching-parallel-agents` | Multiple independent tasks can run in parallel |
-| `superpowers:executing-plans` | Executing a written implementation plan with review checkpoints |
-| `superpowers:subagent-driven-development` | Executing implementation plans with independent tasks in current session |
-| `superpowers:test-driven-development` | Implementing any feature or bugfix — use before writing implementation code |
-| `superpowers:verification-before-completion` | Before marking ANY task done — mandatory, not optional. Run verify loop until clean. |
-| `superpowers:requesting-code-review` | After implementation — always before closing a phase |
-| `superpowers:receiving-code-review` | When receiving code review feedback before implementing suggestions |
-| `superpowers:systematic-debugging` | Bug investigation with unclear root cause |
-| `superpowers:finishing-a-development-branch` | When implementation is complete and ready to integrate |
-| `superpowers:using-git-worktrees` | Starting feature work that needs isolation from current workspace |
+| Signal | Consider |
+|--------|----------|
+| Team already active | Route through team leader — don't bypass |
+| Single step, obvious | Handle directly, no workflow needed |
+| "Bug", error, unexpected behavior | `superpowers:systematic-debugging` |
+| Independent, self-contained task | Subagent |
+| Vague request, unclear direction | `superpowers:brainstorming` |
+| Multi-step, requirements clear | `superpowers:writing-plans` or ECC `/blueprint` for complex multi-session work |
+| Several independent tasks | `superpowers:dispatching-parallel-agents` |
+| `.planning/ROADMAP.md` exists | GSD workflow. `gsd:quick` for small tasks |
+| Measurable, automatable success criterion | Ralph Loop (`ralph-loop:ralph-loop`) |
+| Feature implementation starting | Consider `superpowers:test-driven-development` or ECC `/tdd` |
+| Work looks done | `superpowers:verification-before-completion` (always run before claiming done) |
+| Code just written | Consider code review — `superpowers:requesting-code-review` or `/code-review` |
+| Build fails | ECC `/build-fix` — minimal diffs, get build green |
+| UI/UX work, design, frontend styling | `ui-ux-pro-max` skill. For component generation use `magic-21st` MCP (`/ui ...`) |
+| Dead code, cleanup, refactoring | ECC `/refactor-clean` |
+| E2E test needed | ECC `/e2e` — Playwright test generation |
+| Docs or codemaps outdated | ECC `/update-docs` or `/update-codemaps` |
+| Prompt needs improvement | ECC `/prompt-optimize` |
+| Session ending or context growing large | Consider ECC `/save-session` |
+| Session starting | Consider ECC `/resume-session` if prior session exists |
+| Quick side question during deep work | ECC `/aside` — don't pollute main context |
+| Unfamiliar library or API | `context7` MCP — query docs before coding |
 
 ### Ralph Loop
-Trigger only when ALL of the following are true:
-- Success criterion fits in one sentence and is objectively measurable
-- Verification can be automated — tests, lint, or build; not human judgment
-- No design decisions or user approvals required during the loop
-- Max iterations are predictable (typically 3–5, never exceed 10)
-
-Skill: `ralph-loop:ralph-loop`. See `~/.claude/docs/review-ralph.md` for args format.
-Do not use Ralph for brainstorming, architecture, or open-ended improvement tasks.
+All must be true: measurable criterion in one sentence, automated verification (tests/lint/build), no design decisions needed, max 3-10 iterations.
+Args format: `~/.claude/docs/review-ralph.md`.
 
 ## 4. Agent Teams
+Use for coordinated, long-running work with parallel workstreams.
+- Never auto-create teams. Keep alive until user requests shutdown.
+- Role definitions: `~/.claude/teams/agents/`
+- Full workflow: `~/.claude/docs/agent-teams.md`
 
-Use only for coordinated, long-running work with multiple parallel workstreams.
-- Ask the user before creating a team. Keep teammates alive until the user explicitly requests shutdown.
-- Team role definitions: reference `~/.claude/teams/agents/` for role files
-- Full workflow details: `~/.claude/docs/agent-teams.md`
-
-### Team Leader Role
-The team leader (orchestrator = Claude) is responsible for:
-- Organizing the team — deciding who does what based on expertise and task scope
-- Delegating — create tasks, coordinate, review without waiting for user approval on routine work
-- Actively supervising — read files, run commands, verify and validate team members' work output before accepting. This verification work is expected and is NOT "executing tasks directly"
-- Quality control — review code, check results, request corrections when needed
-- **Making decisions and approvals within the team** — when superpowers skills (brainstorming, writing-plans, etc.) require design approval, spec review approval, or intermediate decisions, the team leader makes these without waiting for the user.
-- **Never implementing** — the lead never writes application code, never takes implementation tasks, never edits source files. Exception: CLAUDE.md, role files, team config, and documentation. Implementation belongs to teammates.
-- **Upfront milestone task creation** — when a goal arrives, create top-level workflow tasks upfront via TaskCreate (PM analysis, tech breakdown, implementation, ops verification) with dependencies, acceptance criteria, and role tags. Tech Lead further breaks engineering tasks into implementation subtasks. Do not wait for the sequential pipeline to complete before creating downstream tasks.
-- Reporting results to the user — not findings or options, but verified and completed outcomes
-- Escalating to the user only for user-approval items (git commit/push, deploy, external service changes, irreversible architectural decisions)
-
-### Team Leader: Delegation Discipline
-
-**STOP before using Read / Grep / Glob / Bash / spawning a subagent for any research or discovery purpose.** Ask yourself:
-
-- Is this **discovery** (exploring, investigating, understanding, searching)? → **SendMessage to the right teammate. Do not do it yourself.**
-- Is this **verification** (confirming a teammate's output is correct)? → Proceed.
-
-| Action | Discovery? | What to do |
-|--------|-----------|------------|
-| Explore codebase to understand a problem | YES | SendMessage → backend-architect or tech-lead |
-| Search for patterns, bugs, configuration | YES | SendMessage → qa-tester or fullstack-dev |
-| Investigate logs or error traces | YES | SendMessage → the relevant specialist |
-| Read a file a teammate just produced | NO | Proceed — this is verification |
-| Read a file you are about to edit | NO | Proceed — required by core rules |
-| Run tests to validate delivered work | NO | Proceed — this is verification |
-
-**The rule: Direct, coordinate, verify. Do not investigate.**
-
-Violating this rule defeats the purpose of the team. The team exists so that teammates do the work — not so the leader can do it faster.
+### Team Leader
+- Delegates work, supervises, reviews, makes routine decisions autonomously.
+- May do small fixes directly (config, 1-2 lines). Delegates substantial work.
+- Creates tasks via TaskCreate with dependencies and acceptance criteria.
+- Escalates to user only for: git commit/push, deploy, external services, irreversible decisions.
 
 ### User Role
-- The user directs goals and makes final decisions
-- When a team is active, the user delegates work to the team leader — not to individual members or subagents directly
-- **User approval required for:** git commit/push, deploy, external service changes, and architectural decisions that are irreversible or cross-system (e.g., new database, new service boundary, breaking API change)
-- **No approval needed for:** internal code changes, dependency choices within a service, refactoring, test strategy, file structure, naming conventions, single-service API design
+- Directs goals, makes final decisions. Delegates to team leader when team is active.
+- No approval needed for: internal code, dependencies, refactoring, test strategy, file structure.
 
-### Task Flow (Mesh Model)
-No technical work begins until PM delivers the requirements document. Exception: pure-ops emergencies (outage, rollback).
-
-```
-User → assigns goal → Team Leader
-Team Leader → creates top-level tasks upfront (sets dependencies via TaskUpdate addBlockedBy, adds role tags) → notifies all relevant teammates simultaneously
-PM → self-claims analysis task → sends requirements → Tech Lead (simultaneously sends ops brief → Launch Ops)
-Tech Lead → refines implementation tasks, adds detail → tasks become unblocked
-Teammates → self-claim unblocked tasks matching their role
-Fullstack Dev → implements, reports → Tech Lead (review)
-Fullstack Dev → [HANDOFF] → Launch Ops (Tech Lead sends [TECH HANDOFF] in parallel)
-Launch Ops → [VERIFY] → Team Leader → User
-```
-Teammates communicate directly with each other via SendMessage. Team leader supervises and intervenes only for cross-role conflicts or user-approval items. Teammates self-claim tasks from the shared task list — the lead creates tasks but does not need to explicitly assign each one. See `agent-teams.md` for transfer formats, worktree isolation rules, self-claiming protocol, and anti-patterns.
-
-**Rule — Parallel Kickoff (Universal):** PM sends requirements to tech-lead AND ops brief to launch-ops simultaneously — never sequentially. This applies to ALL team commands (`/e2eteam`, `/buildteam`, `/opsteam`, `/growthteam`, `/researchteam`, and any future custom teams). Parallel kickoff is default behavior, not an exception.
-**Rule — No Duplicate Work:** Never assign the same work to two teammates. Tasks must be decomposed into distinct, non-overlapping parts. Each part has exactly one owner. Coordinating role (tech-lead or team leader) combines results. If two teammates could solve the same sub-problem, split the sub-problem instead.
-**Rule — Task Dependencies:** Use `[DEPENDS: task-id]` in description + `TaskUpdate(addBlockedBy)` for enforcement. See `agent-teams.md` for lifecycle details.
-**Rule — Plan Approval:** Teammates with `planModeRequired: true` write plans before implementing; leader approves via `plan_approval_response`. See `agent-teams.md` for flow and default roles.
-**Rule — Team Hooks:** Native `TeammateIdle` and `TaskCompleted` hooks in `settings.json` enforce self-claiming and quality gates. See `agent-teams.md` for configuration.
-**Rule — Mandatory Verification Loop:** Before any task is marked `completed`:
-1. Invoke `superpowers:verification-before-completion`
-2. Tech Lead (or team leader) reviews output
-3. If bugs/issues found → fix, then return to step 1
-4. Only after a clean pass → mark task `completed` and proceed to Launch Ops handoff
-Never hand off unverified work to Launch Ops.
+### Task Flow
+- User → Team Leader → creates tasks → teammates self-claim
+- PM (if present) → scopes → Tech Lead → refines → Dev implements → Tech Lead reviews
+- Direct peer communication via SendMessage. No duplicate work — one owner per task.
 
 ## 5. Context And Memory
-
-Memory paths are relative to the project's Claude memory directory. Resolve as follows:
-- **WSL:** `~/.claude/projects/<project-key>/memory/` (e.g., `/home/hakan/.claude/projects/-mnt-c-Users-Hakan/memory/`)
-- **Windows:** `%USERPROFILE%\.claude\projects\<project-key>\memory\`
-- All `.memory/` references below are relative to this resolved directory.
+Memory path: `~/.claude/projects/<project-key>/memory/`
 
 ### Session Continuity
-- At session start or after `/compact`: read `.memory/session-continuity.md` if it exists — this is the primary context restoration mechanism. Read `MEMORY.md` and `.planning/STATE.md` only if the task needs deeper context.
-- Keep `.memory/session-continuity.md` compact: latest state only, no history, target under 12 lines / ~1200 characters.
-- **Write rule:** Do not write this file at session end or routinely. Only when context exceeds ~90%, ask the user to run `/compact` and write `.memory/session-continuity.md` with current state (project, phase, status, next step, blockers, key decisions) immediately before compact.
-- When a team is active, only the team leader reads/writes `session-continuity.md`. Teammates do not write memory files.
+- Session start or `/compact`: read `.memory/session-continuity.md` (primary), then `MEMORY.md` / `.planning/STATE.md` if needed.
+- Keep compact: latest state only, under 12 lines.
+- Write only before `/compact` when context exceeds ~90%.
+- Teams: only leader reads/writes session-continuity.
 
 ### Project Knowledge Files
-- `.memory/solutions.md` — write when a non-obvious fix is found that could recur
-- `.memory/patterns.md` — write when a code or process pattern is established as the project standard
-- `.memory/decisions.md` — write when an architectural or workflow decision is made that affects future sessions
-- Update `MEMORY.md` index whenever a new memory file is created or significantly changed
+- `.memory/solutions.md` — non-obvious recurring fixes
+- `.memory/patterns.md` — established project patterns
+- `.memory/decisions.md` — architectural/workflow decisions
+- Update `MEMORY.md` index on changes.
 
-## 6. References
+## 6. Plugins & Skills
 
-All paths use `~/.claude/` which resolves to:
-- **WSL:** `/home/hakan/.claude/`
-- **Windows:** `C:\Users\Hakan\.claude\`
+Available plugins and their capabilities. Use judgment — these are tools, not obligations.
 
-- GSD workflow: `~/.claude/get-shit-done/` and `~/.claude/commands/gsd/`
-- Agent Teams: `~/.claude/docs/agent-teams.md`
-- Team role definitions: `~/.claude/teams/agents/`
-- Mesh workflow spec: `~/.claude/docs/superpowers/specs/`
-- Dippy hooks: `~/.claude/docs/dippy.md`
-- UI/UX guidance: `~/.claude/docs/ui-ux.md`
-- Decision matrix: `~/.claude/docs/decision-matrix.md`
-- Ralph loop: `~/.claude/docs/review-ralph.md`
-- Advanced tools: `~/.claude/docs/tools-reference.md`
-- MCP usage guide: `~/.claude/docs/mcp-usage-guide.md`
-- .claudeignore templates: `~/.claude/docs/claudeignore-templates.md`
-- Dotfiles workflow: WSL: `/mnt/c/dev/claude-code-dotfiles` | Windows: `C:\dev\claude-code-dotfiles`
+| Plugin | Signals to Consider Using |
+|--------|--------------------------|
+| **superpowers** | Planning, TDD, verification, code review, debugging, brainstorming, git worktrees. Core workflow engine — consider first for structured development tasks. |
+| **ECC** | Session persistence (`/save-session`, `/resume-session`), continuous learning (`/instinct-status`, `/evolve`), harness audit, security scan (`/security-scan`), prompt optimization, quality gates. Consider when session management, learning, or config security matters. |
+| **context7** | Library/framework docs needed, API unclear, unfamiliar dependency. Query before writing code — not after. |
+| **code-review** | Post-implementation code review. |
+| **security-guidance** | Security best practices, vulnerability patterns. |
+| **playwright** | UI testing, browser interaction, web scraping, visual verification needed. |
+| **typescript-lsp** | TypeScript type checking, language server features needed. |
+| **claude-md-management** | User asks to audit or improve CLAUDE.md files. |
+
+### ECC-Only Capabilities
+These have no superpowers equivalent:
+- `/save-session` `/resume-session` — session persistence across restarts
+- `/aside` — side question without context pollution
+- `/security-scan` — AgentShield config audit (102 rules)
+- `/instinct-status` `/evolve` `/learn` — continuous learning system
+- `/blueprint` — multi-session adversarial planning
+- `/harness-audit` `/quality-gate` — config scoring, quality pipeline
+- `/prompt-optimize` — prompt analysis + ECC component matching
+- Language-specific agents (go-reviewer, python-reviewer, rust-reviewer, etc.)
+
+### When Both Offer Similar Capability
+| Capability | Superpowers | ECC | Preference |
+|-----------|-------------|-----|------------|
+| Planning | `writing-plans` | `/blueprint` | Superpowers for single-session, ECC for multi-session |
+| TDD | `test-driven-development` | `/tdd` | Either — ECC uses language-specific agents |
+| Code review | `requesting-code-review` | `/code-review` | Either — choose based on context |
+| Verification | `verification-before-completion` | `/verify` | Superpowers — always mandatory |
+
+### ECC Hook Profile
+`ECC_HOOK_PROFILE` in settings.json — current: `strict` (all hooks active including continuous learning).
+
+### 21st.dev Magic MCP
+UI component generation. Writes React+Tailwind components directly into the project.
+Signal: when the user requests a UI/component/button/form/navbar/modal, use the `/ui` prefix.
 
 ## 7. MCP & Tool Integration
+Invoke MCP tools only when the task benefits from them. Use judgment — not every task needs MCP.
 
-### When to Use MCP Tools
-Invoke MCP tools only when the task genuinely requires their capability:
-- **context7 MCP** → library documentation lookups, API reference, version-specific code examples. Query BEFORE writing code with unfamiliar libraries.
-- **HakanMCP** → DB queries/monitoring, API testing, GitHub ops, backup/scheduler, system monitoring, knowledge graph. See `mcp-usage-guide.md` for 131-tool category breakdown.
-- **NotebookLM MCP** → deep research synthesis, multi-source querying, notebook management, audio/video/slide generation. Use when task requires cross-document analysis.
-- **Playwright MCP** → web scraping, UI automation, visual testing, form interaction
-- **Gmail MCP** → email drafting, reading, searching — only when explicitly asked
-- **Google Calendar MCP** → scheduling, events, availability — only when explicitly asked
+### New Service Connection — Evaluate All Options
+When user wants to connect a new external service, check ALL sources in parallel and pick the best fit:
+- **HakanMCP catalog** — auth-free on-demand MCP via `mcp_connectFromCatalog`
+- **Rube (Composio)** — 600+ app via `RUBE_SEARCH_TOOLS` (has cost + shared rate limits)
+- **Web search** — dedicated MCP servers on npm/GitHub (e.g., "namecheap MCP server")
 
-### MCP Avoidance Rules
-- Do NOT load MCP tools speculatively. Only fetch schema (`ToolSearch`) when you need to invoke the tool.
-- Do NOT use browser MCP to open URLs that can be fetched with `WebFetch`.
-- Do NOT use Gmail MCP unless the user explicitly asks to send, draft, or read email.
-- Do NOT use Calendar MCP unless the user explicitly asks about scheduling or events.
+**Selection priority:** Free dedicated MCP > HakanMCP auth-free > Rube (Rube has cost and shared API limits, prefer free alternatives when available). If Rube is the only option or significantly better featured, use it. Always present options to user with trade-offs.
+
+### MCP Servers
+| Server | Signals to Consider Using |
+|--------|--------------------------|
+| context7 | Unfamiliar library, need API reference, version-specific examples |
+| HakanMCP | DB queries, API testing, system monitoring, backup, on-demand MCP catalog. Guide: `~/.claude/docs/mcp-usage-guide.md` |
+| NotebookLM | Deep research, multi-source synthesis, audio/video/slide generation |
+| Playwright | Browser automation, UI testing, web scraping |
+| Gmail | User explicitly asks about email |
+| Google Calendar | User explicitly asks about scheduling |
+| gtasks-mcp | User explicitly asks about tasks |
+| infoset | CRM data needed (tickets, contacts, companies) |
+| coupler-io | Dataflow or data integration queries |
+| container-use | Docker container operations |
+| magic-21st (21st.dev) | UI component generation via `/ui` — React+Tailwind, written directly into the project |
+| Rube (Composio) | 600+ app. Prefer Rube over separate MCP for connected apps. Use `RUBE_SEARCH_TOOLS` first to discover tools. |
+
+**Rube Connected Apps:**
+| App | Signals to Use |
+|-----|---------------|
+| Notion | Create/query/update pages and DBs. Reading specs, wiki, project tracking |
+| GitHub | Create issues/PRs, search repos, code search. Prefer Rube over git.exe for remote ops |
+| Gmail | Read/write/search email — Gmail MCP is also available but Rube works too |
+| Trello | Board/card/list management, task tracking, project organization |
+| LinkedIn | Create/delete posts, fetch profile info, company page sharing, link/image sharing |
+
+### On-Demand MCP (HakanMCP catalog)
+10 auth-free servers. Connect via `mcp_connectFromCatalog` — prefer these over Bash workarounds when the task fits.
+
+| Server | Connect When |
+|--------|-------------|
+| Fetch | WebFetch truncates or fails on a URL |
+| Filesystem | Need recursive directory tree or batch file reads |
+| Git | Cross-branch diff, blame analysis, commit pattern search — beyond simple `git` commands |
+| Memory | Building knowledge graph, entity-relation tracking |
+| Sequential Thinking | 3+ alternatives to evaluate, complex trade-off, systematic hypothesis testing |
+| SQLite | Project has .sqlite/.db files to query |
+| Time | Timezone conversion or cross-timezone scheduling |
+| Mermaid | Diagram generation requested (flowchart, sequence, architecture) |
+| DuckDB | SQL analytics on local CSV/Parquet/JSON files |
+| Claude Sessions | Session decision logging, cross-session context persistence |
+
+### MCP Error Handling
+- Error → investigate and retry within same MCP first (different params, reconnect).
+- Fall back to alternatives only after MCP resolution fails. Inform user.
 
 ### Configuration
-- MCP server config: `/mnt/c/Users/Hakan/.claude.json` (Windows) and `/home/hakan/.claude.json` (WSL)
-- Both environments must be kept in sync for shared servers.
-- See `~/.claude/docs/mcp-usage-guide.md` for full setup reference.
+- Config files: `/home/hakan/.claude.json` (WSL) and `/mnt/c/Users/Hakan/.claude.json` (Windows). Keep in sync.
+- Adding/removing: use `/add-mcp` command or read `~/.claude/docs/mcp-usage-guide.md`.
+
+## 8. References
+All `~/.claude/` → WSL: `/home/hakan/.claude/` | Windows: `C:\Users\Hakan\.claude\`
+
+| Resource | Path |
+|----------|------|
+| GSD workflow | `~/.claude/get-shit-done/` and `~/.claude/commands/gsd/` |
+| Superpowers specs | `~/.claude/docs/superpowers/specs/` |
+| Dippy hooks | `~/.claude/docs/dippy.md` |
+| UI/UX guidance | `~/.claude/docs/ui-ux.md` |
+| Decision matrix | `~/.claude/docs/decision-matrix.md` |
+| Tools reference | `~/.claude/docs/tools-reference.md` |
+| MCP guide | `~/.claude/docs/mcp-usage-guide.md` |
+| .claudeignore templates | `~/.claude/docs/claudeignore-templates.md` |
+| Dotfiles repo | WSL: `/mnt/c/dev/claude-code-dotfiles` |

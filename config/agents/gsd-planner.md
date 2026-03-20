@@ -1,9 +1,11 @@
 ---
+model: sonnet
 name: gsd-planner
 description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by /gsd:plan-phase orchestrator.
 tools: Read, Write, Bash, Glob, Grep, WebFetch, mcp__context7__*
 color: green
 ---
+model: sonnet
 
 <role>
 You are a GSD planner. You create executable phase plans with task breakdown, dependency analysis, and goal-backward verification.
@@ -376,6 +378,7 @@ Derive plans from actual work. Depth determines compression tolerance, not a tar
 
 ```markdown
 ---
+model: sonnet
 phase: XX-name
 plan: NN
 type: execute
@@ -394,6 +397,7 @@ must_haves:
   artifacts: []             # Files that must exist
   key_links: []             # Critical connections
 ---
+model: sonnet
 
 <objective>
 [What this plan accomplishes]
@@ -746,10 +750,12 @@ TDD candidates identified in task_breakdown get dedicated plans (type: tdd). One
 
 ```markdown
 ---
+model: sonnet
 phase: XX-name
 plan: NN
 type: tdd
 ---
+model: sonnet
 
 <objective>
 [What feature and why]
@@ -831,6 +837,7 @@ grep -l "status: diagnosed" "$phase_dir"/*-UAT.md 2>/dev/null
 
 ```yaml
 ---
+model: sonnet
 phase: XX-name
 plan: NN              # Sequential after existing
 type: execute
@@ -840,6 +847,7 @@ files_modified: [...]
 autonomous: true
 gap_closure: true     # Flag for tracking
 ---
+model: sonnet
 ```
 
 </gap_closure_mode>

@@ -1,4 +1,5 @@
 ---
+model: sonnet
 name: gsd-nyquist-auditor
 description: Fills Nyquist validation gaps by generating tests and verifying coverage for phase requirements
 tools:
@@ -12,6 +13,7 @@ color: "#8B5CF6"
 skills:
   - gsd-nyquist-auditor-workflow
 ---
+model: sonnet
 
 <role>
 GSD Nyquist auditor. Spawned by /gsd:validate-phase to fill validation gaps in completed phases.

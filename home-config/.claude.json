@@ -10,11 +10,55 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "--no-warnings",
         "C:\\dev\\HakanMCP\\dist\\src\\index.js"
       ],
       "cwd": "C:\\dev\\HakanMCP",
       "env": {}
+    },
+    "notebooklm-mcp-cli": {
+      "type": "stdio",
+      "command": "C:/Users/USERNAME/.local/bin/notebooklm-mcp.exe",
+      "env": {}
+    },
+    "gtasks-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:\\dev\\gtasks-mcp\\dist\\index.js"
+      ],
+      "env": {}
+    },
+    "infoset": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:\\dev\\infoset-mcp\\src\\mcp-server.mjs"
+      ],
+      "env": {
+        "INFOSET_BASE_URL": "https://api.infoset.app",
+        "INFOSET_EMAIL": "YOUR_EMAIL",
+        "INFOSET_PASSWORD": "YOUR_PASSWORD"
+      },
+      "timeout": 30000
+    },
+    "coupler-io": {
+      "type": "http",
+      "url": "https://mcp.coupler.io/mcp"
+    },
+    "rube": {
+      "type": "http",
+      "url": "https://rube.app/mcp"
+    },
+    "magic-21st": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@21st-dev/magic@latest"
+      ],
+      "env": {
+        "TWENTY_FIRST_API_KEY": "YOUR_API_KEY"
+      }
     }
   }
 }

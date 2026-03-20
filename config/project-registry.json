@@ -1,6 +1,11 @@
 {
-  "scan_roots": [],
+  "scan_roots": [
+    "C:\\dev",
+    "C:\\Users\\Hakan\\source\\repos"
+  ],
   "extra_projects": [],
-  "recent": [],
+  "recent": [
+    {"path": "C:\\dev\\claude-code-dotfiles", "last_used": "2026-03-07"}
+  ],
   "max_scan_depth": 3
 }

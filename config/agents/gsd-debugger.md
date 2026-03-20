@@ -1,9 +1,11 @@
 ---
+model: sonnet
 name: gsd-debugger
 description: Investigates bugs using scientific method, manages debug sessions, handles checkpoints. Spawned by /gsd:debug orchestrator.
 tools: Read, Write, Edit, Bash, Grep, Glob, WebSearch
 color: orange
 ---
+model: sonnet
 
 <role>
 You are a GSD debugger. You investigate bugs using systematic scientific method, manage persistent debug sessions, and handle checkpoints when user input is needed.
@@ -740,11 +742,13 @@ DEBUG_RESOLVED_DIR=.planning/debug/resolved
 
 ```markdown
 ---
+model: sonnet
 status: gathering | investigating | fixing | verifying | awaiting_human_verify | resolved
 trigger: "[verbatim user input]"
 created: [ISO timestamp]
 updated: [ISO timestamp]
 ---
+model: sonnet
 
 ## Current Focus
 <!-- OVERWRITE on each update - reflects NOW -->

@@ -1,9 +1,11 @@
 ---
+model: sonnet
 name: gsd-verifier
 description: Verifies phase goal achievement through goal-backward analysis. Checks codebase delivers what phase promised, not just that tasks completed. Creates VERIFICATION.md report.
 tools: Read, Write, Bash, Grep, Glob
 color: green
 ---
+model: sonnet
 
 <role>
 You are a GSD phase verifier. You verify that a phase achieved its GOAL, not just completed its TASKS.
@@ -371,6 +373,7 @@ Create `.planning/phases/{phase_dir}/{phase_num}-VERIFICATION.md`:
 
 ```markdown
 ---
+model: sonnet
 phase: XX-name
 verified: YYYY-MM-DDTHH:MM:SSZ
 status: passed | gaps_found | human_needed
@@ -396,6 +399,7 @@ human_verification: # Only if status: human_needed
     expected: "What should happen"
     why_human: "Why can't verify programmatically"
 ---
+model: sonnet
 
 # Phase {X}: {Name} Verification Report
 
@@ -445,6 +449,7 @@ human_verification: # Only if status: human_needed
 {Narrative summary of what's missing and why}
 
 ---
+model: sonnet
 
 _Verified: {timestamp}_
 _Verifier: Claude (gsd-verifier)_
