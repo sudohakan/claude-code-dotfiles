@@ -1,7 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ENABLE_SECURITY_REMINDER": "0",
+    "ECC_HOOK_PROFILE": "strict"
   },
   "hooks": {
     "SessionStart": [
@@ -9,19 +11,24 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/rotate-hook-approvals.js\""
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" rotate-hook-approvals.js"
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/retention-cleanup.js\""
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" retention-cleanup.js"
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/hook-health-check.js\""
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" hook-health-check.js"
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/team-active-reminder.js\""
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" team-active-reminder.js"
+          },
+          {
+            "type": "command",
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" mcp-reconnect.js",
+            "timeout": 30000
           }
         ]
       }
@@ -36,18 +43,7 @@
           },
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/pretooluse-safety.js\""
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit|Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/hooks/gsd-context-monitor.js\""
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" pretooluse-safety.js"
           }
         ]
       }
@@ -57,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/teammate-idle-check.js\""
+            "command": "echo 'You have no active task. Wait for the team lead to assign you work via SendMessage. Do not attempt to call TaskList or TaskUpdate.' >&2 && exit 0"
           }
         ]
       }
@@ -67,7 +63,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$HOME/.claude/hooks/task-completed-check.js\""
+            "command": "echo 'Task completing. Verify your output is correct (run tests, check files). Then notify team lead via SendMessage.' >&2 && exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" session-end-check.js",
+            "timeout": 10000
           }
         ]
       }
@@ -75,7 +82,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node \"$HOME/.claude/hooks/gsd-statusline.js\""
+    "command": "python3 \"$HOME/.claude/hooks/dippy/src/dippy/dippy_statusline.py\""
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
@@ -85,20 +92,18 @@
     "playwright@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "static-analysis@trailofbits": true,
-    "differential-review@trailofbits": true,
-    "insecure-defaults@trailofbits": true,
-    "sharp-edges@trailofbits": true,
-    "supply-chain-risk-auditor@trailofbits": true,
-    "audit-context-building@trailofbits": true,
-    "property-based-testing@trailofbits": true,
-    "variant-analysis@trailofbits": true,
-    "spec-to-code-compliance@trailofbits": true,
-    "git-cleanup@trailofbits": true,
-    "workflow-skill-design@trailofbits": true
+    "everything-claude-code@everything-claude-code": true
+  },
+  "extraKnownMarketplaces": {
+    "everything-claude-code": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/affaan-m/everything-claude-code.git"
+      }
+    }
   },
   "skipDangerousModePermissionPrompt": true,
-  "teammateMode": "auto",
+  "teammateMode": "tmux",
   "mcpServers": {
     "container-use": {
       "command": "bash",
@@ -122,7 +127,8 @@
         "@playwright/mcp@1.52.0-alpha-2025-03-20",
         "--cdp-endpoint",
         "http://localhost:9222"
-      ]
+      ],
+      "startup_timeout_sec": 30
     },
     "notebooklm": {
       "command": "npx",
