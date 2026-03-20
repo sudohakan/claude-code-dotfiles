@@ -20,6 +20,8 @@ Thumbs.db
 *.temp
 *.log
 *.bak
+.terragrunt-cache/
+**/.terragrunt-cache/
 
 # Test output
 test-output/
