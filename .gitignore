@@ -20,6 +20,14 @@ statsig/
 tasks/
 telemetry/
 gsd-local-patches/
+sessions/
+metrics/
+ecc/
+projects/
+archive/
+homunculus/
+scripts/
+todos/
 
 # Dippy hook (cloned separately, not part of dotfiles template)
 config/hooks/dippy/

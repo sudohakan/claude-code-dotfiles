@@ -1,11 +1,11 @@
-![Version](https://img.shields.io/badge/version-2.0.1-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, multi-agent coordination, 28 plugins across 4 marketplaces, comprehensive MCP tools, and installer self-healing for stale hook caches.
+Production-ready Claude Code configuration with GSD workflow, 37 specialized agents, 118 slash commands, 51 skill sets, 50 coding rules across 9 languages, comprehensive MCP tools, and 3-layer safety system.
 
 ## Table of Contents
 
@@ -21,11 +21,15 @@ Production-ready Claude Code configuration with GSD workflow, multi-agent coordi
 
 ## Highlights
 
-- GSD (Get Shit Done) workflow with 34 commands for full project lifecycle management
-- Multi-agent coordination with 12 specialized agents and wave-based parallelization
-- Comprehensive MCP tools via [HakanMCP](https://github.com/sudohakan/HakanMCP) integration (DB, Git, AI, monitoring, orchestration)
-- 3-layer safety system (Dippy auto-approve, pretooluse-safety blocker, context monitor)
-- Auto-update with version tracking and dotfiles sync
+- **GSD workflow** with 34 phase-based commands for full project lifecycle management
+- **37 specialized agents** — language reviewers (Go, Python, Rust, C++, Java, Kotlin), build resolvers, planners, architects, security reviewers
+- **118 slash commands** — language-specific build/test/review, ECC session persistence, multi-model workflows, team orchestration
+- **51 skill sets** — framework patterns (Django, Laravel, Spring Boot, Kotlin), language testing, TDD, verification, continuous learning
+- **50 coding rules** across 9 language packs (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
+- **Comprehensive MCP tools** via [HakanMCP](https://github.com/sudohakan/HakanMCP) integration (DB, Git, AI, monitoring, orchestration)
+- **3-layer safety system** (Dippy auto-approve, pretooluse-safety blocker, context monitor)
+- **Automated sync** — `sync.sh` keeps the repo in sync with your live configuration
+- **Auto-update** with version tracking and dotfiles sync
 
 ## Quick Start
 
