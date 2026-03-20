@@ -1,39 +1,46 @@
-![Version](https://img.shields.io/badge/version-3.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey)
-![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple)
+<div align="center">
 
 # claude-code-dotfiles
 
-Production-ready Claude Code configuration with GSD workflow, 37 specialized agents, 118 slash commands, 51 skill sets, 50 coding rules across 9 languages, comprehensive MCP tools, and 3-layer safety system.
+**Production-ready Claude Code configuration — batteries included.**
 
-## Table of Contents
+![Version](https://img.shields.io/badge/version-3.0.0-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
+![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)
 
-- [Highlights](#highlights)
-- [Quick Start](#quick-start)
-- [What's Included](#whats-included)
-- [Safety System](#safety-system)
-- [Documentation](#documentation)
-- [Troubleshooting](#troubleshooting)
-- [Requirements](#requirements)
-- [Contributing](#contributing)
-- [License](#license)
+<br>
+
+| Agents | Commands | Skills | Rules | Hooks | Team Roles |
+|:------:|:--------:|:------:|:-----:|:-----:|:----------:|
+| **37** | **118** | **51** | **50** | **18** | **17** |
+
+[Quick Start](#-quick-start) &bull; [What's Inside](#-whats-inside) &bull; [Safety](#-safety-system) &bull; [Sync](#-keeping-in-sync) &bull; [Docs](#-documentation)
+
+</div>
+
+---
 
 ## Highlights
 
-- **GSD workflow** with 34 phase-based commands for full project lifecycle management
-- **37 specialized agents** — language reviewers (Go, Python, Rust, C++, Java, Kotlin), build resolvers, planners, architects, security reviewers
-- **118 slash commands** — language-specific build/test/review, ECC session persistence, multi-model workflows, team orchestration
-- **51 skill sets** — framework patterns (Django, Laravel, Spring Boot, Kotlin), language testing, TDD, verification, continuous learning
-- **50 coding rules** across 9 language packs (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
-- **Comprehensive MCP tools** via [HakanMCP](https://github.com/sudohakan/HakanMCP) integration (DB, Git, AI, monitoring, orchestration)
-- **3-layer safety system** (Dippy auto-approve, pretooluse-safety blocker, context monitor)
-- **Automated sync** — `sync.sh` keeps the repo in sync with your live configuration
-- **Auto-update** with version tracking and dotfiles sync
+- **GSD Workflow** &mdash; 34 phase-based commands covering plan, execute, verify, debug, and milestone management
+- **37 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
+- **118 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration
+- **51 Skill Sets** &mdash; framework patterns (Django, Laravel, Spring Boot, Kotlin), testing, TDD, verification, continuous learning
+- **50 Coding Rules** across 9 languages (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
+- **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
+- **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration
+- **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) + 31 server templates ready to connect
+
+---
 
 ## Quick Start
 
-**Windows (PowerShell):**
+<table>
+<tr>
+<td width="50%">
+
+**Windows (PowerShell)**
 
 ```powershell
 git clone https://github.com/sudohakan/claude-code-dotfiles.git C:\dev\claude-code-dotfiles
@@ -41,7 +48,10 @@ PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps
 claude login
 ```
 
-**Linux/macOS (Bash):**
+</td>
+<td width="50%">
+
+**Linux / macOS (Bash)**
 
 ```bash
 git clone https://github.com/sudohakan/claude-code-dotfiles.git ~/dev/claude-code-dotfiles
@@ -49,491 +59,412 @@ bash ~/dev/claude-code-dotfiles/install.sh
 claude login
 ```
 
-> For detailed installation steps, see [SETUP.md](SETUP.md)
+</td>
+</tr>
+</table>
 
-## What's Included
+> **WSL users:** Run `bash setup-wsl-claude.sh` for full environment setup (Node.js, Claude CLI, symlinks, tmux, SSH, Tailscale).
+
+See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what each step does.
+
+---
+
+## What's Inside
 
 <details>
-<summary><strong>Hooks and Safety System (14 hooks)</strong></summary>
+<summary><h3>Agents (37 specialized)</h3></summary>
 
-Every tool call passes through a multi-layer hook pipeline:
+<table>
+<tr><th>Category</th><th>Agents</th><th>Purpose</th></tr>
+<tr><td rowspan="6"><strong>Language Reviewers</strong></td>
+<td>go-reviewer</td><td>Idiomatic Go, concurrency, error handling</td></tr>
+<tr><td>python-reviewer</td><td>PEP 8, type hints, Pythonic idioms</td></tr>
+<tr><td>rust-reviewer</td><td>Ownership, lifetimes, unsafe usage</td></tr>
+<tr><td>cpp-reviewer</td><td>Memory safety, modern C++, concurrency</td></tr>
+<tr><td>java-reviewer</td><td>Spring Boot patterns, JPA, concurrency</td></tr>
+<tr><td>kotlin-reviewer</td><td>Coroutine safety, Compose, clean architecture</td></tr>
+<tr><td rowspan="5"><strong>Build Resolvers</strong></td>
+<td>build-error-resolver</td><td>TypeScript/JS build errors</td></tr>
+<tr><td>go-build-resolver</td><td>Go build, vet, linter issues</td></tr>
+<tr><td>rust-build-resolver</td><td>Cargo build, borrow checker</td></tr>
+<tr><td>cpp-build-resolver</td><td>CMake, linker, template errors</td></tr>
+<tr><td>kotlin-build-resolver</td><td>Gradle, Kotlin compiler errors</td></tr>
+<tr><td rowspan="5"><strong>Core Workflow</strong></td>
+<td>planner</td><td>Implementation planning for complex features</td></tr>
+<tr><td>architect</td><td>System design and architectural decisions</td></tr>
+<tr><td>code-reviewer</td><td>Post-implementation quality review</td></tr>
+<tr><td>security-reviewer</td><td>OWASP Top 10, vulnerability detection</td></tr>
+<tr><td>tdd-guide</td><td>Test-driven development enforcement</td></tr>
+<tr><td rowspan="4"><strong>Specialists</strong></td>
+<td>database-reviewer</td><td>PostgreSQL, query optimization, schema design</td></tr>
+<tr><td>e2e-runner</td><td>Playwright E2E test generation and execution</td></tr>
+<tr><td>doc-updater</td><td>Documentation and codemap maintenance</td></tr>
+<tr><td>refactor-cleaner</td><td>Dead code removal and consolidation</td></tr>
+<tr><td><strong>GSD Workflow</strong></td>
+<td colspan="2">12 agents: planner, executor, debugger, verifier, researchers, roadmapper, integration-checker, and more</td></tr>
+</table>
 
-| Hook | Type | Description |
-|------|------|-------------|
-| **Dippy** | PreToolUse | Smart bash auto-approve (Python, 14K+ tests). Auto-approves safe commands (`ls`, `git status`, `npm test`), flags risky ones |
-| **pretooluse-safety.js** | PreToolUse | Blocks destructive git/fs/db commands, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT), unicode injection (zero-width, bidi override, Cyrillic homoglyph) |
-| **gsd-context-monitor.js** | PostToolUse | Tracks context budget usage with thresholds at 45%, 55%, 65%, 75%, 85%, 90% |
-| **gsd-statusline.js** | StatusLine | Renders profile, phase, and context percentage |
-| **gsd-check-update.js** | SessionStart | Checks for GSD version updates on session start |
-| **dotfiles-check-update.js** | SessionStart | Checks for dotfiles version updates on session start |
-| **rotate-hook-approvals.js** | SessionStart | Rotates hook approval log entries |
-| **retention-cleanup.js** | SessionStart | Cleans up old retained data files |
-| **hook-health-check.js** | SessionStart | Verifies all hook files exist and are healthy |
-| **team-active-reminder.js** | SessionStart | Reminds about active agent teams on session start |
-| **teammate-idle-check.js** | TeammateIdle | Nudges idle teammates to self-claim tasks |
-| **task-completed-check.js** | TaskCompleted | Enforces verification before task completion |
-| **desktop-notify.ps1** | Utility | Sends Windows desktop notifications |
-| **lib/mcp-launcher.js** | Utility | MCP server launcher with health checks |
+</details>
 
-**Hook execution order:**
+<details>
+<summary><h3>Commands (118 slash commands)</h3></summary>
+
+**GSD Workflow (34 commands)**
+
+| Stage | Commands |
+|-------|----------|
+| **Init** | `new-project` |
+| **Plan** | `discuss-phase`, `plan-phase`, `research-phase`, `list-phase-assumptions`, `validate-phase` |
+| **Execute** | `execute-phase`, `auto-phase`, `run-phase`, `quick` |
+| **Verify** | `verify-work`, `add-tests` |
+| **Debug** | `debug` |
+| **Track** | `progress`, `health`, `check-todos` |
+| **Phase** | `add-phase`, `insert-phase`, `remove-phase` |
+| **Milestone** | `new-milestone`, `complete-milestone`, `audit-milestone`, `plan-milestone-gaps` |
+| **Workflow** | `pause-work`, `resume-work`, `cleanup`, `reapply-patches` |
+| **Config** | `set-profile`, `settings`, `update` |
+| **Tools** | `map-codebase`, `add-todo`, `help`, `join-discord` |
+
+**Language-Specific (20 commands)**
+
+| Language | Build | Review | Test |
+|----------|:-----:|:------:|:----:|
+| Go | `/go-build` | `/go-review` | `/go-test` |
+| Rust | `/rust-build` | `/rust-review` | `/rust-test` |
+| C++ | `/cpp-build` | `/cpp-review` | `/cpp-test` |
+| Kotlin | `/kotlin-build` | `/kotlin-review` | `/kotlin-test` |
+| Python | &mdash; | `/python-review` | &mdash; |
+| Gradle | `/gradle-build` | &mdash; | &mdash; |
+
+**Git & CI/CD (7 commands)**
+
+`/commit` &bull; `/create-pr` &bull; `/fix-github-issue` &bull; `/fix-pr` &bull; `/release` &bull; `/run-ci` &bull; `/ship`
+
+**Session & Learning (10 commands)**
+
+`/save-session` &bull; `/resume-session` &bull; `/sessions` &bull; `/learn` &bull; `/learn-eval` &bull; `/evolve` &bull; `/instinct-status` &bull; `/instinct-import` &bull; `/instinct-export` &bull; `/checkpoint`
+
+**Multi-Model Workflows (5 commands)**
+
+`/multi-plan` &bull; `/multi-execute` &bull; `/multi-backend` &bull; `/multi-frontend` &bull; `/multi-workflow`
+
+**Quality & Security (7 commands)**
+
+`/plan` &bull; `/tdd` &bull; `/verify` &bull; `/code-review` &bull; `/security-scan` &bull; `/quality-gate` &bull; `/test-coverage`
+
+**Team & Orchestration (3 commands)**
+
+`/team` &bull; `/devfleet` &bull; `/orchestrate`
+
+**Utilities (12+ commands)**
+
+`/status` &bull; `/browser` &bull; `/deploy` &bull; `/docs` &bull; `/aside` &bull; `/add-mcp` &bull; `/prompt-optimize` &bull; `/refactor-clean` &bull; `/e2e` &bull; `/build-fix` &bull; `/update-docs` &bull; `/update-codemaps`
+
+</details>
+
+<details>
+<summary><h3>Skills (51 skill sets)</h3></summary>
+
+| Category | Skills |
+|----------|--------|
+| **Framework Patterns** | Django, Laravel, Spring Boot, Kotlin (Ktor, Exposed, Coroutines, Compose Multiplatform) |
+| **Language Patterns** | Python, Go, Rust, C++, Java, Kotlin, Perl, TypeScript |
+| **Testing & TDD** | Python, Go, Rust, C++, Kotlin, Django, Laravel, Spring Boot, E2E (Playwright) |
+| **Verification** | Django, Laravel, Spring Boot verification loops |
+| **Quality** | TDD workflow, verification loop, eval harness, plankton code quality, AI regression testing |
+| **DevOps** | cc-devops-skills (Terraform, Ansible, Docker, Helm, K8s, GitHub Actions, Azure Pipelines) |
+| **Security** | Trail of Bits security plugins (40+ static analysis, audit, supply chain) |
+| **UI/UX** | UI/UX Pro Max (67 styles, 96 palettes, 57 font pairings, 13 tech stacks), frontend slides |
+| **Learning** | Continuous learning v1 & v2, skill stocktake, strategic compact |
+| **Architecture** | Android clean architecture, API design, backend patterns, frontend patterns, MCP server patterns |
+| **Community** | D3.js visualization, web asset generator, frontend slides, ffuf web fuzzing |
+
+</details>
+
+<details>
+<summary><h3>Rules (50 files across 9 languages)</h3></summary>
+
+**Common rules** apply to all projects. **Language packs** extend them with idioms and tooling.
+
+| Language | Files | Covers |
+|----------|:-----:|--------|
+| **Common** | 9 | Coding style, git workflow, testing, security, performance, patterns, agents, hooks |
+| **TypeScript** | 5 | ESLint, Prettier, React patterns, type safety, Jest |
+| **Python** | 5 | PEP 8, Black, mypy, pytest, security scanning |
+| **Go** | 5 | gofmt, go vet, table-driven tests, error handling |
+| **Rust** | 5 | clippy, cargo fmt, ownership patterns, unsafe review |
+| **Kotlin** | 5 | ktlint, coroutines, Compose, Kotest, Kover |
+| **C++** | 5 | clang-format, sanitizers, GoogleTest, RAII |
+| **Swift** | 5 | SwiftFormat, SwiftLint, XCTest, actors |
+| **PHP** | 5 | PHP-CS-Fixer, PHPStan, PHPUnit, Laravel |
+| **Perl** | 5 | perltidy, perlcritic, Test2::V0, Devel::Cover |
+
+Rules are installed per-language: `./install.sh typescript python`
+
+</details>
+
+<details>
+<summary><h3>Hooks (18 automation hooks)</h3></summary>
 
 ```
-SessionStart   ->  gsd-check-update.js             GSD version check
-               ->  dotfiles-check-update.js         Dotfiles version check
-               ->  rotate-hook-approvals.js          Hook approval rotation
-               ->  retention-cleanup.js              Old data cleanup
-               ->  hook-health-check.js              Hook health verification
-               ->  team-active-reminder.js           Active team reminder
-PreToolUse     ->  dippy                             Auto-approve safe bash commands
-               ->  pretooluse-safety.js              Block dangerous commands / credentials / unicode
-PostToolUse    ->  gsd-context-monitor.js            Track context budget %
-TeammateIdle   ->  teammate-idle-check.js            Self-claiming nudge
-TaskCompleted  ->  task-completed-check.js           Verification gate
-StatusLine     ->  gsd-statusline.js                 Render profile + phase + context %
+SessionStart  ->  rotate-hook-approvals.js      Rotate approval tokens
+              ->  retention-cleanup.js           Clean old data
+              ->  hook-health-check.js           Verify hook integrity
+              ->  team-active-reminder.js        Team status notification
+              ->  mcp-reconnect.js               Reconnect MCP servers (30s timeout)
+
+PreToolUse    ->  dippy                          Auto-approve safe bash commands
+              ->  pretooluse-safety.js           Block credentials / destructive / unicode
+
+TeammateIdle  ->  teammate-idle-check.js         Self-claiming nudge
+TaskCompleted ->  task-completed-check.js        Verification gate
+Stop          ->  session-end-check.js           Final verification
+
+StatusLine    ->  context-statusline.sh          Profile + phase + context %
 ```
 
-Safety details:
-- Session-based allowlist remembers approved dangerous commands (12h TTL)
-- Credentials and unicode injection are always hard-blocked (no allowlist bypass)
-- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test` (30 tests)
-- Optional data exfiltration detection (curl POST, scp, netcat, rsync) via `ENABLE_EXFILTRATION_CHECK`
+| Hook | What It Catches |
+|------|-----------------|
+| **Dippy** | Smart auto-approve (Python, 14K+ tests). Safe: `ls`, `git status`, `npm test`. Risky: flagged. |
+| **pretooluse-safety.js** | Destructive git/fs/db, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, etc.), unicode injection |
+| **mcp-reconnect.js** | Detects disconnected MCP servers and reconnects on session start |
+| **session-end-check.js** | Ensures verification ran before session close |
 
 </details>
 
 <details>
-<summary><strong>GSD Commands (34 commands)</strong></summary>
+<summary><h3>Agent Teams (17 roles)</h3></summary>
 
-Full project lifecycle management:
+Mesh-model coordination with self-claiming, plan approval, and hook-enforced quality gates.
 
-| Stage | Command | Description |
-|-------|---------|-------------|
-| **Init** | `/gsd:new-project` | Scaffold ROADMAP.md and STATE.md |
-| **Plan** | `/gsd:discuss-phase` | Gather context and discuss phase approach |
-| | `/gsd:plan-phase` | Create phase plan (PLAN.md) |
-| | `/gsd:research-phase` | Phase-specific research |
-| | `/gsd:list-phase-assumptions` | List assumptions for a phase |
-| | `/gsd:validate-phase` | Validate phase plan |
-| **Execute** | `/gsd:execute-phase` | Run with wave-based agent parallelization |
-| | `/gsd:auto-phase` | Full cycle (plan+execute+verify) for one or range of phases |
-| | `/gsd:run-phase` | Plan+execute in one step (no verify) |
-| | `/gsd:quick` | Skip planning for small tasks |
-| **Verify** | `/gsd:verify-work` | Conversational UAT validation |
-| | `/gsd:add-tests` | Add tests for current work |
-| **Debug** | `/gsd:debug` | Systematic debugging with dedicated agent |
-| **Track** | `/gsd:progress` | Status check and next-action routing |
-| | `/gsd:health` | Project health check |
-| | `/gsd:check-todos` | Check outstanding TODOs |
-| **Phase Mgmt** | `/gsd:add-phase` | Add a new phase to roadmap |
-| | `/gsd:insert-phase` | Insert phase at specific position |
-| | `/gsd:remove-phase` | Remove a phase |
-| **Milestone** | `/gsd:new-milestone` | Create a new milestone |
-| | `/gsd:complete-milestone` | Mark milestone as complete |
-| | `/gsd:audit-milestone` | Audit milestone progress |
-| | `/gsd:plan-milestone-gaps` | Plan gaps in milestone |
-| **Workflow** | `/gsd:pause-work` | Pause current work |
-| | `/gsd:resume-work` | Resume paused work |
-| | `/gsd:cleanup` | Clean up project artifacts |
-| | `/gsd:reapply-patches` | Reapply patches |
-| **Config** | `/gsd:set-profile` | Set GSD profile (budget/balanced/quality) |
-| | `/gsd:settings` | View/edit GSD settings |
-| | `/gsd:update` | Update GSD to latest version |
-| **Tools** | `/gsd:map-codebase` | Map codebase structure |
-| | `/gsd:add-todo` | Add a TODO item |
-| | `/gsd:help` | Show GSD help |
-| | `/gsd:join-discord` | Join GSD Discord community |
+| Role | Focus |
+|------|-------|
+| tech-lead | Technical leadership, code review, architectural decisions |
+| fullstack-dev | Full-stack implementation across frontend and backend |
+| product-manager | Requirements, scope, stakeholder alignment |
+| backend-architect | Backend system design, API patterns, data modeling |
+| cloud-architect | Cloud infrastructure, scalability, cost optimization |
+| devops | CI/CD pipelines, deployment, infrastructure as code |
+| security-engineer | Security analysis, penetration testing, hardening |
+| qa-tester | Test strategy, automation, quality assurance |
+| ui-ux-designer | Interface design, user experience, accessibility |
+| launch-ops | Deployment coordination, rollback planning, monitoring |
+| research-lead | Research coordination, technical spikes, POCs |
+| observability-engineer | Monitoring, alerting, distributed tracing |
+| analytics-optimizer | Performance metrics, A/B testing, data analysis |
+| business-analyst | Business requirements, process mapping, ROI analysis |
+| content-strategist | Content planning, editorial, messaging |
+| growth-lead | Growth experiments, funnel optimization, retention |
+| social-media-operator | Social media campaigns, scheduling, analytics |
 
-**Profile auto-selection:** `budget` (fix/typo) -- `balanced` (standard dev) -- `quality` (architecture/new project)
+Create teams with `/team` &mdash; compose any combination of roles.
 
 </details>
 
 <details>
-<summary><strong>Utility and Git Commands (24 commands)</strong></summary>
+<summary><h3>MCP Integration</h3></summary>
 
-| Command | Category | Description |
-|---------|----------|-------------|
-| `/commit` | Git | Conventional commit with message generation |
-| `/create-pr` | Git | Branch, commit, push, and create PR |
-| `/fix-github-issue` | Git | Fetch and fix a GitHub issue |
-| `/fix-pr` | Git | Fix PR review comments |
-| `/release` | Git | Version bump, changelog update, tag |
-| `/run-ci` | Git | Auto-detect and run CI checks |
-| `/ship` | Git | End-to-end git workflow |
-| `/init-hakan` | Utility | Project scaffolding (creates `.planning/` and `.memory/` structure) |
-| `/browser` | Utility | Playwright MCP browser launcher |
-| `/dotfiles-update` | Utility | Auto-update dotfiles from GitHub |
-| `/buildteam` | Teams | Create a build team |
-| `/e2eteam` | Teams | Create an E2E team |
-| `/opsteam` | Teams | Create an ops team |
-| `/growthteam` | Teams | Create a growth team |
-| `/researchteam` | Teams | Create a research team |
-| `/deploy` | Ops | Azure-oriented deployment |
-| `/desktop-notify` | Utility | Send Windows desktop notification |
-| `/dippy-benchmark` | Utility | Measure PreToolUse hook overhead |
-| `/env-check` | Utility | Local tooling health check |
-| `/label-session` | Utility | Manual session naming |
-| `/plugin-audit` | Utility | Active plugin review |
-| `/plugin-profile` | Utility | Select a plugin set |
-| `/status` | Utility | Quick workspace orientation |
-| `/todo-overview` | Utility | Cross-session pending work overview |
+**Active Servers (configured in settings.json):**
+
+| Server | Purpose |
+|--------|---------|
+| **HakanMCP** | DB queries, API testing, system monitoring, backup, 10 on-demand servers |
+| **Playwright** | Browser automation, UI testing, web scraping |
+| **container-use** | Docker container operations |
+| **NotebookLM** | Deep research, multi-source synthesis, audio/video generation |
+
+**31 Additional Templates** ready to enable in `config/mcp-configs/mcp-servers.json`:
+
+GitHub, Firecrawl, Supabase, Memory, Sequential-thinking, Vercel, Railway, Cloudflare (4 endpoints), ClickHouse, Exa, Context7, Magic UI, Filesystem, FAL.ai, Browserbase, Browser-use, DevFleet, and more.
 
 </details>
 
 <details>
-<summary><strong>Agent Teams (17 roles)</strong></summary>
+<summary><h3>Memory & Context Engineering</h3></summary>
 
-Mesh-model agent teams with self-claiming, plan approval, and hook-enforced quality gates.
-
-| Role | Specialization |
-|------|---------------|
-| **tech-lead** | Technical leadership and code review |
-| **fullstack-dev** | Full-stack implementation |
-| **product-manager** | Requirements and scope management |
-| **launch-ops** | Deployment and operations |
-| **qa-tester** | Quality assurance and testing |
-| **backend-architect** | Backend architecture design |
-| **cloud-architect** | Cloud infrastructure design |
-| **devops** | CI/CD and infrastructure |
-| **security-engineer** | Security analysis and hardening |
-| **research-lead** | Research coordination |
-| **ui-ux-designer** | UI/UX design guidance |
-| **observability-engineer** | Monitoring and observability |
-| **analytics-optimizer** | Analytics and performance |
-| **business-analyst** | Business analysis |
-| **content-strategist** | Content strategy |
-| **growth-lead** | Growth engineering |
-| **social-media-operator** | Social media operations |
-
-Team commands: `/buildteam`, `/e2eteam`, `/opsteam`, `/growthteam`, `/researchteam`
-
-</details>
-
-<details>
-<summary><strong>Agents (12 specialized)</strong></summary>
-
-| Agent | Role |
-|-------|------|
-| **gsd-planner** | Phase planning and task breakdown |
-| **gsd-executor** | Code implementation |
-| **gsd-debugger** | Bug investigation and root cause analysis |
-| **gsd-verifier** | Quality verification and UAT |
-| **gsd-phase-researcher** | Phase-specific research |
-| **gsd-project-researcher** | Project-wide context gathering |
-| **gsd-plan-checker** | Plan completeness validation |
-| **gsd-integration-checker** | Cross-component verification |
-| **gsd-codebase-mapper** | Codebase structure analysis |
-| **gsd-roadmapper** | Roadmap generation |
-| **gsd-research-synthesizer** | Multi-source research aggregation |
-| **gsd-nyquist-auditor** | Quality and frequency auditing |
-
-**Coordination features:**
-- Dependency-driven eager wave execution for parallel task scheduling
-- Quality gates between agent handoffs
-- Context-aware model routing: haiku (simple search) -> sonnet (standard) -> opus (deep analysis)
-- Failure protocols and automatic recovery
-
-</details>
-
-<details>
-<summary><strong>Skills & Plugins (4 marketplaces, 28 plugins)</strong></summary>
-
-**Bundled Skill Sets (local):**
-
-| Skill Set | Description |
-|-----------|-------------|
-| **cc-devops-skills** | DevOps: infrastructure as code, CI/CD, cloud platforms |
-| **trailofbits-security** | Security: static analysis, audit, vulnerability scanning |
-| **ui-ux-pro-max** | UI/UX design system: 67 styles, 96 palettes, 13 tech stacks |
-| **community-skills** | 4 community skills from [awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills) |
-
-**Community Skills (4 standalone):**
-
-| Skill | Source | Description |
-|-------|--------|-------------|
-| **d3js-visualization** | [chrisvoncsefalvay/claude-d3js-skill](https://github.com/chrisvoncsefalvay/claude-d3js-skill) | D3.js data visualization (charts, graphs, network diagrams, heatmaps) |
-| **web-asset-generator** | [alonw0/web-asset-generator](https://github.com/alonw0/web-asset-generator) | Favicon, app icon, Open Graph social media image generation |
-| **frontend-slides** | [zarazhangrui/frontend-slides](https://github.com/zarazhangrui/frontend-slides) | Animation-rich HTML presentations from scratch or PPT conversion |
-| **ffuf-web-fuzzing** | [jthack/ffuf_claude_skill](https://github.com/jthack/ffuf_claude_skill) | Web fuzzing for penetration testing with auto-calibration |
-
-**Plugin Marketplaces:**
-
-| Marketplace | Source | Plugins |
-|-------------|--------|---------|
-| **claude-plugins-official** | `anthropics/claude-plugins-official` | 15 plugins |
-| **trailofbits** | `trailofbits/skills` | 11 plugins |
-| **anthropic-agent-skills** | `anthropics/skills` | 3 plugins (document-skills, example-skills, claude-api) |
-
-**Enabled Plugins (28 total):**
-
-| Plugin | Marketplace | Description |
-|--------|-------------|-------------|
-| context7 | official | Library documentation lookup |
-| code-review | official | Code review workflows |
-| superpowers | official | 20+ core skills (TDD, debugging, brainstorming, plans) |
-| feature-dev | official | Guided feature development |
-| ralph-loop | official | Continuous code review loop |
-| typescript-lsp | official | TypeScript language server |
-| playwright | official | Browser automation (disabled by default) |
-| frontend-design | official | Production-grade frontend UI design |
-| skill-creator | official | Create and improve custom skills |
-| commit-commands | official | Git commit + push + PR automation |
-| code-simplifier | official | Refactor for clarity and reduce complexity |
-| pr-review-toolkit | official | 6 specialized PR review agents |
-| security-guidance | official | Security context and guidance |
-
-| claude-md-management | official | Audit and improve CLAUDE.md files |
-| static-analysis | trailofbits | Semgrep + CodeQL scanning |
-| differential-review | trailofbits | Security-focused diff review |
-| insecure-defaults | trailofbits | Detect fail-open insecure defaults |
-| sharp-edges | trailofbits | Identify error-prone APIs and footguns |
-| supply-chain-risk-auditor | trailofbits | Dependency risk assessment |
-| audit-context-building | trailofbits | Deep code analysis for security audit |
-| property-based-testing | trailofbits | Generate property-based tests (fast-check) |
-| variant-analysis | trailofbits | Find similar vulnerabilities across codebase |
-| spec-to-code-compliance | trailofbits | Verify code implements specifications |
-| git-cleanup | trailofbits | Safe worktree and branch cleanup |
-| workflow-skill-design | trailofbits | Multi-step workflow skill patterns |
-| document-skills | anthropic | Excel, Word, PowerPoint, PDF processing |
-| example-skills | anthropic | MCP builder, web artifacts, webapp testing, art, themes |
-| claude-api | anthropic | Claude API and SDK documentation |
-
-</details>
-
-<details>
-<summary><strong>Memory and Context (6 files)</strong></summary>
-
-Cross-project knowledge base stored in `~/.claude/projects/<project-key>/.memory/`:
+Cross-project knowledge base at `~/.claude/projects/<project-key>/.memory/`:
 
 | File | Purpose |
 |------|---------|
 | `MEMORY.md` | Main memory index |
-| `session-continuity.md` | Session state for resume (`claude --continue`) |
-| `auto-checkpoint.md` | Auto-checkpoint data |
-| `decisions.md` | Architectural decisions |
-| `patterns.md` | Recurring patterns |
-| `solutions.md` | Bug fixes and root causes |
+| `session-continuity.md` | Session state for `/resume-session` |
+| `decisions.md` | Architectural decisions log |
+| `patterns.md` | Recurring project patterns |
+| `solutions.md` | Non-obvious fixes and root causes |
 
-**Context engineering rules** enforced across all workflows:
-- Write to filesystem, not context -- large outputs go to files
-- Subagent isolation -- each subagent starts with clean context
-- Lazy loading -- MCP tools loaded on-demand via ToolSearch
-- Budget thresholds -- automatic checkpoints at 45%, 55%, 65%, 75%, 85%, 90%
-
-</details>
-
-<details>
-<summary><strong>Project Structure</strong></summary>
-
-```
-claude-code-dotfiles/
-├── install.ps1                                  # Windows installer (PowerShell)
-├── install.sh                                   # Linux/macOS installer (Bash)
-├── VERSION                                      # Current version (semver)
-├── CHANGELOG.md                                 # Release history (Keep a Changelog)
-├── CLAUDE.md                                    # Project-level instructions for this repo
-├── SETUP.md                                     # Detailed setup guide
-├── SECURITY.md                                  # Security policy
-├── CONTRIBUTING.md                              # Contribution guidelines
-├── LICENSE                                      # MIT license
-├── .gitignore                                   # Git exclusions
-├── .github/
-│   └── workflows/
-│       └── release.yml                          # Auto-release on version tag push
-├── .claude/
-│   └── commands/
-│       └── sync-dotfiles.md                     # /sync-dotfiles — reverse sync to repo
-├── home-config/
-│   └── .claude.json                             # → ~/.claude.json (MCP server config)
-└── config/                                      # → installs to ~/.claude/
-    ├── CLAUDE.md                                # Global instructions (GSD, context, multi-agent)
-    ├── settings.json                            # Hooks, MCP servers, permissions, model config
-    ├── settings.local.json                      # Local overrides (gitignored)
-    ├── package.json                             # GSD npm dependencies
-    ├── gsd-file-manifest.json                   # GSD file tracking manifest
-    ├── project-registry.json                    # Project discovery config (scan roots, recent)
-    ├── agents/                                  # 12 GSD agent definitions
-    │   ├── gsd-planner.md                       # Phase planning and task breakdown
-    │   ├── gsd-executor.md                      # Code implementation
-    │   ├── gsd-debugger.md                      # Bug investigation and root cause
-    │   ├── gsd-verifier.md                      # Quality verification and UAT
-    │   ├── gsd-phase-researcher.md              # Phase-specific research
-    │   ├── gsd-project-researcher.md            # Project-wide context gathering
-    │   ├── gsd-plan-checker.md                  # Plan completeness validation
-    │   ├── gsd-integration-checker.md           # Cross-component verification
-    │   ├── gsd-codebase-mapper.md               # Codebase structure analysis
-    │   ├── gsd-roadmapper.md                    # Roadmap generation
-    │   ├── gsd-nyquist-auditor.md               # Quality and frequency auditing
-    │   └── gsd-research-synthesizer.md          # Multi-source research aggregation
-    ├── commands/                                # Slash commands
-    │   ├── init-hakan.md                        # /init-hakan — project scaffolding
-    │   ├── browser.md                           # /browser — Playwright MCP browser launcher
-    │   ├── commit.md                            # /commit — conventional commit
-    │   ├── create-pr.md                         # /create-pr — branch, commit, push, PR
-    │   ├── fix-github-issue.md                  # /fix-github-issue — fetch and fix issue
-    │   ├── fix-pr.md                            # /fix-pr — fix PR review comments
-    │   ├── release.md                           # /release — version bump, changelog, tag
-    │   ├── run-ci.md                            # /run-ci — auto-detect and run CI checks
-    │   ├── ship.md                              # /ship — end-to-end git workflow
-    │   ├── dotfiles-update.md                   # /dotfiles-update — auto-update from GitHub
-    │   └── gsd/                                 # 34 GSD workflow commands
-    │       ├── new-project.md                   # Initialize project (ROADMAP + STATE)
-    │       ├── plan-phase.md                    # Create phase plan (PLAN.md)
-    │       ├── execute-phase.md                 # Execute with wave parallelization
-    │       ├── debug.md                         # Systematic debugging
-    │       ├── quick.md                         # Quick task (skip planning)
-    │       ├── auto-phase.md                    # Full cycle (plan+execute+verify) for phases
-    │       ├── run-phase.md                     # Plan+execute in one step
-    │       ├── verify-work.md                   # UAT validation
-    │       ├── progress.md                      # Status and next-action routing
-    │       └── ... (25 more)                    # discuss, research, resume, pause, etc.
-    ├── docs/                                    # 13 reference documents (loaded on-demand)
-    │   ├── agent-teams.md                       # Agent team coordination protocol
-    │   ├── agent-favorites.md                   # Favorite agent configurations
-    │   ├── claudeignore-templates.md            # .claudeignore template patterns
-    │   ├── decision-matrix.md                   # Task → workflow routing rules
-    │   ├── dippy.md                             # Dippy hook configuration reference
-    │   ├── hook-standards.md                    # Hook development standards
-    │   ├── mcp-usage-guide.md                   # MCP server usage guide (131 tools)
-    │   ├── plan-naming.md                       # Plan file naming conventions
-    │   ├── plugin-profiles.md                   # Plugin profile definitions
-    │   ├── tools-reference.md                   # External tool integration guide
-    │   ├── ui-ux.md                             # UI/UX Pro Max design system
-    │   └── review-ralph.md                      # Code review + Ralph Loop
-    ├── hooks/                                   # 14 automation hooks
-    │   ├── dippy/                               # Smart bash auto-approve (Python, 14K+ tests)
-    │   ├── lib/
-    │   │   ├── paths.js                         # Shared path resolution utilities
-    │   │   └── mcp-launcher.js                  # MCP server launcher with health checks
-    │   ├── pretooluse-safety.js                 # Credential + destructive + unicode blocker
-    │   ├── gsd-context-monitor.js               # Context budget tracking (45–90%)
-    │   ├── gsd-statusline.js                    # Status line (profile, phase, context %)
-    │   ├── gsd-check-update.js                  # GSD version check on session start
-    │   ├── dotfiles-check-update.js             # Dotfiles version check on session start
-    │   ├── hook-health-check.js                 # Hook system health verification
-    │   ├── retention-cleanup.js                 # Old data retention cleanup
-    │   ├── rotate-hook-approvals.js             # Hook approval rotation
-    │   ├── task-completed-check.js              # Task completion gate (TeammateMode)
-    │   ├── team-active-reminder.js              # Team active status reminder
-    │   ├── teammate-idle-check.js               # Idle teammate self-claiming nudge
-    │   └── desktop-notify.ps1                   # Windows desktop notifications
-    ├── get-shit-done/                           # GSD runtime engine
-    │   ├── VERSION                              # GSD version number
-    │   ├── bin/                                 # Core libraries (gsd-tools.cjs)
-    │   ├── references/                          # 13 workflow reference docs
-    │   ├── templates/                           # Project and phase templates
-    │   └── workflows/                           # Workflow step definitions
-    ├── plugins/                                 # Plugin registry
-    │   ├── blocklist.json                       # Blocked plugin list
-    │   └── known_marketplaces.json              # 4 marketplace definitions (official, code, trailofbits, anthropic-skills)
-    ├── skills/                                  # 4 skill sets
-    │   ├── cc-devops-skills/                    # DevOps: IaC, CI/CD, cloud platforms
-    │   ├── trailofbits-security/                # Security: static analysis, audit
-    │   ├── ui-ux-pro-max/                       # UI/UX: 67 styles, 96 palettes, 13 stacks
-    │   └── community-skills/                    # 4 community skills (d3js, web-assets, slides, ffuf)
-    ├── teams/
-    │   └── agents/                              # 17 team member role definitions
-    │       ├── tech-lead.md                     # Technical lead and code review
-    │       ├── fullstack-dev.md                 # Full-stack implementation
-    │       ├── product-manager.md               # Requirements and scope management
-    │       ├── launch-ops.md                    # Deployment and operations
-    │       ├── qa-tester.md                     # Quality assurance and testing
-    │       ├── backend-architect.md             # Backend architecture design
-    │       ├── cloud-architect.md               # Cloud infrastructure design
-    │       ├── devops.md                        # CI/CD and infrastructure
-    │       ├── security-engineer.md             # Security analysis and hardening
-    │       ├── research-lead.md                 # Research coordination
-    │       ├── ui-ux-designer.md                # UI/UX design guidance
-    │       ├── observability-engineer.md        # Monitoring and observability
-    │       ├── analytics-optimizer.md           # Analytics and performance
-    │       ├── business-analyst.md              # Business analysis
-    │       ├── content-strategist.md            # Content strategy
-    │       ├── growth-lead.md                   # Growth engineering
-    │       └── social-media-operator.md         # Social media operations
-    └── projects/                                # Per-project config and memory
-        └── C--Users-Hakan/
-            └── .memory/                         # Cross-project knowledge base
-                ├── MEMORY.md                    # Main memory index
-                ├── session-continuity.md        # Session state for resume
-                ├── auto-checkpoint.md           # Auto-checkpoint data
-                ├── decisions.md                 # Architectural decisions
-                ├── patterns.md                  # Recurring patterns
-                └── solutions.md                 # Bug fixes and root causes
-```
+**Context rules enforced across all workflows:**
+- Write to filesystem, not context &mdash; large outputs go to files
+- Subagent isolation &mdash; each subagent starts with clean context
+- Lazy loading &mdash; MCP tools loaded on-demand via ToolSearch
+- Budget thresholds &mdash; automatic checkpoints at 45%, 55%, 65%, 75%, 85%, 90%
 
 </details>
+
+---
 
 ## Safety System
 
-Three layers protect every tool call from accidental damage:
-
-| Layer | Hook | What It Catches |
-|------:|------|-----------------|
-| 1 | **Dippy** | Auto-approves safe commands (`ls`, `git status`, `npm test`), flags risky ones |
-| 2 | **pretooluse-safety.js** | Destructive git/fs/db commands, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT), unicode injection (zero-width, bidi override, Cyrillic homoglyph) |
-| 3 | *(optional)* | Data exfiltration detection (curl POST, scp, netcat, rsync) -- disabled by default via `ENABLE_EXFILTRATION_CHECK` |
+Three layers protect every tool call:
 
 ```mermaid
-flowchart TD
+flowchart LR
     A["Tool Call"] --> B{"pretooluse-safety.js"}
-    B -->|"Blocked"| C["Reject + Warning"]
-    B -->|"Allowed"| D{"Dippy auto-approve"}
+    B -->|"Blocked"| C["Reject"]
+    B -->|"Allowed"| D{"Dippy"}
     D -->|"Known safe"| E["Execute"]
     D -->|"Unknown"| F["User prompt"]
-    E --> G{"gsd-context-monitor.js"}
-    G --> H["Track context usage"]
 ```
 
-**Security highlights:**
-- No credentials in repo -- OAuth tokens generated per-machine via `claude login`
-- Credential detection hook blocks accidental exposure of API keys in commands
-- Path auto-fix -- install script replaces hardcoded paths with current username
-- Git safety -- commits and pushes require explicit user approval
+| Layer | What It Catches |
+|:-----:|-----------------|
+| **1** | Credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, SendGrid, HuggingFace, private keys, JWT) |
+| **2** | Destructive commands (`rm -rf /`, `git push --force`, `DROP TABLE`, etc.) |
+| **3** | Unicode injection (zero-width chars, bidi overrides, Cyrillic homoglyphs) |
+
+- No credentials in repo &mdash; OAuth tokens generated per-machine
+- Path auto-fix &mdash; installer replaces hardcoded paths with your username
+- Git safety &mdash; commits and pushes always require explicit approval
+- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test`
+
+---
+
+## Keeping in Sync
+
+After modifying your live `~/.claude/` configuration, sync changes back to the repo:
+
+```bash
+cd /path/to/claude-code-dotfiles
+
+# Preview what would change
+bash sync.sh --dry-run
+
+# Full sync
+bash sync.sh
+
+# Review and commit
+git diff --stat
+git add -A && git commit -m "chore: sync from live"
+```
+
+The sync script copies agents, commands, docs, hooks, rules, skills, teams, MCP configs, and core settings &mdash; excluding runtime state, caches, and credentials.
+
+---
+
+## Project Structure
+
+```
+claude-code-dotfiles/
+├── install.ps1              Windows installer (PowerShell)
+├── install.sh               Linux/macOS installer (Bash)
+├── setup-wsl-claude.sh      WSL-specific environment setup
+├── sync.sh                  Live → repo synchronization
+├── VERSION                  Current version (3.0.0)
+├── home-config/
+│   └── .claude.json         MCP server configuration template
+└── config/                  Installs to ~/.claude/
+    ├── CLAUDE.md            Global instructions
+    ├── settings.json        Hooks, plugins, MCP, permissions
+    ├── agents/              37 agent definitions
+    ├── commands/            84 commands + gsd/ (34) + deprecated/
+    ├── docs/                15 reference documents
+    ├── hooks/               18 hook scripts + lib/
+    ├── rules/               50 files (common/ + 8 language packs)
+    ├── skills/              51 skill sets (1000+ files)
+    ├── teams/agents/        17 team role definitions
+    ├── mcp-configs/         31 MCP server templates
+    ├── get-shit-done/       GSD runtime engine
+    └── plugins/             Plugin registry config
+```
+
+---
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [SETUP.md](SETUP.md) | Installation and configuration guide |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
+| [SETUP.md](SETUP.md) | Installation guide with step-by-step walkthrough |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, code style, PR process |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| `claude: command not found` | `npm install -g @anthropic-ai/claude-code` or restart terminal |
-| Hooks not running | Check `~/.claude/settings.json` paths. Run `node ~/.claude/hooks/pretooluse-safety.js --test` |
-| Dippy not auto-approving | Ensure Python 3.8+ is installed: `python --version` |
-| Safety hook false positive | `node ~/.claude/hooks/pretooluse-safety.js --approve "command"` |
-| GSD commands missing | Verify `~/.claude/commands/gsd/` exists with `.md` files |
-| GSD workflows failing | Ensure `jq` is installed: `jq --version` (used by GSD workflows) |
-| Path errors after install | Re-run `install.ps1` -- auto-fixes paths for your username |
-| Plugin install fails | Run `claude plugins install "plugin-name"` manually |
-| `UserPromptSubmit operation blocked by hook` | Re-run `install.ps1` or `install.sh`. As of `v1.14.1`, the installer recreates missing stale `hookify` `userpromptsubmit.py` files automatically |
-| `CLAUDE.md` not loading | Must be in `~/.claude/CLAUDE.md` (global) or project root (project-level) |
-| Session continuity missing | Run `/init-hakan` in project to create memory structure |
-| HakanMCP connection error | Check `C:\dev\HakanMCP`. Re-run `install.ps1` or use `-SkipHakanMCP` |
-| Dotfiles update not showing | Check `~/.claude/dotfiles-meta.json` exists. Re-run install script to create it |
-| `/dotfiles-update` fails | Verify repo path in `~/.claude/dotfiles-meta.json` is correct and accessible |
-
-## Requirements
-
-- **OS:** Windows 10/11 (Linux/macOS via `install.sh`)
-- **Node.js:** v20+ (auto-installed)
-- **Python:** 3.8+ (auto-installed; required for Dippy hook)
-- **Git:** Any recent version (auto-installed)
-- **Claude Code:** Installed automatically by the script
-
-## Contributing
-
-We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, commit conventions, and pull request guidelines.
-
-## License
-
-[MIT](LICENSE) -- 2026 Hakan
+| [CHANGELOG.md](CHANGELOG.md) | Full version history |
 
 ---
 
-<p align="center">
-  Built with <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>
-</p>
+## Troubleshooting
+
+<details>
+<summary><strong>Claude Code not found</strong></summary>
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+Restart your terminal after installing.
+</details>
+
+<details>
+<summary><strong>Hooks not running</strong></summary>
+
+Check that `~/.claude/settings.json` has correct paths. Run the self-test:
+```bash
+node ~/.claude/hooks/pretooluse-safety.js --test
+```
+</details>
+
+<details>
+<summary><strong>Dippy not auto-approving</strong></summary>
+
+Ensure Python 3.8+ is installed: `python --version`. Dippy is cloned separately during install.
+</details>
+
+<details>
+<summary><strong>GSD commands missing</strong></summary>
+
+Verify `~/.claude/commands/gsd/` contains `.md` files. Re-run the installer if empty.
+</details>
+
+<details>
+<summary><strong>MCP server connection errors</strong></summary>
+
+Check server status in `~/.claude/settings.json`. The `mcp-reconnect.js` hook auto-reconnects on session start. For HakanMCP: verify `C:\dev\HakanMCP` exists and is built (`npm run build`).
+</details>
+
+<details>
+<summary><strong>Path errors after install</strong></summary>
+
+Re-run the installer &mdash; Step 7 auto-fixes all paths for your username.
+</details>
+
+<details>
+<summary><strong>Session continuity missing</strong></summary>
+
+Run `/init-hakan` in your project to create the memory structure.
+</details>
+
+---
+
+## Requirements
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| **OS** | Windows 10/11, macOS, Linux | WSL supported via `setup-wsl-claude.sh` |
+| **Node.js** | v20+ | Auto-installed by installer |
+| **Python** | 3.8+ | Required for Dippy hook |
+| **Git** | Any recent | Auto-installed by installer |
+| **Claude Code** | Latest | Auto-installed by installer |
+
+---
+
+## Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, conventions, and PR guidelines.
+
+---
+
+<div align="center">
+
+## License
+
+[MIT](LICENSE) &mdash; 2026 Hakan
+
+Built with [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+
+</div>
