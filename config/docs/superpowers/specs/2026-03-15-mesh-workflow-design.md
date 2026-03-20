@@ -2,7 +2,7 @@
 
 **Status:** Approved by Team Leader
 **Date:** 2026-03-15
-**Approach:** Hybrid Mesh (Approach B)
+**Approach:** Hybrid Mesh (Yaklaşım B)
 **Scope:** All teams (global standard)
 
 ---

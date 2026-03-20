@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'You have no active task. Wait for the team lead to assign you work via SendMessage. Do not attempt to call TaskList or TaskUpdate.' >&2 && exit 0"
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" teammate-idle-check.js"
           }
         ]
       }
@@ -63,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'Task completing. Verify your output is correct (run tests, check files). Then notify team lead via SendMessage.' >&2 && exit 0"
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" task-completed-check.js"
           }
         ]
       }
@@ -92,7 +92,8 @@
     "playwright@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "everything-claude-code@everything-claude-code": true
+    "everything-claude-code@everything-claude-code": true,
+    "ralph-loop@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "everything-claude-code": {
@@ -112,31 +113,6 @@
         "exec node \"$HOME/.claude/hooks/lib/mcp-launcher.js\" container-use"
       ],
       "startup_timeout_sec": 120
-    },
-    "HakanMCP": {
-      "command": "bash",
-      "args": [
-        "-c",
-        "exec node \"$HOME/.claude/hooks/lib/mcp-launcher.js\" hakanmcp"
-      ],
-      "startup_timeout_sec": 60
-    },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "@playwright/mcp@1.52.0-alpha-2025-03-20",
-        "--cdp-endpoint",
-        "http://localhost:9222"
-      ],
-      "startup_timeout_sec": 30
-    },
-    "notebooklm": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@m4ykeldev/notebooklm-mcp",
-        "serve"
-      ]
     }
   }
 }

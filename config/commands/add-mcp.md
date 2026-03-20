@@ -43,9 +43,9 @@ with open("/mnt/c/Users/Hakan/.claude.json", "w") as f: json.dump(win, f, indent
 
 ### Step 2: Gemini CLI (settings.json — WSL + Windows)
 
-`gemini mcp add` CLI command may hang in WSL. Write directly to `settings.json` instead.
+`gemini mcp add` CLI komutu WSL'de askıda kalabiliyor. Bunun yerine `settings.json` dosyasına doğrudan yaz.
 
-Config files:
+Config dosyaları:
 - WSL: `/home/hakan/.gemini/settings.json`
 - Windows: `/mnt/c/Users/Hakan/.gemini/settings.json`
 
@@ -117,7 +117,7 @@ Print summary table:
 
 ## Error Handling
 - Command not found → skip with ⚠️ warning, continue to next
-- Entry already exists → skip with "already exists" note
+- Entry already exists → skip with "zaten mevcut" note
 - Config file missing → skip with ❌ error
 - Never stop the entire flow for one tool's failure
 

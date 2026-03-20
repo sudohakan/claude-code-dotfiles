@@ -13,7 +13,7 @@
 - Minimize token consumption: no unnecessary context, redundant spawns, or speculative plugin loads.
 - Verify every change before reporting completion. Re-read files, confirm paths, check consistency.
 - Actionable problems → fix directly. Only explain if user-side steps are required.
-- Browser/GUI setups requiring interaction (login, OAuth, setup) → run directly via WSLg. Install any missing dependencies, fix errors, and retry. Do not leave manual steps for the user.
+- Browser/GUI setup (login, OAuth, wizard) → run directly via WSLg. Install missing deps, fix errors, retry. Never leave manual steps for the user.
 
 ## 2. Model Selection
 - Default: `sonnet`. Always pass `model` explicitly when spawning agents/teammates.
@@ -48,7 +48,8 @@ Use judgment based on these signals. Multiple may apply — pick the best fit or
 | Work looks done | `superpowers:verification-before-completion` (always run before claiming done) |
 | Code just written | Consider code review — `superpowers:requesting-code-review` or `/code-review` |
 | Build fails | ECC `/build-fix` — minimal diffs, get build green |
-| UI/UX work, design, frontend styling | `ui-ux-pro-max` skill. For component generation use `magic-21st` MCP (`/ui ...`) |
+| UI/UX work, design, frontend styling | `ui-ux-pro-max` skill. Component generation via `magic-21st` MCP (`/ui ...`) |
+| Pentest, vulnerability scan, security audit | `kali-mcp` for scanning/exploitation. Burp Suite for web app testing. Authorized targets only. |
 | Dead code, cleanup, refactoring | ECC `/refactor-clean` |
 | E2E test needed | ECC `/e2e` — Playwright test generation |
 | Docs or codemaps outdated | ECC `/update-docs` or `/update-codemaps` |
@@ -136,8 +137,8 @@ These have no superpowers equivalent:
 `ECC_HOOK_PROFILE` in settings.json — current: `strict` (all hooks active including continuous learning).
 
 ### 21st.dev Magic MCP
-UI component generation. Writes React+Tailwind components directly into the project.
-Signal: when the user requests a UI/component/button/form/navbar/modal, use the `/ui` prefix.
+UI component generation. Writes React+Tailwind components directly to the project.
+Signal: user asks for UI/component/button/form/navbar/modal with `/ui` prefix.
 
 ## 7. MCP & Tool Integration
 Invoke MCP tools only when the task benefits from them. Use judgment — not every task needs MCP.
@@ -156,27 +157,32 @@ When user wants to connect a new external service, check ALL sources in parallel
 | context7 | Unfamiliar library, need API reference, version-specific examples |
 | HakanMCP | DB queries, API testing, system monitoring, backup, on-demand MCP catalog. Guide: `~/.claude/docs/mcp-usage-guide.md` |
 | NotebookLM | Deep research, multi-source synthesis, audio/video/slide generation |
-| Playwright | Browser automation, UI testing, web scraping |
+| Playwright | Browser automation, UI testing, web scraping, visual verification needed. |
 | Gmail | User explicitly asks about email |
 | Google Calendar | User explicitly asks about scheduling |
 | gtasks-mcp | User explicitly asks about tasks |
 | infoset | CRM data needed (tickets, contacts, companies) |
 | coupler-io | Dataflow or data integration queries |
 | container-use | Docker container operations |
-| magic-21st (21st.dev) | UI component generation via `/ui` — React+Tailwind, written directly into the project |
+| kali-mcp | Penetration testing, vulnerability scanning, network recon. 35 tools: nmap, sqlmap, hydra, metasploit, nikto, amass, subfinder, testssl. Docker container (port 8000 SSE). Authorized pentest/CTF/defensive use only. |
+| linkedin | LinkedIn profile scraping, people/company/job search. Dedicated MCP (Patchright browser-based). Rube LinkedIn connection is backup for posting. |
+| burp-suite | Web application security testing via Burp Suite Community. Install MCP extension from BApp Store. Use for HTTP traffic analysis, vulnerability scanning. |
+| magic-21st (21st.dev) | `/ui` for UI component generation — React+Tailwind, writes directly to project |
 | Rube (Composio) | 600+ app. Prefer Rube over separate MCP for connected apps. Use `RUBE_SEARCH_TOOLS` first to discover tools. |
 
 **Rube Connected Apps:**
 | App | Signals to Use |
 |-----|---------------|
-| Notion | Create/query/update pages and DBs. Reading specs, wiki, project tracking |
-| GitHub | Create issues/PRs, search repos, code search. Prefer Rube over git.exe for remote ops |
-| Gmail | Read/write/search email — Gmail MCP is also available but Rube works too |
+| Notion | Create/query/update pages and DBs. Spec reading, wiki, project tracking |
+| GitHub | Issue/PR creation, repo search, code search. Prefer Rube over git.exe for remote ops |
+| Gmail | Read/write/search email — Gmail MCP also available but Rube works too |
 | Trello | Board/card/list management, task tracking, project organization |
-| LinkedIn | Create/delete posts, fetch profile info, company page sharing, link/image sharing |
+| LinkedIn | Create/delete posts, profile info, company page sharing, link/image sharing |
+| Slack | Send/schedule messages, list/find channels, fetch history. Connected to Finekraa workspace |
+| Gemini | Image generation (Nano Banana), text generation. Use for AI-generated visuals |
 
 ### On-Demand MCP (HakanMCP catalog)
-10 auth-free servers. Connect via `mcp_connectFromCatalog` — prefer these over Bash workarounds when the task fits.
+14 auth-free servers. Connect via `mcp_connectFromCatalog` — prefer these over Bash workarounds when the task fits.
 
 | Server | Connect When |
 |--------|-------------|
@@ -189,7 +195,11 @@ When user wants to connect a new external service, check ALL sources in parallel
 | Time | Timezone conversion or cross-timezone scheduling |
 | Mermaid | Diagram generation requested (flowchart, sequence, architecture) |
 | DuckDB | SQL analytics on local CSV/Parquet/JSON files |
-| Claude Sessions | Session decision logging, cross-session context persistence |
+| Puppeteer | Headless Chrome — screenshots, PDF, scraping, form filling (Playwright alternative) |
+| DuckDuckGo Search | Free web search without API key — privacy-focused, WebSearch alternative |
+| CoinCap Crypto | Real-time cryptocurrency prices, market cap, volume |
+| Airbnb | Accommodation search, listing details, pricing |
+| DocsFetcher | Package docs from npm, PyPI, Go, Rust ecosystems (Context7 alternative) |
 
 ### MCP Error Handling
 - Error → investigate and retry within same MCP first (different params, reconnect).
@@ -211,5 +221,8 @@ All `~/.claude/` → WSL: `/home/hakan/.claude/` | Windows: `C:\Users\Hakan\.cla
 | Decision matrix | `~/.claude/docs/decision-matrix.md` |
 | Tools reference | `~/.claude/docs/tools-reference.md` |
 | MCP guide | `~/.claude/docs/mcp-usage-guide.md` |
+| MCP on-demand guide | `~/.claude/docs/mcp-on-demand.md` |
+| Agent teams workflow | `~/.claude/docs/agent-teams.md` |
+| Ralph Loop spec | `~/.claude/docs/review-ralph.md` |
 | .claudeignore templates | `~/.claude/docs/claudeignore-templates.md` |
 | Dotfiles repo | WSL: `/mnt/c/dev/claude-code-dotfiles` |

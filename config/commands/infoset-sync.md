@@ -49,7 +49,7 @@ mcp__infoset__infoset_list_tickets:
 
 If `totalItems > 100`, paginate with `page: 2`, `page: 3`, etc.
 
-**Stage filter:** Only include tickets with `stageId: 91133` (Software column). Discard tickets in other stages (77519=In Progress, 83548, etc.) — they are not the user's responsibility.
+**Stage filter:** Only include tickets with `stageId: 91133` (Yazılım kolonu). Discard tickets in other stages (77519=Üzerinde Çalışılıyor, 83548, etc.) — they are not the user's responsibility.
 
 Save filtered tickets as `currentTickets`.
 
@@ -105,7 +105,7 @@ For each enriched ticket, produce:
 
 | Field | Description |
 |-------|-------------|
-| `category` | One of: Payment Error, Integration Issue, Invoice Request, Technical Failure, Module Error, API Issue, User Management, Reporting, Performance, Security, General Support, Other |
+| `category` | One of: Odeme Hatasi, Entegrasyon Sorunu, Fatura Talebi, Teknik Ariza, Modul Hatasi, API Sorunu, Kullanici Yonetimi, Raporlama, Performans, Guvenlik, Genel Destek, Diger |
 | `priority_score` | 1-100, calculated from weights below |
 | `effort_hours` | 0.5-8 estimated hours |
 | `action_summary` | What needs to be done (Turkish, 2-3 sentences) |
@@ -117,21 +117,21 @@ For each enriched ticket, produce:
 
 **DO NOT simply check `isAgent` on the last log entry.** Read the full conversation flow (all fetched activities) and determine who actually needs to take the next action. Consider:
 
-- Agent may have sent the last message but asked the customer a question → **Waiting on customer**
-- Agent may have sent the last message saying "we're working on it" → **Waiting on us**
-- Customer may have replied "thank you" or "ok" but the issue is not resolved → **Waiting on us**
-- Customer may have sent new information/request that needs action → **Waiting on us**
-- Agent resolved the issue and customer hasn't confirmed → **Waiting on customer**
+- Agent may have sent the last message but asked the customer a question → **Müşteride bekliyor**
+- Agent may have sent the last message saying "we're working on it" → **Bizde bekliyor**
+- Customer may have replied "teşekkürler" or "tamam" but the issue is not resolved → **Bizde bekliyor**
+- Customer may have sent new information/request that needs action → **Bizde bekliyor**
+- Agent resolved the issue and customer hasn't confirmed → **Müşteride bekliyor**
 
 Output one of:
-- `"Waiting on us"` — Finekra needs to take action (optionally add agent name if identifiable)
-- `"Waiting on customer"` — Customer needs to respond/confirm
-- `"Unclear"` — Cannot determine from available context
+- `"Bizde bekliyor"` — Finekra needs to take action (optionally add agent name if identifiable)
+- `"Müşteride bekliyor"` — Customer needs to respond/confirm
+- `"Belirsiz"` — Cannot determine from available context
 
 **Priority Score Weights (additive, cap at 100):**
 
 *Core weights:*
-- **Ball is with us (Waiting on us): +15** — we owe the customer a response/action
+- **Ball is with us (Bizde bekliyor): +15** — we owe the customer a response/action
 - SLA breach <4 hours remaining: +30
 - SLA breach <24 hours remaining: +20
 - Customer urgency keyword (ACIL/URGENT in subject/content): +20
@@ -150,16 +150,16 @@ Output one of:
 - **Cosmetic/reporting** — display issues, report formatting, non-blocking: +0
 
 *Module criticality (dynamic — assess from context):*
-- Payment processing blocked: +15
-- Integration — zero data flow (no transactions coming in): +20
-- Integration — partial data flow issues: +10
-- Reporting/dashboard issues: +5
-- General support/training: +0
+- Ödeme işlemleri (payment processing) blocked: +15
+- Entegrasyon — zero data flow (hiçbir hareket gelmiyor): +20
+- Entegrasyon — partial data flow issues: +10
+- Raporlama/dashboard sorunları: +5
+- Genel destek/eğitim: +0
 
 *Repeat complaints:*
 - Same specific issue reported 2nd time (follow-up, merge ticket, or customer re-opened): +10
 - Same specific issue reported 3+ times: +20
-- Check ticket logs for merge events ("This ticket was closed and merged with #X") and customer follow-ups on same topic
+- Check ticket logs for merge events ("Bu talep kapatıldı ve #X ile birleştirildi") and customer follow-ups on same topic
 
 *Multi-ticket company:*
 - Same company has >1 active ticket in this sync: +10 (indicates systemic issues)
@@ -191,28 +191,28 @@ When planning slots, check the current time in Europe/Istanbul:
 **Public holidays (Turkey — NEVER schedule on these days):**
 
 Fixed holidays (same every year):
-- Jan 1 — New Year's Day
-- Apr 23 — National Sovereignty and Children's Day
-- May 1 — Labour and Solidarity Day
-- May 19 — Commemoration of Atatürk, Youth and Sports Day
-- Jul 15 — Democracy and National Unity Day
-- Aug 30 — Victory Day
-- Oct 29 — Republic Day
+- 1 Ocak — Yılbaşı
+- 23 Nisan — Ulusal Egemenlik ve Çocuk Bayramı
+- 1 Mayıs — Emek ve Dayanışma Günü
+- 19 Mayıs — Atatürk'ü Anma, Gençlik ve Spor Bayramı
+- 15 Temmuz — Demokrasi ve Milli Birlik Günü
+- 30 Ağustos — Zafer Bayramı
+- 29 Ekim — Cumhuriyet Bayramı
 
-Religious holidays (change every year — Eid al-Fitr 3 days + eve half-day, Eid al-Adha 4 days + eve half-day):
+Dini bayramlar (her yıl değişir — Ramazan Bayramı 3 gün + arife yarım gün, Kurban Bayramı 4 gün + arife yarım gün):
 
-**2026 religious holiday dates:**
-- Eid al-Fitr Eve: March 19 (half-day — only 09:30-12:30)
-- Eid al-Fitr: March 20-22 (full holiday)
-- Eid al-Adha Eve: May 26 (half-day — only 09:30-12:30)
-- Eid al-Adha: May 27-30 (full holiday)
+**2026 dini bayram tarihleri:**
+- Ramazan Bayramı Arife: 19 Mart (yarım gün — sadece 09:30-12:30)
+- Ramazan Bayramı: 20-22 Mart (tam tatil)
+- Kurban Bayramı Arife: 26 Mayıs (yarım gün — sadece 09:30-12:30)
+- Kurban Bayramı: 27-30 Mayıs (tam tatil)
 
-**When the year changes:** On the first sync of the new year, search the web for "{year} Turkey Eid al-Fitr Eid al-Adha dates" and update this list.
+**Yıl değiştiğinde:** Yeni yılın ilk sync'inde web'den "{yıl} Türkiye Ramazan Bayramı Kurban Bayramı tarihleri" araştır ve bu listeyi güncelle.
 
 **Rules:**
-- Eve days: morning only (09:30-12:30), afternoon is holiday
-- Holiday days: FULL HOLIDAY, nothing is scheduled
-- Check EVERY candidate date against both fixed and religious holiday dates before scheduling
+- Arife günleri: sadece sabah çalışılır (09:30-12:30), öğleden sonra tatil
+- Bayram günleri: TAM TATİL, hiçbir şey planlanmaz
+- Check EVERY candidate date against both fixed and dini bayram tarihleri before scheduling
 
 **Fetch existing events:**
 ```
@@ -272,7 +272,7 @@ Google Tasks `due` dates MUST always match the calendar event date. When ANY of 
 - Priority score changes → new slot position → update task due date + title + notes
 - Effort hours change → new slot duration → update calendar event end time + task notes
 - Subject/topic changes → update both calendar summary + task title + notes
-- Waiting party changes → update task notes + calendar summary (⚠️ WAITING ON US tag)
+- Waiting party changes → update task notes + calendar summary (⚠️ BİZDE tag)
 - Ticket status changes → update task status + calendar event
 
 **Rule: Every `gcal_update_event` that changes start/end MUST be followed by a `mcp__gtasks-mcp__update` with the matching `due` date (YYYY-MM-DD of the event start).** Never update calendar without updating the corresponding task.
@@ -294,17 +294,17 @@ The `notes` parameter must use REAL newlines, not `\n` literals. When calling `m
 
 **Notes template (use real line breaks between each line):**
 ```
-{detailed_action_description — 2-3 sentences explaining what to do, what to check, and context about the issue.}
+{detailed_action_description — 2-3 sentences explaining what to do, what to check, and context about the issue. Turkish.}
 
-Customer: {companyName} ({contactName})
-Last Activity: {last activity summary — who said what, 1 sentence}
-Waiting Party: {determine from last activity log — if last actor isAgent=true → "Waiting on customer", if last actor isAgent=false → "Waiting on us ({agent name from previous agent activity if available})", if unclear → "Unknown"}
-Open: {days_open} days waiting
+Müşteri: {companyName} ({contactName})
+Son Aktivite: {last activity summary — who said what, 1 sentence}
+Bekleyen Taraf: {determine from last activity log — if last actor isAgent=true → "Müşteride bekliyor", if last actor isAgent=false → "Bizde bekliyor ({agent name from previous agent activity if available})", if unclear → "Belirsiz"}
+Açık: {days_open} gündür bekliyor
 
-Category: {category}
-Priority: {priority_score}/100
-Estimated Effort: {effort_hours} hours
-Calendar: {DD.MM HH:MM-HH:MM}
+Kategori: {category}
+Öncelik: {priority_score}/100
+Tahmini Efor: {effort_hours} saat
+Takvim: {DD.MM HH:MM-HH:MM}
 
 https://dashboard.infoset.app/tickets/{id}
 ```
@@ -473,17 +473,17 @@ Also write status.json:
 Show formatted table:
 
 ```
-Sync complete ({totalTickets} tickets, {changedCount} changes)
+Sync tamamlandi ({totalTickets} ticket, {changedCount} degisiklik)
 
-| #ID     | Company     | Action      | Priority | Effort | Calendar Date     |
-|---------|-------------|-------------|----------|--------|-------------------|
-| 8837516 | Demisas     | NEW         | 🔴 85    | 2h     | 17.03 09:00-11:00 |
-| 8901234 | Paratic     | UPDATED     | 🟡 45    | 1h     | 17.03 13:10-14:10 |
-| 8876543 | Ininal      | CLOSED      | ✅ --    | --     | --                |
-| 8812345 | Goldnet     | SKIPPED     | ⚪ --    | --     | --                |
+| #ID     | Firma       | Islem       | Oncelik | Efor | Takvim Tarihi     |
+|---------|-------------|-------------|---------|------|-------------------|
+| 8837516 | Demisas     | YENI        | 🔴 85   | 2s   | 17.03 09:00-11:00 |
+| 8901234 | Paratic     | GUNCELLEME  | 🟡 45   | 1s   | 17.03 13:10-14:10 |
+| 8876543 | Ininal      | KAPANDI     | ✅ --   | --   | --                |
+| 8812345 | Goldnet     | ATLANDI     | ⚪ --   | --   | --                |
 ```
 
-Action values: NEW, UPDATED, SUBJECT_CHANGED, CLOSED, REOPENED, SKIPPED
+Islem values: YENI, GUNCELLEME, KONU_DEGISTI, KAPANDI, YENIDEN_ACILDI, ATLANDI
 
 ---
 
@@ -513,4 +513,4 @@ Action values: NEW, UPDATED, SUBJECT_CHANGED, CLOSED, REOPENED, SKIPPED
 - **State is the source of truth** for mapping ticketId ↔ googleTaskId/calendarEventId
 - **sendUpdates: "none"** on all calendar writes — no email notifications
 - **Europe/Istanbul timezone** for all datetime operations
-- **English** for all user-facing text (action_summary, titles, report)
+- **Turkish** for all user-facing text (action_summary, titles, report)

@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.1.0] - 2026-03-20
+
+### Added
+- kali-mcp: Penetration testing MCP server (35 tools, Docker SSE)
+- linkedin: Dedicated LinkedIn MCP (Patchright browser-based profile scraping)
+- Rube connected apps: Slack (Finekraa workspace), Gemini (image generation)
+- On-demand catalog: Puppeteer, DuckDuckGo Search, CoinCap, Airbnb, DocsFetcher (9→14 servers)
+- ralph-loop plugin enabled
+- Pentest routing signal in CLAUDE.md
+- Browser/GUI automation directive in Core Rules
+
+### Changed
+- infoset-sync: stage filter (Yazılım only), enhanced priority scoring, full re-plan with task sync
+- CLAUDE.md: full English, new MCP signals, Rube apps table, reference paths
+- settings.json: removed duplicate MCP configs (HakanMCP, notebooklm, playwright)
+- TeammateIdle/TaskCompleted hooks wired to JS files instead of inline echo
+
+### Fixed
+- Hardcoded Infoset password and magic-21st API key moved to env var references
+- MCP config sync between WSL and Windows .claude.json
+
+### Security
+- Secrets removed from plaintext config — now use ${ENV_VAR} references
+
+
 All notable changes to claude-code-dotfiles will be documented in this file.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
