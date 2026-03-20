@@ -15,7 +15,7 @@
 |:------:|:--------:|:------:|:-----:|:-----:|:----------:|
 | **37** | **118** | **51** | **50** | **18** | **17** |
 
-[Quick Start](#-quick-start) &bull; [What's Inside](#-whats-inside) &bull; [Safety](#-safety-system) &bull; [Sync](#-keeping-in-sync) &bull; [Docs](#-documentation)
+[Quick Start](#quick-start) &bull; [What's Inside](#whats-inside) &bull; [Safety](#safety-system) &bull; [Sync](#keeping-in-sync) &bull; [Docs](#documentation)
 
 </div>
 
