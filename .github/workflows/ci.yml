@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate JSON files
+        run: |
+          ERRORS=0
+          for f in config/settings.json config/package.json config/gsd-file-manifest.json config/project-registry.json config/plugins/known_marketplaces.json config/plugins/blocklist.json config/mcp-configs/mcp-servers.json home-config/.claude.json; do
+            if [ -f "$f" ]; then
+              if node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" 2>/dev/null; then
+                echo "  [OK] $f"
+              else
+                echo "  [FAIL] $f — invalid JSON"
+                ERRORS=$((ERRORS + 1))
+              fi
+            fi
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS JSON file(s) have syntax errors"
+            exit 1
+          fi
+
+      - name: Validate hook scripts exist and have correct syntax
+        run: |
+          ERRORS=0
+          for f in config/hooks/*.js config/hooks/lib/*.js; do
+            if [ -f "$f" ]; then
+              if node --check "$f" 2>/dev/null; then
+                echo "  [OK] $f"
+              else
+                echo "  [FAIL] $f — syntax error"
+                ERRORS=$((ERRORS + 1))
+              fi
+            fi
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS hook(s) have JavaScript syntax errors"
+            exit 1
+          fi
+
+      - name: Validate shell scripts
+        run: |
+          ERRORS=0
+          for f in install.sh sync.sh setup-wsl-claude.sh; do
+            if [ -f "$f" ]; then
+              if bash -n "$f" 2>/dev/null; then
+                echo "  [OK] $f"
+              else
+                echo "  [FAIL] $f — syntax error"
+                ERRORS=$((ERRORS + 1))
+              fi
+            fi
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::$ERRORS shell script(s) have syntax errors"
+            exit 1
+          fi
+
+      - name: Check for credentials in config
+        run: |
+          FOUND=0
+          while IFS= read -r match; do
+            case "$match" in
+              *YOUR_PASSWORD*|*YOUR_API_KEY*|*your-password*|*your-email*|*process.env*|*placeholder*) continue ;;
+              *) echo "::warning::Potential credential: $match"; FOUND=$((FOUND + 1)) ;;
+            esac
+          done < <(grep -rn --include='*.json' --include='*.js' -i 'password.*[:=].*"[^"]\{8,\}"' config/ home-config/ 2>/dev/null || true)
+          echo "Credential scan complete ($FOUND warnings)"
+
+  structure:
+    name: Validate Structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify required files exist
+        run: |
+          MISSING=0
+          for f in \
+            VERSION CHANGELOG.md README.md LICENSE SETUP.md CONTRIBUTING.md SECURITY.md \
+            install.sh install.ps1 sync.sh \
+            config/CLAUDE.md config/settings.json \
+            home-config/.claude.json; do
+            if [ -f "$f" ]; then
+              echo "  [OK] $f"
+            else
+              echo "  [MISSING] $f"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ $MISSING -gt 0 ]; then
+            echo "::error::$MISSING required file(s) missing"
+            exit 1
+          fi
+
+      - name: Verify required directories exist
+        run: |
+          MISSING=0
+          for d in config/agents config/commands config/docs config/hooks config/rules config/skills config/teams/agents config/mcp-configs config/get-shit-done; do
+            if [ -d "$d" ]; then
+              COUNT=$(find "$d" -type f | wc -l)
+              echo "  [OK] $d ($COUNT files)"
+            else
+              echo "  [MISSING] $d"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ $MISSING -gt 0 ]; then
+            echo "::error::$MISSING required directory(s) missing"
+            exit 1
+          fi
+
+      - name: Verify VERSION matches CHANGELOG
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          if grep -q "\[$VERSION\]" CHANGELOG.md; then
+            echo "VERSION $VERSION found in CHANGELOG.md"
+          else
+            echo "::error::VERSION $VERSION not found in CHANGELOG.md"
+            exit 1
+          fi
+
+      - name: Verify VERSION matches README badge
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          if grep -q "version-$VERSION" README.md; then
+            echo "VERSION $VERSION found in README badge"
+          else
+            echo "::warning::README version badge may be outdated (expected $VERSION)"
+          fi
+
+      - name: Count components
+        run: |
+          echo "## Component Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Component | Count |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Agents | $(find config/agents -name '*.md' | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commands | $(find config/commands -name '*.md' | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Skills | $(ls -d config/skills/*/ 2>/dev/null | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Rules | $(find config/rules -type f | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Hooks | $(find config/hooks -maxdepth 1 -type f | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Docs | $(find config/docs -type f | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Team Roles | $(find config/teams/agents -name '*.md' | wc -l) |" >> "$GITHUB_STEP_SUMMARY"
+
+  installer:
+    name: Test Installer (Dry Run)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate install.sh syntax
+        run: bash -n install.sh
+
+      - name: Validate sync.sh syntax
+        run: bash -n sync.sh
+
+      - name: Test sync.sh --help
+        run: bash sync.sh --help
