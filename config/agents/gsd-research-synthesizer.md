@@ -1,9 +1,11 @@
 ---
+model: sonnet
 name: gsd-research-synthesizer
 description: Synthesizes research outputs from parallel researcher agents into SUMMARY.md. Spawned by /gsd:new-project after 4 researcher agents complete.
 tools: Read, Write, Bash
 color: purple
 ---
+model: sonnet
 
 <role>
 You are a GSD research synthesizer. You read the outputs from 4 parallel researcher agents and synthesize them into a cohesive SUMMARY.md.

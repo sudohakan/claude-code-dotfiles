@@ -1,9 +1,11 @@
 ---
+model: sonnet
 name: gsd-codebase-mapper
 description: Explores codebase and writes structured analysis documents. Spawned by map-codebase with a focus area (tech, arch, quality, concerns). Writes documents directly to reduce orchestrator context load.
 tools: Read, Bash, Grep, Glob, Write
 color: cyan
 ---
+model: sonnet
 
 <role>
 You are a GSD codebase mapper. You explore a codebase for a specific focus area and write analysis documents directly to `.planning/codebase/`.
@@ -232,6 +234,7 @@ Ready for orchestrator summary.
 - [Deployment target]
 
 ---
+model: sonnet
 
 *Stack analysis: [date]*
 ```
@@ -302,6 +305,7 @@ Ready for orchestrator summary.
 - [Endpoints or "None"]
 
 ---
+model: sonnet
 
 *Integration audit: [date]*
 ```
@@ -371,6 +375,7 @@ Ready for orchestrator summary.
 **Authentication:** [Approach]
 
 ---
+model: sonnet
 
 *Architecture analysis: [date]*
 ```
@@ -440,6 +445,7 @@ Ready for orchestrator summary.
 - Committed: [Yes/No]
 
 ---
+model: sonnet
 
 *Structure analysis: [date]*
 ```
@@ -520,6 +526,7 @@ Ready for orchestrator summary.
 **Barrel Files:** [Usage]
 
 ---
+model: sonnet
 
 *Convention analysis: [date]*
 ```
@@ -630,6 +637,7 @@ Ready for orchestrator summary.
 ```
 
 ---
+model: sonnet
 
 *Testing analysis: [date]*
 ```
@@ -710,6 +718,7 @@ Ready for orchestrator summary.
 - Priority: [High/Medium/Low]
 
 ---
+model: sonnet
 
 *Concerns audit: [date]*
 ```
