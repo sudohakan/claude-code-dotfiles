@@ -4,7 +4,7 @@
 
 **Production-ready Claude Code configuration — batteries included.**
 
-![Version](https://img.shields.io/badge/version-3.1.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.2.0-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)
@@ -13,7 +13,7 @@
 
 | Agents | Commands | Skills | Rules | Hooks | Team Roles |
 |:------:|:--------:|:------:|:-----:|:-----:|:----------:|
-| **37** | **118** | **51** | **50** | **18** | **17** |
+| **37** | **123** | **51** | **50** | **20** | **17** |
 
 [Quick Start](#quick-start) &bull; [What's Inside](#whats-inside) &bull; [Safety](#safety-system) &bull; [Sync](#keeping-in-sync) &bull; [Docs](#documentation)
 
@@ -25,12 +25,13 @@
 
 - **GSD Workflow** &mdash; 34 phase-based commands covering plan, execute, verify, debug, and milestone management
 - **37 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
-- **118 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration
+- **123 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration, pentest
 - **51 Skill Sets** &mdash; framework patterns (Django, Laravel, Spring Boot, Kotlin), testing, TDD, verification, continuous learning
 - **50 Coding Rules** across 9 languages (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
 - **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
 - **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration
-- **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) + 31 server templates ready to connect
+- **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) (107 tools) + 9 on-demand servers + 31 templates
+- **Pentest Framework** &mdash; `/pentest` pipeline with kali-mcp (36 tools), Playwright, automated reporting
 
 ---
 
@@ -107,7 +108,7 @@ See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what e
 </details>
 
 <details>
-<summary><h3>Commands (118 slash commands)</h3></summary>
+<summary><h3>Commands (123 slash commands)</h3></summary>
 
 **GSD Workflow (34 commands)**
 
@@ -155,6 +156,10 @@ See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what e
 **Team & Orchestration (3 commands)**
 
 `/team` &bull; `/devfleet` &bull; `/orchestrate`
+
+**Security & Pentest (3 commands)**
+
+`/pentest` &bull; `/security-scan` &bull; `/finekra-deploy-test`
 
 **Utilities (12+ commands)**
 
@@ -204,30 +209,35 @@ Rules are installed per-language: `./install.sh typescript python`
 </details>
 
 <details>
-<summary><h3>Hooks (18 automation hooks)</h3></summary>
+<summary><h3>Hooks (20 automation hooks)</h3></summary>
 
 ```
-SessionStart  ->  rotate-hook-approvals.js      Rotate approval tokens
-              ->  retention-cleanup.js           Clean old data
-              ->  hook-health-check.js           Verify hook integrity
-              ->  team-active-reminder.js        Team status notification
-              ->  mcp-reconnect.js               Reconnect MCP servers (30s timeout)
+SessionStart  ->  rotate-hook-approvals.js      Rotate approval tokens (10s)
+              ->  retention-cleanup.js           Clean old data (10s)
+              ->  hook-health-check.js           Verify hook integrity (10s)
+              ->  team-active-reminder.js        Team status notification (10s)
+              ->  mcp-reconnect.js               Reconnect MCP servers (30s)
 
 PreToolUse    ->  dippy                          Auto-approve safe bash commands
               ->  pretooluse-safety.js           Block credentials / destructive / unicode
+
+PostToolUse   ->  posttooluse-lint-format.js     Lint after Write/Edit (20s)
+              ->  mcp-health-check.js            Periodic MCP health (every 50 Bash calls, 15s)
 
 TeammateIdle  ->  teammate-idle-check.js         Self-claiming nudge
 TaskCompleted ->  task-completed-check.js        Verification gate
 Stop          ->  session-end-check.js           Final verification
 
-StatusLine    ->  context-statusline.sh          Profile + phase + context %
+StatusLine    ->  dippy_statusline.py            Model + git + context % (color-coded) + GSD phase
 ```
 
-| Hook | What It Catches |
-|------|-----------------|
+| Hook | What It Does |
+|------|--------------|
 | **Dippy** | Smart auto-approve (Python, 14K+ tests). Safe: `ls`, `git status`, `npm test`. Risky: flagged. |
 | **pretooluse-safety.js** | Destructive git/fs/db, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, etc.), unicode injection |
-| **mcp-reconnect.js** | Detects disconnected MCP servers and reconnects on session start |
+| **posttooluse-lint-format.js** | Runs linters after Write/Edit (eslint, ruff, go vet, shellcheck, etc.). Auto-format off by default (`ENABLE_AUTOFORMAT=0`) |
+| **mcp-health-check.js** | Periodic MCP server health check every 50 Bash calls — reconnects failed servers |
+| **mcp-reconnect.js** | Detects disconnected MCP servers across all scopes and reconnects on session start |
 | **session-end-check.js** | Ensures verification ran before session close |
 
 </details>
@@ -268,10 +278,13 @@ Create teams with `/team` &mdash; compose any combination of roles.
 
 | Server | Purpose |
 |--------|---------|
-| **HakanMCP** | DB queries, API testing, system monitoring, backup, 10 on-demand servers |
+| **HakanMCP** | DB queries, API testing, system monitoring, backup, 9 on-demand servers (107 tools) |
 | **Playwright** | Browser automation, UI testing, web scraping |
-| **container-use** | Docker container operations |
+| **kali-mcp** | Offensive security (36 tools: nmap, nuclei, sqlmap, hydra, feroxbuster, etc.) |
 | **NotebookLM** | Deep research, multi-source synthesis, audio/video generation |
+| **context7** | Library/framework documentation lookup |
+| **magic-21st** | UI component generation (React + Tailwind) |
+| **container-use** | Docker container operations |
 
 **31 Additional Templates** ready to enable in `config/mcp-configs/mcp-servers.json`:
 
@@ -324,7 +337,7 @@ flowchart LR
 - No credentials in repo &mdash; OAuth tokens generated per-machine
 - Path auto-fix &mdash; installer replaces hardcoded paths with your username
 - Git safety &mdash; commits and pushes always require explicit approval
-- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --test`
+- Self-test: `node ~/.claude/hooks/pretooluse-safety.js --self-test`
 
 ---
 
@@ -358,16 +371,16 @@ claude-code-dotfiles/
 ├── install.sh               Linux/macOS installer (Bash)
 ├── setup-wsl-claude.sh      WSL-specific environment setup
 ├── sync.sh                  Live → repo synchronization
-├── VERSION                  Current version (3.0.0)
+├── VERSION                  Current version (3.2.0)
 ├── home-config/
 │   └── .claude.json         MCP server configuration template
 └── config/                  Installs to ~/.claude/
     ├── CLAUDE.md            Global instructions
     ├── settings.json        Hooks, plugins, MCP, permissions
     ├── agents/              37 agent definitions
-    ├── commands/            84 commands + gsd/ (34) + deprecated/
-    ├── docs/                15 reference documents
-    ├── hooks/               18 hook scripts + lib/
+    ├── commands/            89 commands + gsd/ (34) + deprecated/
+    ├── docs/                25 reference documents + pentest framework
+    ├── hooks/               20 hook scripts + lib/
     ├── rules/               50 files (common/ + 8 language packs)
     ├── skills/              51 skill sets (1000+ files)
     ├── teams/agents/        17 team role definitions
@@ -405,7 +418,7 @@ Restart your terminal after installing.
 
 Check that `~/.claude/settings.json` has correct paths. Run the self-test:
 ```bash
-node ~/.claude/hooks/pretooluse-safety.js --test
+node ~/.claude/hooks/pretooluse-safety.js --self-test
 ```
 </details>
 
