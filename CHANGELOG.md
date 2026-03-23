@@ -3,7 +3,7 @@
 ## [3.3.0] - 2026-03-23
 
 ### Added
-- **Pentest Framework v5 "Kral"** — full-spectrum offensive security platform (10,800+ lines across 31 modules)
+- **Pentest Framework** — full-spectrum offensive security platform (10,800+ lines across 31 modules)
 - 26 new pentest modules: IP/CIDR intrusion, WiFi assault, Bluetooth/BLE, Active Directory, Cloud pivot (AWS/Azure/GCP), Container/K8s escape, IoT/OT, Mobile testing, OSINT, Phishing, Social engineering, Adversary emulation (APT28/29/Lazarus), Evasion engine, Post-exploitation, Purple team, Compliance mapping, Knowledge graph, Continuous ASM
 - Exploit engine (`exploit-engine.py`) with 55+ finding types, 22 composite chains, priority scoring
 - Compliance mapper (`compliance-mapper.py`) — PCI DSS, ISO 27001, NIST 800-53, KVKK, OWASP mapping

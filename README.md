@@ -31,7 +31,7 @@
 - **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
 - **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration
 - **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) (107 tools) + 9 on-demand servers + 31 templates
-- **Pentest Framework v5 "Kral"** &mdash; full-spectrum offensive security: URL/IP/WiFi/BT/AD/Cloud/K8s/IoT/Mobile, 55+ exploit chains, 31 modules, 9 specialist agents
+- **Pentest Framework** &mdash; full-spectrum offensive security: URL/IP/WiFi/BT/AD/Cloud/K8s/IoT/Mobile, 55+ exploit chains, 31 modules, 9 specialist agents
 
 ---
 
