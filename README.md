@@ -4,7 +4,7 @@
 
 **Production-ready Claude Code configuration — batteries included.**
 
-![Version](https://img.shields.io/badge/version-3.2.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.3.0-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)
@@ -13,7 +13,7 @@
 
 | Agents | Commands | Skills | Rules | Hooks | Team Roles |
 |:------:|:--------:|:------:|:-----:|:-----:|:----------:|
-| **37** | **123** | **51** | **50** | **20** | **17** |
+| **46** | **123** | **51** | **50** | **20** | **26** |
 
 [Quick Start](#quick-start) &bull; [What's Inside](#whats-inside) &bull; [Safety](#safety-system) &bull; [Sync](#keeping-in-sync) &bull; [Docs](#documentation)
 
@@ -24,14 +24,14 @@
 ## Highlights
 
 - **GSD Workflow** &mdash; 34 phase-based commands covering plan, execute, verify, debug, and milestone management
-- **37 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
+- **46 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
 - **123 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration, pentest
 - **51 Skill Sets** &mdash; framework patterns (Django, Laravel, Spring Boot, Kotlin), testing, TDD, verification, continuous learning
 - **50 Coding Rules** across 9 languages (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
 - **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
 - **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration
 - **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) (107 tools) + 9 on-demand servers + 31 templates
-- **Pentest Framework** &mdash; `/pentest` pipeline with kali-mcp (36 tools), Playwright, automated reporting
+- **Pentest Framework v5 "Kral"** &mdash; full-spectrum offensive security: URL/IP/WiFi/BT/AD/Cloud/K8s/IoT/Mobile, 55+ exploit chains, 31 modules, 9 specialist agents
 
 ---
 
@@ -73,7 +73,7 @@ See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what e
 ## What's Inside
 
 <details>
-<summary><h3>Agents (37 specialized)</h3></summary>
+<summary><h3>Agents (46 specialized)</h3></summary>
 
 <table>
 <tr><th>Category</th><th>Agents</th><th>Purpose</th></tr>
@@ -157,9 +157,9 @@ See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what e
 
 `/team` &bull; `/devfleet` &bull; `/orchestrate`
 
-**Security & Pentest (3 commands)**
+**Security & Pentest (4 commands)**
 
-`/pentest` &bull; `/security-scan` &bull; `/finekra-deploy-test`
+`/pentest` (URL/IP/WiFi/AD/Cloud targeting) &bull; `/security-scan` &bull; `/finekra-deploy-test` &bull; `/finekra-task`
 
 **Utilities (12+ commands)**
 
@@ -243,7 +243,7 @@ StatusLine    ->  dippy_statusline.py            Model + git + context % (color-
 </details>
 
 <details>
-<summary><h3>Agent Teams (17 roles)</h3></summary>
+<summary><h3>Agent Teams (26 roles)</h3></summary>
 
 Mesh-model coordination with self-claiming, plan approval, and hook-enforced quality gates.
 
@@ -266,6 +266,7 @@ Mesh-model coordination with self-claiming, plan approval, and hook-enforced qua
 | content-strategist | Content planning, editorial, messaging |
 | growth-lead | Growth experiments, funnel optimization, retention |
 | social-media-operator | Social media campaigns, scheduling, analytics |
+| **Pentest Specialists** | 9 agents: leader (opus), recon, web, infra, cloud, wireless, mobile, AD, exploit |
 
 Create teams with `/team` &mdash; compose any combination of roles.
 
@@ -371,19 +372,19 @@ claude-code-dotfiles/
 ├── install.sh               Linux/macOS installer (Bash)
 ├── setup-wsl-claude.sh      WSL-specific environment setup
 ├── sync.sh                  Live → repo synchronization
-├── VERSION                  Current version (3.2.0)
+├── VERSION                  Current version (3.3.0)
 ├── home-config/
 │   └── .claude.json         MCP server configuration template
 └── config/                  Installs to ~/.claude/
     ├── CLAUDE.md            Global instructions
     ├── settings.json        Hooks, plugins, MCP, permissions
-    ├── agents/              37 agent definitions
+    ├── agents/              46 agent definitions
     ├── commands/            89 commands + gsd/ (34) + deprecated/
     ├── docs/                25 reference documents + pentest framework
     ├── hooks/               20 hook scripts + lib/
     ├── rules/               50 files (common/ + 8 language packs)
     ├── skills/              51 skill sets (1000+ files)
-    ├── teams/agents/        17 team role definitions
+    ├── teams/agents/        26 team role definitions
     ├── mcp-configs/         31 MCP server templates
     ├── get-shit-done/       GSD runtime engine
     └── plugins/             Plugin registry config

@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.3.0] - 2026-03-23
+
+### Added
+- **Pentest Framework v5 "Kral"** — full-spectrum offensive security platform (10,800+ lines across 31 modules)
+- 26 new pentest modules: IP/CIDR intrusion, WiFi assault, Bluetooth/BLE, Active Directory, Cloud pivot (AWS/Azure/GCP), Container/K8s escape, IoT/OT, Mobile testing, OSINT, Phishing, Social engineering, Adversary emulation (APT28/29/Lazarus), Evasion engine, Post-exploitation, Purple team, Compliance mapping, Knowledge graph, Continuous ASM
+- Exploit engine (`exploit-engine.py`) with 55+ finding types, 22 composite chains, priority scoring
+- Compliance mapper (`compliance-mapper.py`) — PCI DSS, ISO 27001, NIST 800-53, KVKK, OWASP mapping
+- Knowledge graph (`knowledge-graph.py`) — cross-engagement intelligence with Mermaid visualization
+- Attack path visualizer (`attack-path-visualizer.py`) — graph-based exploitation chain diagrams
+- ASM monitor (`asm-monitor.py`) — continuous attack surface change detection
+- 9 pentest specialist agent roles (leader + recon, web, infra, cloud, wireless, mobile, AD, exploit)
+- Team config for multi-agent swarm orchestration with dynamic spawning
+- 6 new nuclei template files: generic (auth-bypass, info-leak, default-creds, misconfig, CVE-check), network service checks, cloud metadata, IoT protocol
+- `/pentest` command v5: IP/CIDR/WiFi/BT/AD/Cloud/IoT/Mobile targeting, 20 new flags (--team, --apt, --purple, --stealth, --quick-wins, etc.)
+- 5-tier authorization system for different attack types
+- Preflight tool verification at Phase 0
+- Stealth mode with per-tool parameter adjustments
+- INFO severity level for observations
+- findings.json v5 schema with MITRE ATT&CK mapping, compliance fields, exploit engine integration
+- Assessment vectors 2R (WebSocket), 2S (SSE), 2T (Web3/Blockchain), 2U (Supply Chain)
+- "Bul → Sız → Kanıtla → Derinleş" intrusion loop with proof-of-compromise standard
+
+### Changed
+- Pentest playbook v4 → v5: genericized (removed Finekra-specific references), parametric org templates
+- Nuclei templates reorganized: `generic/`, `network/`, `cloud/`, `iot/`, `orgs/<name>/`
+- `findings-db.py` updated: v4→v5 migration, `--migrate` CLI flag, INFO severity
+- Large modules split for maintainability (exploitation, AD, cloud, social-eng, assessment)
+- Pentest playbook hub updated with 31 module references and sub-file architecture
+- Agent count: 37 → 46 (9 pentest specialists added)
+
 ## [3.2.0] - 2026-03-23
 
 ### Added
