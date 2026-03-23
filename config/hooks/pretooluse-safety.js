@@ -226,7 +226,7 @@ function cleanupOldAllowlists() {
 }
 
 // Self-test: node pretooluse-safety.js --test
-if (process.argv.includes("--test")) {
+if (process.argv.includes("--self-test") || process.argv.includes("--test")) {
   const TEST_COMMANDS = [
     // Destructive
     { cmd: "git push --force origin main", shouldBlock: true },

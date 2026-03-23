@@ -23,13 +23,16 @@ if (!process.argv.includes('--self-test') && !process.argv.includes('--force')) 
 
 const expectedHooks = [
   'pretooluse-safety.js',
-  'gsd-context-monitor.js',
   'task-completed-check.js',
   'teammate-idle-check.js',
   'rotate-hook-approvals.js',
   'retention-cleanup.js',
   'hook-health-check.js',
   'team-active-reminder.js',
+  'mcp-reconnect.js',
+  'posttooluse-lint-format.js',
+  'mcp-health-check.js',
+  'session-end-check.js',
 ];
 
 if (process.argv.includes('--self-test')) {
