@@ -1,0 +1,42 @@
+{
+  "minimal": [
+    "context7@claude-plugins-official",
+    "code-review@claude-plugins-official",
+    "superpowers@claude-plugins-official",
+    "typescript-lsp@claude-plugins-official",
+    "claude-md-management@claude-plugins-official"
+  ],
+  "dev": [
+    "context7@claude-plugins-official",
+    "code-review@claude-plugins-official",
+    "superpowers@claude-plugins-official",
+    "typescript-lsp@claude-plugins-official",
+    "security-guidance@claude-plugins-official",
+    "claude-md-management@claude-plugins-official",
+    "static-analysis@trailofbits",
+    "differential-review@trailofbits",
+    "insecure-defaults@trailofbits",
+    "sharp-edges@trailofbits",
+    "supply-chain-risk-auditor@trailofbits",
+    "audit-context-building@trailofbits",
+    "property-based-testing@trailofbits",
+    "variant-analysis@trailofbits",
+    "spec-to-code-compliance@trailofbits",
+    "git-cleanup@trailofbits",
+    "workflow-skill-design@trailofbits"
+  ],
+  "security": [
+    "security-guidance@claude-plugins-official",
+    "static-analysis@trailofbits",
+    "differential-review@trailofbits",
+    "insecure-defaults@trailofbits",
+    "sharp-edges@trailofbits",
+    "supply-chain-risk-auditor@trailofbits",
+    "audit-context-building@trailofbits",
+    "property-based-testing@trailofbits",
+    "variant-analysis@trailofbits",
+    "spec-to-code-compliance@trailofbits",
+    "git-cleanup@trailofbits",
+    "workflow-skill-design@trailofbits"
+  ]
+}

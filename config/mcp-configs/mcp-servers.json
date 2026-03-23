@@ -97,7 +97,7 @@
     "playwright": {
       "command": "npx",
       "args": ["-y", "@playwright/mcp", "--browser", "chrome"],
-      "description": "Browser automation and testing via Playwright"
+      "description": "Raw Playwright MCP fallback. Prefer HakanMCP browser wrappers for routine browser automation."
     },
     "fal-ai": {
       "command": "npx",

@@ -1,6 +1,4 @@
-# Browser Launch — CDP Connection for Playwright MCP
-
-**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+# Browser Launch — CDP Connection for HakanMCP Browser Bridge
 
 When this command is executed, follow the steps below in order.
 
@@ -120,23 +118,30 @@ After launch: verify process is running (1s delay). On failure: report install/p
 
 ---
 
-## 8.1. Playwright MCP Connection ([HakanMCP](https://github.com/sudohakan/HakanMCP) Bridge)
+## 8.1. HakanMCP Browser Bridge Connection
 
-Call `mcp__HakanMCP__mcp_connect`:
-- `command`: `"npx"`, `args`: `["-y", "@playwright/mcp@latest", "--cdp-endpoint", "{webSocketDebuggerUrl}"]`
+Preferred path: call `mcp__HakanMCP__mcp_browserConnect`:
+- `cdpEndpoint`: `{webSocketDebuggerUrl}`
+- `extension`: `true` if user requested attaching to a live browser extension session
+- `headless`: `false` for an existing desktop browser
 - Save returned `connectionId`. Retry once after 5s on failure.
 
 Success message:
-> Browser: {Browser} | Port: {port} | Playwright MCP: Connected ({connectionId})
-> Ready: `browser_navigate`, `browser_click`, `browser_snapshot`, `browser_fill_form`, `browser_take_screenshot`, `browser_evaluate`, `browser_press_key`
+> Browser: {Browser} | Port: {port} | HakanMCP Bridge: Connected ({connectionId})
+> Ready low-token wrappers: `mcp_browserNavigateExtract`, `mcp_browserProbeLogin`, `mcp_browserCaptureProof`
 
-All Playwright calls via `mcp__HakanMCP__mcp_callTool({ connectionId, toolName, toolArguments })`.
+Preferred browser calls via:
+- `mcp__HakanMCP__mcp_browserNavigateExtract`
+- `mcp__HakanMCP__mcp_browserProbeLogin`
+- `mcp__HakanMCP__mcp_browserCaptureProof`
+
+Fallback to `mcp__HakanMCP__mcp_callTool({ connectionId, toolName, toolArguments })` only for browser actions not covered by the wrappers.
 
 ---
 
 ## 8.2. Tab Isolation
 
-Immediately after MCP connection: `browser_navigate → about:blank` (new tab). Informs user existing tabs are unaffected.
+Immediately after MCP connection: `mcp_browserNavigateExtract → about:blank` (new tab). Informs user existing tabs are unaffected.
 
 ---
 

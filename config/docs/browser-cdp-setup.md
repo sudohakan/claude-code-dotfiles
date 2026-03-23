@@ -1,7 +1,7 @@
-# Browser CDP Setup (Windows → WSL2 → Playwright MCP)
+# Browser CDP Setup (Windows → WSL2 → HakanMCP Browser Bridge)
 
 ## Architecture
-Windows Chrome (port 9222) → netsh portproxy (9223→9222) → WSL2 Playwright MCP
+Windows Chrome (port 9222) → netsh portproxy (9223→9222) → WSL2 HakanMCP browser wrappers → Playwright MCP
 
 ## Setup (one-time, already configured)
 
@@ -26,6 +26,12 @@ New-NetFirewallRule -DisplayName "WSL-CDP" -Direction Inbound -Protocol TCP -Loc
 ```bash
 curl http://$(ip route | grep default | awk '{print $3}'):9223/json/version
 ```
+
+## Usage
+1. Launch or connect a Windows browser with `/browser`.
+2. Reuse the returned HakanMCP `connectionId`.
+3. Prefer `mcp_browserNavigateExtract`, `mcp_browserProbeLogin`, and `mcp_browserCaptureProof`.
+4. Use raw browser tool calls only through HakanMCP `mcp_callTool` when a wrapper is insufficient.
 
 ## Config
 Saved in `~/.claude/browser-last.json`

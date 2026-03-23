@@ -1,9 +1,6 @@
 <!-- last_updated: 2026-03-15 -->
 # MCP Usage Guide
 
-
-**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
-
 ## When to Use Which MCP
 
 ### context7
@@ -28,15 +25,17 @@
 - Example: "Create a recurring standup on Tuesdays at 10:00"
 - Do NOT use: for non-calendar time management
 
-### Playwright
-- Trigger: Browser automation task
-- Trigger: UI testing or end-to-end test execution
-- Trigger: Web scraping or live site inspection
+### HakanMCP Browser Bridge
+- Trigger: Browser automation task where token/context efficiency matters
+- Trigger: Login probing, screenshot proof, JS-heavy page inspection
+- Trigger: Live site inspection that only needs compact summaries instead of full browser dumps
 - Example: "Take a screenshot of the dashboard after login"
-- Example: "Fill and submit the registration form"
+- Example: "Check whether this page is a login form"
+- Preferred tools: `mcp_browserConnect`, `mcp_browserNavigateExtract`, `mcp_browserProbeLogin`, `mcp_browserCaptureProof`
+- Use raw browser actions only through `mcp_callTool` when the wrappers are insufficient
 - Do NOT use: for static HTML analysis (use Read instead)
 
-### HakanMCP (107 tools)
+### HakanMCP (112 tools)
 - Trigger: Any task in the categories below
 
 | Category | Example Tools | When to Use |

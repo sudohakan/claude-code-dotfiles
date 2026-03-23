@@ -403,7 +403,7 @@ else
     if command -v claude &>/dev/null; then
         info "Installing official plugins..."
 
-        for plugin in superpowers code-review context7 feature-dev ralph-loop playwright typescript-lsp frontend-design skill-creator commit-commands code-simplifier pr-review-toolkit security-guidance claude-md-management; do
+        for plugin in superpowers code-review context7 feature-dev ralph-loop typescript-lsp frontend-design skill-creator commit-commands code-simplifier pr-review-toolkit security-guidance claude-md-management; do
             if claude plugins install "$plugin" 2>/dev/null; then
                 ok "$plugin"
             else
