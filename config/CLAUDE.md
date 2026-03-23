@@ -6,6 +6,7 @@
   - **Exception:** When creating teams/plans/tasks, proactively add edge cases, failure scenarios, and verification areas.
 - Always read a file before modifying it.
 - Git commands only when user explicitly asks. No auto-commit, auto-push. Applies within teams too.
+- **Finekra projects:** NEVER commit/push to master/main. Always create a `Task-{DevOpsId}` branch first. This rule does not apply to personal projects.
 - In WSL, use `git.exe` for remote operations (Azure DevOps credential helper).
 - Format only on request. Use the project's configured formatter.
 - User runs with `--dangerously-skip-permissions`. No plan mode — use superpowers skills. In teams, use tech-lead review instead.
@@ -19,6 +20,16 @@
 - **Continuous improvement:** When user feedback during execution reveals a gap in any custom skill, command, or hook (missing fields, wrong flow, failed edge case), immediately update the relevant file, verify the fix works, then continue the task. All custom skills, commands, and hooks must self-improve through use.
 - **WSL+NTFS encoding:** When creating `.sh` files on Windows/NTFS, always force LF line endings (not CRLF). Add `*.sh text eol=lf` to `.gitattributes`. WSL cannot execute CRLF scripts.
 - **WSL large files:** WSL NTFS driver cannot read back files larger than ~1MB that contain shell escape sequences. For large generated files, write to ext4 (`/home/`) and symlink if needed.
+- **Dotfiles sync:** Whenever any file under `~/.claude/` is created, modified, or deleted (docs, commands, agents, teams, hooks, settings, rules, skills), the dotfiles repo MUST be synchronized before the task is considered complete. Workflow:
+  1. Copy changed files to `/mnt/c/dev/claude-code-dotfiles/config/` (mirror the directory structure)
+  2. Check `.gitignore` — never commit `.env`, credentials, API keys, tokens, or session data
+  3. Use `git.exe` for all git operations (Windows credential helper)
+  4. Stage only the changed files (`git.exe add <specific files>`, not `-A`)
+  5. Commit with descriptive message
+  6. If VERSION/CHANGELOG.md exist and changes are significant: bump version, update changelog, update README.md counts/descriptions
+  7. Push to remote: `git.exe push origin main`
+  8. Verify: `git.exe status` shows clean working tree
+  This rule applies to ALL changes — pentest modules, agent roles, commands, hooks, settings, everything under `~/.claude/`.
 
 ## 2. Model Selection
 - Default: `sonnet`. Always pass `model` explicitly when spawning agents/teammates.
