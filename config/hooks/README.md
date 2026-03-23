@@ -212,6 +212,96 @@ Async hooks run in the background. They cannot block tool execution.
 
 Hook logic is implemented in Node.js scripts for cross-platform behavior on Windows, macOS, and Linux. A small number of shell wrappers are retained for continuous-learning observer hooks; those wrappers are profile-gated and have Windows-safe fallback behavior.
 
+## Storage Hygiene
+
+`retention-cleanup.js` now does four things on its daily pass:
+
+- Prunes generated artifacts with conservative age-based retention.
+- Writes `~/.claude/cache/storage-hygiene-report.json` with the largest `projects/` and `file-history/` entries plus duplicate project-key aliases such as `-mnt-c-*` vs `C--*`.
+- Appends a historical snapshot to `~/.claude/cache/storage-hygiene-history.jsonl`.
+- Writes `~/.claude/cache/storage-hygiene-trend.json` with 7-day and 30-day deltas for the main storage areas.
+- Writes `~/.claude/cache/maintenance-auto-actions-last-run.json` with the latest automatic hygiene actions.
+- Pairs well with `project-alias-hygiene.js`, a manual consolidation utility for merging duplicate project alias directories into a single canonical key.
+- Pairs well with `file-history-hygiene.js`, a manual archival utility for moving oversized old `file-history/` sessions into `~/.claude/archives/`.
+- Pairs well with `project-session-hygiene.js`, a manual archival utility for moving oversized stale per-project session artifacts out of `~/.claude/projects/<project-key>/` while leaving `memory/` untouched.
+
+Automatic maintenance behavior:
+
+- `file-history-hygiene.js` is inspected daily and auto-applied when stale oversized candidates exist.
+- `project-session-hygiene.js` scans the heaviest projects daily and auto-applies archival when candidates exist.
+- `project-alias-hygiene.js` is inspected daily, but auto-apply stays off by default because alias merges are more structural than archival.
+
+Default retention windows:
+
+- `file-history`: 21 days
+- `projects/*.jsonl`: 14 days
+- `tasks`: 21 days
+- `debug`, `telemetry`, `metrics`: 30 days
+- `storage-hygiene-history`: 120 days
+
+Optional overrides can be supplied via environment variables such as:
+
+- `CLAUDE_RETENTION_FILE_HISTORY_DAYS`
+- `CLAUDE_RETENTION_PROJECT_LOG_DAYS`
+- `CLAUDE_RETENTION_TASKS_DAYS`
+- `CLAUDE_RETENTION_STORAGE_TREND_DAYS`
+- `CLAUDE_AUTO_ARCHIVE_FILE_HISTORY`
+- `CLAUDE_AUTO_ARCHIVE_PROJECT_SESSIONS`
+- `CLAUDE_AUTO_ARCHIVE_PROJECT_SESSION_SCAN_LIMIT`
+- `CLAUDE_AUTO_INSPECT_PROJECT_ALIASES`
+- `CLAUDE_AUTO_APPLY_PROJECT_ALIAS_HYGIENE`
+
+Manual alias hygiene workflow:
+
+```bash
+# Review duplicate project aliases
+node ~/.claude/hooks/project-alias-hygiene.js --json
+
+# Apply safe merges using the largest alias as canonical
+node ~/.claude/hooks/project-alias-hygiene.js --apply --json
+```
+
+`project-alias-hygiene.js` moves non-conflicting files into the canonical project directory and archives unresolved leftovers under `~/.claude/archives/project-alias-hygiene/`.
+
+Manual file-history hygiene workflow:
+
+```bash
+# Review large stale file-history sessions
+node ~/.claude/hooks/file-history-hygiene.js --json
+
+# Archive matching sessions
+node ~/.claude/hooks/file-history-hygiene.js --apply --json
+```
+
+By default it targets sessions older than 5 days and larger than 40 MB, with optional overrides:
+
+- `CLAUDE_FILE_HISTORY_HYGIENE_DAYS`
+- `CLAUDE_FILE_HISTORY_HYGIENE_MIN_MB`
+- `CLAUDE_FILE_HISTORY_HYGIENE_KEEP_NEWEST`
+
+Manual project session hygiene workflow:
+
+```bash
+# Review one heavy project
+node ~/.claude/hooks/project-session-hygiene.js --project-key "-mnt-c-Users-Hakan" --json
+
+# Archive stale oversized sessions for that project
+node ~/.claude/hooks/project-session-hygiene.js --project-key "-mnt-c-Users-Hakan" --apply --json
+```
+
+Defaults:
+
+- archive sessions older than 5 days
+- archive sessions larger than 15 MB
+- keep the newest 3 session groups
+
+Optional overrides:
+
+- `CLAUDE_PROJECT_SESSION_HYGIENE_PROJECT`
+- `CLAUDE_PROJECT_SESSION_HYGIENE_DAYS`
+- `CLAUDE_PROJECT_SESSION_HYGIENE_MIN_MB`
+- `CLAUDE_PROJECT_SESSION_HYGIENE_KEEP_NEWEST`
+
 ## Related
 
 - [rules/common/hooks.md](../rules/common/hooks.md) — Hook architecture guidelines

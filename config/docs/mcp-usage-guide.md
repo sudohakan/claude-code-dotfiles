@@ -1,6 +1,9 @@
 <!-- last_updated: 2026-03-15 -->
 # MCP Usage Guide
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 ## When to Use Which MCP
 
 ### context7

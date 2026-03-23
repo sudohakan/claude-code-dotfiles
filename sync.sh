@@ -9,6 +9,87 @@ HOME_CONFIG_DIR="$SCRIPT_DIR/home-config"
 DRY_RUN=false
 VERBOSE=false
 
+find_python() {
+    for candidate in python3 python py; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+sanitize_home_claude_json() {
+    local source_json="$1"
+    local target_json="$2"
+    local python_bin
+
+    python_bin="$(find_python)" || return 1
+
+    "$python_bin" - "$source_json" "$target_json" <<'PY'
+import json
+import os
+import re
+import sys
+
+source_path, target_path = sys.argv[1], sys.argv[2]
+with open(source_path, "r", encoding="utf-8") as handle:
+    source = json.load(handle)
+
+sensitive_key = re.compile(r"(token|secret|pass(word)?|api[_-]?key|auth)", re.IGNORECASE)
+skip_keys = {"oauthAccount", "mcpOAuth", "claudeAiOauth", "accessToken", "refreshToken"}
+
+
+def placeholder(name: str) -> str:
+    normalized = re.sub(r"[^A-Za-z0-9]+", "_", name).strip("_").upper()
+    return f"YOUR_{normalized}_HERE"
+
+
+def normalize_string(value: str) -> str:
+    normalized = value
+    normalized = re.sub(r"^[A-Za-z]:[/\\\\]dev[/\\\\]", "__DEV_ROOT__/", normalized)
+    normalized = re.sub(r"^/mnt/[a-zA-Z]/dev/", "__DEV_ROOT_POSIX__/", normalized)
+    normalized = re.sub(r"^/[a-zA-Z]/dev/", "__DEV_ROOT_POSIX__/", normalized)
+    normalized = re.sub(r"^\$HOME/dev/", "__DEV_ROOT__/", normalized)
+    normalized = re.sub(r"^/home/[^/]+/dev/", "__DEV_ROOT_POSIX__/", normalized)
+
+    basename = os.path.basename(normalized.replace("\\", "/")).lower()
+    if basename in {"node", "node.exe"}:
+        return "__NODE_COMMAND__"
+    if basename in {"uvx", "uvx.exe"}:
+        return "uvx"
+    if basename in {"notebooklm-mcp", "notebooklm-mcp-cli"}:
+        return "notebooklm-mcp"
+
+    return normalized.replace("\\", "/")
+
+
+def redact(value):
+    if isinstance(value, dict):
+        cleaned = {}
+        for key, nested in value.items():
+            if key in skip_keys:
+                continue
+            if sensitive_key.search(key):
+                cleaned[key] = placeholder(key)
+            else:
+                cleaned[key] = redact(nested)
+        return cleaned
+    if isinstance(value, list):
+        return [redact(item) for item in value]
+    if isinstance(value, str):
+        return normalize_string(value)
+    return value
+
+
+template = {"mcpServers": redact(source.get("mcpServers", {}))}
+
+with open(target_path, "w", encoding="utf-8", newline="\n") as handle:
+    json.dump(template, handle, indent=2)
+    handle.write("\n")
+PY
+}
+
 for arg in "$@"; do
     case $arg in
         --dry-run)  DRY_RUN=true ;;
@@ -132,15 +213,22 @@ for f in known_marketplaces.json blocklist.json; do
 done
 ok "MCP configs and plugin metadata"
 
-step 10 "Home config (.claude.json)"
+step 10 "Home config (.claude.json template)"
 if [ -f "$HOME/.claude.json" ]; then
     mkdir -p "$HOME_CONFIG_DIR"
     if [ "$DRY_RUN" = true ]; then
-        info "Would copy: ~/.claude.json"
+        info "Would generate sanitized MCP template: ~/.claude.json -> home-config/.claude.json"
     else
-        cp "$HOME/.claude.json" "$HOME_CONFIG_DIR/.claude.json"
+        if ! sanitize_home_claude_json "$HOME/.claude.json" "$HOME_CONFIG_DIR/.claude.json"; then
+            echo "Error: unable to sanitize ~/.claude.json (python not found or script failed)"
+            exit 1
+        fi
+        if grep -Eq '"(oauthAccount|mcpOAuth|accessToken|refreshToken)"' "$HOME_CONFIG_DIR/.claude.json"; then
+            echo "Error: sanitized home-config/.claude.json still contains credential-bearing keys"
+            exit 1
+        fi
     fi
-    ok ".claude.json"
+    ok "sanitized .claude.json template"
 else
     warn "~/.claude.json not found (skipped)"
 fi

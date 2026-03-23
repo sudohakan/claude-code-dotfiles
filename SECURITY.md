@@ -1,5 +1,8 @@
 # Security Policy
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 > For installation, see [SETUP.md](SETUP.md). For contributing, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Table of Contents
@@ -62,6 +65,15 @@ This repository is designed to be **credential-free**:
 | API keys | **Not included** — no API keys exist in any file |
 | Passwords | **Not included** — no passwords or secrets |
 | Personal data | **Sanitized** — memory files contain templates only |
+
+### Sanitized Sync Boundary
+
+The reverse sync workflow treats `~/.claude.json` as a **machine-local source**, not a publishable artifact:
+
+- `sync.sh` exports only the `mcpServers` portion into `home-config/.claude.json`
+- OAuth/account blocks such as `oauthAccount`, `mcpOAuth`, `accessToken`, and `refreshToken` are stripped
+- Sensitive MCP env keys such as `API_KEY`, `TOKEN`, `PASSWORD`, and `SECRET` are replaced with placeholders
+- Installers consume `home-config/.claude.json` as a template; real auth remains local to the target machine
 
 ### Intentionally Fake Credentials
 

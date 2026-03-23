@@ -2,9 +2,12 @@
 
 # claude-code-dotfiles
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](README.md#portable-local-dependencies)
+
 **Production-ready Claude Code configuration — batteries included.**
 
-![Version](https://img.shields.io/badge/version-3.3.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.4.0-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)
@@ -13,7 +16,7 @@
 
 | Agents | Commands | Skills | Rules | Hooks | Team Roles |
 |:------:|:--------:|:------:|:-----:|:-----:|:----------:|
-| **46** | **123** | **51** | **50** | **20** | **26** |
+| **37** | **125** | **51** | **50** | **23** | **26** |
 
 [Quick Start](#quick-start) &bull; [What's Inside](#whats-inside) &bull; [Safety](#safety-system) &bull; [Sync](#keeping-in-sync) &bull; [Docs](#documentation)
 
@@ -24,22 +27,26 @@
 ## Highlights
 
 - **GSD Workflow** &mdash; 34 phase-based commands covering plan, execute, verify, debug, and milestone management
-- **46 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
-- **123 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration, pentest
+- **37 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
+- **125 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration, pentest
 - **51 Skill Sets** &mdash; framework patterns (Django, Laravel, Spring Boot, Kotlin), testing, TDD, verification, continuous learning
 - **50 Coding Rules** across 9 languages (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
 - **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
-- **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration
+- **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration while sanitizing machine-local MCP credentials
+- **Storage Hygiene Reporting** &mdash; daily cleanup also writes a cache report for the largest `projects/` and `file-history/` entries plus duplicate project aliases
+- **Storage Trend Tracking** &mdash; daily snapshots accumulate into 7-day and 30-day trend summaries for workspace growth
+- **Alias Consolidation Utility** &mdash; `project-alias-hygiene.js` safely merges duplicate project keys and archives unresolved leftovers
+- **File-History Archiver** &mdash; `file-history-hygiene.js` archives oversized stale history sessions to keep `~/.claude/file-history` lean
+- **Project Session Archiver** &mdash; `project-session-hygiene.js` archives stale oversized per-project session artifacts while preserving `memory/`
+- **Automatic Reversible Maintenance** &mdash; daily cleanup can auto-archive stale history and heavy project sessions while leaving alias merges in inspect-only mode by default
 - **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) (107 tools) + 9 on-demand servers + 31 templates
+- **Portable Local Dependency Bootstrap** &mdash; installer provisions [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), and the [`pentest-framework` scaffold](config/commands/pentest.md) from a shared manifest
+- **Portable MCP Template Resolution** &mdash; `.claude.json` is distributed as a sanitized template and resolved per machine without leaking OAuth/account state
 - **Pentest Framework** &mdash; full-spectrum offensive security: URL/IP/WiFi/BT/AD/Cloud/K8s/IoT/Mobile, 55+ exploit chains, 31 modules, 9 specialist agents
 
 ---
 
 ## Quick Start
-
-<table>
-<tr>
-<td width="50%">
 
 **Windows (PowerShell)**
 
@@ -49,9 +56,6 @@ PowerShell -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\install.ps
 claude login
 ```
 
-</td>
-<td width="50%">
-
 **Linux / macOS (Bash)**
 
 ```bash
@@ -60,20 +64,32 @@ bash ~/dev/claude-code-dotfiles/install.sh
 claude login
 ```
 
-</td>
-</tr>
-</table>
-
 > **WSL users:** Run `bash setup-wsl-claude.sh` for full environment setup (Node.js, Claude CLI, symlinks, tmux, SSH, Tailscale).
 
 See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what each step does.
+
+The installer now bootstraps the local repos that your Claude setup depends on from [`external-projects.manifest.json`](external-projects.manifest.json). Fresh machines get the same local MCP/project layout under `C:\dev` or `~/dev` without syncing credentials.
+
+## Portable Local Dependencies
+
+The live setup depends on several local projects in addition to Claude dotfiles. Those dependencies are declared in [`external-projects.manifest.json`](external-projects.manifest.json) and installed automatically by [`install.ps1`](install.ps1) and [`install.sh`](install.sh):
+
+| Project | Bootstrap | Purpose |
+|---------|-----------|---------|
+| [`HakanMCP`](https://github.com/sudohakan/HakanMCP) | clone + install + build | primary local MCP platform |
+| [`gtasks-mcp`](https://github.com/sudohakan/gtasks-mcp) | clone + install + best-effort build | Google Tasks MCP |
+| [`infoset-mcp`](https://github.com/sudohakan/infoset-mcp) | clone + install | local infoset MCP |
+| [`kali-mcp`](https://github.com/sudohakan/kali-mcp-server) | clone + compose validation | local offensive security SSE service repo |
+| [`pentest-framework`](config/commands/pentest.md) | scaffold | local framework directory used by `kali-mcp` |
+
+The portable `.claude.json` template in [`home-config/.claude.json`](home-config/.claude.json) only contains sanitized MCP definitions. Installer-side resolution fills in machine-local paths and updates the managed MCP entries while preserving the rest of the user's home config.
 
 ---
 
 ## What's Inside
 
 <details>
-<summary><h3>Agents (46 specialized)</h3></summary>
+<summary><h3>Agents (37 specialized)</h3></summary>
 
 <table>
 <tr><th>Category</th><th>Agents</th><th>Purpose</th></tr>
@@ -108,7 +124,7 @@ See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what e
 </details>
 
 <details>
-<summary><h3>Commands (123 slash commands)</h3></summary>
+<summary><h3>Commands (125 slash commands)</h3></summary>
 
 **GSD Workflow (34 commands)**
 
@@ -161,9 +177,9 @@ See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what e
 
 `/pentest` (URL/IP/WiFi/AD/Cloud targeting) &bull; `/security-scan` &bull; `/finekra-deploy-test` &bull; `/finekra-task`
 
-**Utilities (12+ commands)**
+**Utilities (13+ commands)**
 
-`/status` &bull; `/browser` &bull; `/deploy` &bull; `/docs` &bull; `/aside` &bull; `/add-mcp` &bull; `/prompt-optimize` &bull; `/refactor-clean` &bull; `/e2e` &bull; `/build-fix` &bull; `/update-docs` &bull; `/update-codemaps`
+`/status` &bull; `/maintenance-status` &bull; `/browser` &bull; `/deploy` &bull; `/docs` &bull; `/aside` &bull; `/add-mcp` &bull; `/prompt-optimize` &bull; `/refactor-clean` &bull; `/e2e` &bull; `/build-fix` &bull; `/update-docs` &bull; `/update-codemaps`
 
 </details>
 
@@ -209,7 +225,7 @@ Rules are installed per-language: `./install.sh typescript python`
 </details>
 
 <details>
-<summary><h3>Hooks (20 automation hooks)</h3></summary>
+<summary><h3>Hooks (20 automation hooks + 3 maintenance utilities)</h3></summary>
 
 ```
 SessionStart  ->  rotate-hook-approvals.js      Rotate approval tokens (10s)
@@ -235,6 +251,10 @@ StatusLine    ->  dippy_statusline.py            Model + git + context % (color-
 |------|--------------|
 | **Dippy** | Smart auto-approve (Python, 14K+ tests). Safe: `ls`, `git status`, `npm test`. Risky: flagged. |
 | **pretooluse-safety.js** | Destructive git/fs/db, credential leaks (AWS, GitHub, OpenAI, Slack, Stripe, etc.), unicode injection |
+| **retention-cleanup.js** | Prunes generated artifacts, writes storage reports + trend files, and auto-applies reversible archival hygiene for stale `file-history` / heavy project sessions |
+| **project-alias-hygiene.js** | Manual maintenance utility for consolidating duplicate project alias directories into one canonical key with archived leftovers |
+| **file-history-hygiene.js** | Manual maintenance utility for archiving oversized stale `file-history/` sessions into `~/.claude/archives/file-history-hygiene/` |
+| **project-session-hygiene.js** | Manual maintenance utility for archiving oversized stale project session pairs from `~/.claude/projects/<project-key>/` into `~/.claude/archives/project-session-hygiene/` |
 | **posttooluse-lint-format.js** | Runs linters after Write/Edit (eslint, ruff, go vet, shellcheck, etc.). Auto-format off by default (`ENABLE_AUTOFORMAT=0`) |
 | **mcp-health-check.js** | Periodic MCP server health check every 50 Bash calls — reconnects failed servers |
 | **mcp-reconnect.js** | Detects disconnected MCP servers across all scopes and reconnects on session start |
@@ -279,9 +299,9 @@ Create teams with `/team` &mdash; compose any combination of roles.
 
 | Server | Purpose |
 |--------|---------|
-| **HakanMCP** | DB queries, API testing, system monitoring, backup, 9 on-demand servers (107 tools) |
+| **[HakanMCP](https://github.com/sudohakan/HakanMCP)** | DB queries, API testing, system monitoring, backup, 9 on-demand servers (107 tools) |
 | **Playwright** | Browser automation, UI testing, web scraping |
-| **kali-mcp** | Offensive security (36 tools: nmap, nuclei, sqlmap, hydra, feroxbuster, etc.) |
+| **[kali-mcp](https://github.com/sudohakan/kali-mcp-server)** | Offensive security (36 tools: nmap, nuclei, sqlmap, hydra, feroxbuster, etc.) |
 | **NotebookLM** | Deep research, multi-source synthesis, audio/video generation |
 | **context7** | Library/framework documentation lookup |
 | **magic-21st** | UI component generation (React + Tailwind) |
@@ -312,6 +332,17 @@ Cross-project knowledge base at `~/.claude/projects/<project-key>/.memory/`:
 - Lazy loading &mdash; MCP tools loaded on-demand via ToolSearch
 - Budget thresholds &mdash; automatic checkpoints at 45%, 55%, 65%, 75%, 85%, 90%
 
+**Storage hygiene defaults:**
+- `file-history` retention: 21 days
+- `projects/*.jsonl` retention: 14 days
+- Daily report: `~/.claude/cache/storage-hygiene-report.json`
+- Trend summary: `~/.claude/cache/storage-hygiene-trend.json`
+- Auto-action log: `~/.claude/cache/maintenance-auto-actions-last-run.json`
+- Manual alias merge: `node ~/.claude/hooks/project-alias-hygiene.js --apply --json`
+- Manual file-history archive: `node ~/.claude/hooks/file-history-hygiene.js --apply --json`
+- Manual project session archive: `node ~/.claude/hooks/project-session-hygiene.js --project-key "<key>" --apply --json`
+- Workspace snapshot command: `/maintenance-status`
+
 </details>
 
 ---
@@ -335,7 +366,7 @@ flowchart LR
 | **2** | Destructive commands (`rm -rf /`, `git push --force`, `DROP TABLE`, etc.) |
 | **3** | Unicode injection (zero-width chars, bidi overrides, Cyrillic homoglyphs) |
 
-- No credentials in repo &mdash; OAuth tokens generated per-machine
+- No credentials in repo &mdash; OAuth tokens stay local and `home-config/.claude.json` is generated as a sanitized MCP template
 - Path auto-fix &mdash; installer replaces hardcoded paths with your username
 - Git safety &mdash; commits and pushes always require explicit approval
 - Self-test: `node ~/.claude/hooks/pretooluse-safety.js --self-test`
@@ -360,7 +391,7 @@ git diff --stat
 git add -A && git commit -m "chore: sync from live"
 ```
 
-The sync script copies agents, commands, docs, hooks, rules, skills, teams, MCP configs, and core settings &mdash; excluding runtime state, caches, and credentials.
+The sync script copies agents, commands, docs, hooks, rules, skills, teams, MCP configs, and core settings &mdash; excluding runtime state, caches, raw OAuth data, and machine-local credentials. `home-config/.claude.json` is regenerated from your live file with sensitive fields redacted.
 
 ---
 
@@ -374,12 +405,12 @@ claude-code-dotfiles/
 ├── sync.sh                  Live → repo synchronization
 ├── VERSION                  Current version (3.3.0)
 ├── home-config/
-│   └── .claude.json         MCP server configuration template
+│   └── .claude.json         Sanitized MCP server configuration template
 └── config/                  Installs to ~/.claude/
     ├── CLAUDE.md            Global instructions
     ├── settings.json        Hooks, plugins, MCP, permissions
     ├── agents/              46 agent definitions
-    ├── commands/            89 commands + gsd/ (34) + deprecated/
+    ├── commands/            86 commands + gsd/ (34) + deprecated/ (5)
     ├── docs/                25 reference documents + pentest framework
     ├── hooks/               20 hook scripts + lib/
     ├── rules/               50 files (common/ + 8 language packs)
@@ -438,7 +469,7 @@ Verify `~/.claude/commands/gsd/` contains `.md` files. Re-run the installer if e
 <details>
 <summary><strong>MCP server connection errors</strong></summary>
 
-Check server status in `~/.claude/settings.json`. The `mcp-reconnect.js` hook auto-reconnects on session start. For HakanMCP: verify `C:\dev\HakanMCP` exists and is built (`npm run build`).
+Check server status in `~/.claude/settings.json`. The `mcp-reconnect.js` hook auto-reconnects on session start. For [HakanMCP](https://github.com/sudohakan/HakanMCP): verify `C:\dev\HakanMCP` exists and is built (`npm run build`).
 </details>
 
 <details>

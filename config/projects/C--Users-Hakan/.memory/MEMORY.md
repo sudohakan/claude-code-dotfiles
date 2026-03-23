@@ -1,5 +1,8 @@
 # Claude Memory — {username}
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 ## User Preferences
 - Language: Responds in whatever language the user speaks (auto-detect)
 - Model: Opus

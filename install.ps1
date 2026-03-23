@@ -4,13 +4,11 @@
 # Usage: PowerShell -ExecutionPolicy Bypass -File install.ps1
 # Parameters:
 #   -SkipPlugins    : Skip plugin installation
-#   -SkipHakanMCP   : Skip HakanMCP installation
 #   -Force          : Run without confirmation prompts
 # ============================================================
 
 param(
     [switch]$SkipPlugins,
-    [switch]$SkipHakanMCP,
     [switch]$Force
 )
 
@@ -18,10 +16,24 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ClaudeDir = "$env:USERPROFILE\.claude"
 $BackupDir = "$env:USERPROFILE\.claude-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+$DevRoot = "C:\dev"
+$PortableDevRoot = "C:/dev"
+$ManifestPath = Join-Path $ScriptDir "external-projects.manifest.json"
+$BootstrapScript = Join-Path $ScriptDir "scripts\bootstrap_dev_projects.py"
+$ResolveClaudeConfigScript = Join-Path $ScriptDir "scripts\resolve_claude_config.py"
 
 function Write-Step($step, $total, $msg) {
     Write-Host ""
     Write-Host "[$step/$total] $msg" -ForegroundColor Yellow
+}
+
+function Get-PythonCommand {
+    foreach ($candidate in @("python", "python3")) {
+        if (Get-Command $candidate -ErrorAction SilentlyContinue) {
+            return $candidate
+        }
+    }
+    return $null
 }
 
 function Install-IfMissing($name, $testCmd, $installCmd, $manualMsg) {
@@ -147,6 +159,19 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
     Write-Host "  [!!] Python not found. Required for Dippy hook." -ForegroundColor Yellow
     Write-Host "       Install: winget install -e --id Python.Python.3.12" -ForegroundColor DarkGray
 }
+
+$pythonCmd = Get-PythonCommand
+if (-not $pythonCmd) {
+    Write-Host ""
+    Write-Host "  CRITICAL: Cannot continue without Python." -ForegroundColor Red
+    Write-Host "  Python is required for Dippy and portable installer helpers." -ForegroundColor Red
+    exit 1
+}
+
+# --- Bun (optional, helps some MCP project builds) ---
+Install-IfMissing "Bun" "bun" `
+    "winget install -e --id Oven-sh.Bun --accept-source-agreements --accept-package-agreements" `
+    "Manual: https://bun.sh/docs/installation" | Out-Null
 
 # -- STEP 3: Install Claude Code CLI --
 Write-Step 3 $totalSteps "Installing Claude Code CLI..."
@@ -308,15 +333,23 @@ if ($env:USERNAME -ne "Hakan") {
 # .claude.json (home)
 $homeConfig = "$env:USERPROFILE\.claude.json"
 $srcHomeConfig = "$ScriptDir\home-config\.claude.json"
-if (Test-Path $homeConfig) {
-    Write-Host "  Existing .claude.json preserved." -ForegroundColor Yellow
-} else {
-    $homeConfigContent = Get-Content $srcHomeConfig -Raw
-    if ($env:USERNAME -ne "Hakan") {
-        $homeConfigContent = $homeConfigContent -replace [regex]::Escape($oldUserWin), $newUserWin
+if (Test-Path $ResolveClaudeConfigScript) {
+    $nodeCommand = if (Get-Command node -ErrorAction SilentlyContinue) {
+        (Get-Command node -ErrorAction SilentlyContinue).Source
+    } else {
+        "node"
     }
-    Set-Content -Path $homeConfig -Value $homeConfigContent -NoNewline
-    Write-Host "  .claude.json created." -ForegroundColor Green
+    & $pythonCmd $ResolveClaudeConfigScript `
+        --template $srcHomeConfig `
+        --target $homeConfig `
+        --dev-root $PortableDevRoot `
+        --node-command $nodeCommand
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to resolve portable .claude.json template"
+    }
+    Write-Host "  .claude.json resolved from portable template." -ForegroundColor Green
+} else {
+    throw "Missing helper script: $ResolveClaudeConfigScript"
 }
 
 # -- STEP 8: Memory files --
@@ -342,107 +375,45 @@ if ($env:USERNAME -ne "Hakan") {
 }
 Write-Host "  Memory copied ($newProjectKey)." -ForegroundColor Green
 
-# -- STEP 9: HakanMCP --
-Write-Step 9 $totalSteps "HakanMCP setup..."
+# -- STEP 9: Local MCP and dev projects --
+Write-Step 9 $totalSteps "Bootstrapping local MCP and dev projects..."
 
-if ($SkipHakanMCP) {
-    Write-Host "  HakanMCP skipped (-SkipHakanMCP)." -ForegroundColor Yellow
+# -- Dippy (git clone if not present) --
+$dippyDir = "$ClaudeDir\hooks\dippy"
+if (Test-Path $dippyDir) {
+    Write-Host "  [OK] Dippy already exists: $dippyDir" -ForegroundColor Green
 } else {
-    # -- Dippy (git clone if not present) --
-    $dippyDir = "$ClaudeDir\hooks\dippy"
-    if (Test-Path $dippyDir) {
-        Write-Host "  [OK] Dippy already exists: $dippyDir" -ForegroundColor Green
-    } else {
-        if ($gitOk -or (Get-Command git -ErrorAction SilentlyContinue)) {
-            Write-Host "  Cloning Dippy..." -ForegroundColor Cyan
-            try {
-                git clone https://github.com/ldayton/Dippy "$dippyDir" 2>&1 | Out-Null
-                Write-Host "  [OK] Dippy installed: $dippyDir" -ForegroundColor Green
-            } catch {
-                Write-Host "  [!!] Dippy clone failed: $_" -ForegroundColor Red
-                Write-Host "       Manual: git clone https://github.com/ldayton/Dippy $dippyDir" -ForegroundColor DarkGray
-            }
-        } else {
-            Write-Host "  [!!] Git not available, cannot clone Dippy." -ForegroundColor Yellow
-        }
-    }
-
-    # -- HakanMCP --
-    $mcpDir = "C:\dev\HakanMCP"
-    if (Test-Path $mcpDir) {
-        Write-Host "  [OK] HakanMCP exists: $mcpDir - checking for updates..." -ForegroundColor Cyan
+    if ($gitOk -or (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Host "  Cloning Dippy..." -ForegroundColor Cyan
         try {
-            Push-Location $mcpDir
-            $localHash = git rev-parse HEAD 2>$null
-            git fetch origin main --quiet 2>$null
-            $remoteHash = git rev-parse origin/main 2>$null
-            if ($localHash -ne $remoteHash -and $remoteHash) {
-                Write-Host "  Updates available. Pulling latest..." -ForegroundColor Cyan
-                git pull origin main --quiet 2>$null
-                Write-Host "  Running npm install..." -ForegroundColor Cyan
-                npm install 2>&1 | Out-Null
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Host "  [!!] npm install failed during update." -ForegroundColor Red
-                }
-                Write-Host "  Running npm run build..." -ForegroundColor Cyan
-                npm run build 2>&1 | Out-Null
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Host "  [!!] npm run build failed during update." -ForegroundColor Red
-                } else {
-                    Write-Host "  [OK] HakanMCP updated." -ForegroundColor Green
-                }
-            } else {
-                Write-Host "  [OK] HakanMCP is up to date." -ForegroundColor Green
-            }
-            # Ensure .env exists
-            if ((Test-Path "$mcpDir\.env.example") -and -not (Test-Path "$mcpDir\.env")) {
-                Copy-Item "$mcpDir\.env.example" "$mcpDir\.env"
-                Write-Host "  [OK] .env created from .env.example - configure API keys in $mcpDir\.env" -ForegroundColor Yellow
-            }
-            Pop-Location
+            git clone https://github.com/ldayton/Dippy "$dippyDir" 2>&1 | Out-Null
+            Write-Host "  [OK] Dippy installed: $dippyDir" -ForegroundColor Green
         } catch {
-            Pop-Location -ErrorAction SilentlyContinue
-            Write-Host "  [!!] HakanMCP update check failed: $_" -ForegroundColor Yellow
-            Write-Host "       Existing installation preserved." -ForegroundColor DarkGray
+            Write-Host "  [!!] Dippy clone failed: $_" -ForegroundColor Red
+            Write-Host "       Manual: git clone https://github.com/ldayton/Dippy $dippyDir" -ForegroundColor DarkGray
         }
     } else {
-        if ($gitOk -or (Get-Command git -ErrorAction SilentlyContinue)) {
-            Write-Host "  Cloning HakanMCP..." -ForegroundColor Cyan
-            try {
-                if (-not (Test-Path "C:\dev")) {
-                    New-Item -ItemType Directory -Path "C:\dev" -Force | Out-Null
-                }
-                git clone https://github.com/sudohakan/HakanMCP.git $mcpDir 2>&1 | Out-Null
-                Push-Location $mcpDir
-                Write-Host "  Running npm install..." -ForegroundColor Cyan
-                npm install 2>&1 | Out-Null
-                if ($LASTEXITCODE -ne 0) {
-                    Pop-Location
-                    throw "npm install failed"
-                }
-                Write-Host "  Running npm run build..." -ForegroundColor Cyan
-                npm run build 2>&1 | Out-Null
-                if ($LASTEXITCODE -ne 0) {
-                    Pop-Location
-                    throw "npm run build failed"
-                }
-                Pop-Location
-                Write-Host "  [OK] HakanMCP installed: $mcpDir" -ForegroundColor Green
-                # Setup .env from example
-                if ((Test-Path "$mcpDir\.env.example") -and -not (Test-Path "$mcpDir\.env")) {
-                    Copy-Item "$mcpDir\.env.example" "$mcpDir\.env"
-                    Write-Host "  [OK] .env created from .env.example - configure API keys in $mcpDir\.env" -ForegroundColor Yellow
-                }
-            } catch {
-                Pop-Location -ErrorAction SilentlyContinue
-                Write-Host "  [!!] HakanMCP installation failed: $_" -ForegroundColor Red
-                Write-Host "       Manual: git clone https://github.com/sudohakan/HakanMCP.git C:\dev\HakanMCP" -ForegroundColor DarkGray
-            }
-        } else {
-            Write-Host "  [!!] Git not available, cannot clone HakanMCP." -ForegroundColor Yellow
-        }
+        Write-Host "  [!!] Git not available, cannot clone Dippy." -ForegroundColor Yellow
     }
 }
+
+if (-not (Test-Path $DevRoot)) {
+    New-Item -ItemType Directory -Path $DevRoot -Force | Out-Null
+}
+
+if (-not (Test-Path $ManifestPath)) {
+    throw "Missing manifest: $ManifestPath"
+}
+if (-not (Test-Path $BootstrapScript)) {
+    throw "Missing helper script: $BootstrapScript"
+}
+
+Write-Host "  Bootstrapping manifest-defined projects under $DevRoot..." -ForegroundColor Cyan
+& $pythonCmd $BootstrapScript --manifest $ManifestPath --dev-root $DevRoot
+if ($LASTEXITCODE -ne 0) {
+    throw "Local project bootstrap failed"
+}
+Write-Host "  [OK] Local MCP and dev project bootstrap complete." -ForegroundColor Green
 
 # -- STEP 10: Plugins --
 Write-Step 10 $totalSteps "Installing plugins..."
@@ -549,6 +520,10 @@ $checks = @(
     @{ Name = "Python";      Ok = (Get-Command python -ErrorAction SilentlyContinue) -or (Get-Command python3 -ErrorAction SilentlyContinue) },
     @{ Name = "Claude CLI";  Ok = (Get-Command claude -ErrorAction SilentlyContinue) },
     @{ Name = "HakanMCP";    Ok = (Test-Path "C:\dev\HakanMCP\dist\src\index.js") },
+    @{ Name = "gtasks-mcp";  Ok = (Test-Path "C:\dev\gtasks-mcp\dist\index.js") },
+    @{ Name = "infoset-mcp"; Ok = (Test-Path "C:\dev\infoset-mcp\src\mcp-server.mjs") },
+    @{ Name = "kali-mcp";    Ok = (Test-Path "C:\dev\kali-mcp\docker-compose.yml") },
+    @{ Name = "pentest-framework"; Ok = (Test-Path "C:\dev\pentest-framework\templates") },
     @{ Name = "Config";      Ok = (Test-Path "$ClaudeDir\settings.json") },
     @{ Name = "Hooks";       Ok = (Test-Path "$ClaudeDir\hooks\pretooluse-safety.js") },
     @{ Name = "GSD";         Ok = (Test-Path "$ClaudeDir\get-shit-done\VERSION") },

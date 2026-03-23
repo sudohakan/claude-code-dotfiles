@@ -1,5 +1,8 @@
 # Contributing to claude-code-dotfiles
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](README.md#portable-local-dependencies)
+
 > Thank you for your interest in contributing!
 > This guide covers everything you need to get started.
 > For installation, see [SETUP](SETUP.md). For security policy, see [SECURITY](SECURITY.md).
@@ -52,16 +55,16 @@ git checkout -b feat/your-feature-name
 ```mermaid
 flowchart TD
     A["install.ps1 / install.sh"] --> B["Copy config/ to ~/.claude/"]
-    B --> C["Replace username in paths"]
-    C --> D["Install npm dependencies"]
-    D --> E["Clone HakanMCP"]
-    E --> F["Install Claude plugins"]
-    F --> G["Run verification checks"]
-    G --> H["Installation complete"]
+    B --> C["Resolve portable ~/.claude.json template"]
+    C --> D["Bootstrap manifest-defined local projects"]
+    D --> E["Install Claude plugins"]
+    E --> F["Run verification checks"]
+    F --> G["Installation complete"]
 ```
 
 > **Important:** Files in `config/` become `~/.claude/` after installation.
 > Always test changes by running the installer locally.
+> If markdown mentions local companion projects like `HakanMCP`, `gtasks-mcp`, `infoset-mcp`, `kali-mcp`, or `pentest-framework`, refresh link blocks with `python scripts/link_project_mentions.py --root .`.
 
 ### 4. Local Testing Setup
 

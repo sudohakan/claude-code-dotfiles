@@ -1,6 +1,9 @@
 <!-- last_updated: 2026-03-20 -->
 # On-Demand MCP Server Catalog
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 The on-demand MCP catalog is now built into HakanMCP itself at `src/catalog/servers.json`. No separate documentation file is needed.
 
 ## Usage

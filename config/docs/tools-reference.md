@@ -1,6 +1,9 @@
 <!-- last_updated: 2026-03-15 -->
 # Advanced Toolset
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 ## Claude Squad — Multi-Agent Orchestration
 **TUI:** Interactive agent management with the `cs` command (used by the user).
 **Programmatic spawn:** Agents can launch isolated Claude Code instances via `cs-spawn.sh`.

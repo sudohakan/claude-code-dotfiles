@@ -27,6 +27,11 @@ projects/
 archive/
 homunculus/
 scripts/
+!scripts/
+scripts/*
+!scripts/bootstrap_dev_projects.py
+!scripts/resolve_claude_config.py
+!scripts/link_project_mentions.py
 todos/
 browser-last.json
 hook-approvals.log
