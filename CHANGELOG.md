@@ -3,6 +3,24 @@
 
 **Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](README.md#portable-local-dependencies)
 
+## [3.5.0] - 2026-03-23
+
+### Added
+- Portable `plugin-profiles.json` sync so marketplace/plugin policy is reproduced on fresh machines alongside the rest of the Claude config
+- Repo-level `.gitattributes` policy to keep installer, sync, and embedded skill shell scripts in LF format for Bash-compatible installs
+- Additional pentest architecture and capability docs synced into dotfiles for the release-grade offensive security workflow
+
+### Changed
+- Browser automation defaults now route through [HakanMCP](https://github.com/sudohakan/HakanMCP) browser wrappers instead of the direct Claude Playwright plugin
+- `install.ps1` and `install.sh` no longer install the standalone Playwright plugin; they provision the HakanMCP browser bridge path instead
+- Root docs, command docs, MCP usage docs, and pentest playbooks now describe the HakanMCP-first browser model and fallback boundaries
+- Reverse sync now carries the browser bridge policy, plugin metadata, and portable MCP/browser config cleanly into the repo snapshot
+
+### Fixed
+- Bash syntax validation now passes across all tracked `.sh` files in the repo after LF normalization
+- Dotfiles sharing no longer risks drift between live Claude browser policy and the published repo copy
+- Installer/readme guidance now matches the actual low-token browser workflow used in the live setup
+
 ## [3.4.0] - 2026-03-23
 
 ### Added
