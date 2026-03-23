@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-13 -->
 # Agent Favorites
 
 Use `~/.claude/teams/favorites.json` as the lightweight shortlist for common team creation.

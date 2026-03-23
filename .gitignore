@@ -28,6 +28,10 @@ archive/
 homunculus/
 scripts/
 todos/
+browser-last.json
+hook-approvals.log
+dippy-statusline.log
+*.log
 
 # Dippy hook (cloned separately, not part of dotfiles template)
 config/hooks/dippy/

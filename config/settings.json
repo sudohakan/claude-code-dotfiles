@@ -3,7 +3,8 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ENABLE_SECURITY_REMINDER": "0",
-    "ECC_HOOK_PROFILE": "strict"
+    "ECC_HOOK_PROFILE": "strict",
+    "ENABLE_AUTOFORMAT": "0"
   },
   "hooks": {
     "SessionStart": [
@@ -11,19 +12,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" rotate-hook-approvals.js"
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" rotate-hook-approvals.js",
+            "timeout": 10000
           },
           {
             "type": "command",
-            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" retention-cleanup.js"
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" retention-cleanup.js",
+            "timeout": 10000
           },
           {
             "type": "command",
-            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" hook-health-check.js"
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" hook-health-check.js",
+            "timeout": 10000
           },
           {
             "type": "command",
-            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" team-active-reminder.js"
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" team-active-reminder.js",
+            "timeout": 10000
           },
           {
             "type": "command",
@@ -64,6 +69,28 @@
           {
             "type": "command",
             "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" task-completed-check.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" posttooluse-lint-format.js",
+            "timeout": 20000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{spawnSync:s}=require('child_process'),p=require('path').join(require('os').homedir(),'.claude','hooks',process.argv[1]),r=s(process.execPath,[p],{stdio:'inherit'});process.exit(r.status||0)\" mcp-health-check.js",
+            "timeout": 15000
           }
         ]
       }

@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-13 -->
 # Plan Naming
 
 Use a predictable file naming scheme for ad hoc plans stored under `~/.claude/plans/`.

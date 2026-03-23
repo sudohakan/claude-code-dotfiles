@@ -114,7 +114,7 @@ If `az` command fails (not logged in, expired), inform user: "Azure CLI login ge
 POST https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/wiql?api-version=7.1
 
 {
-  "query": "SELECT [System.Id] FROM WorkItems WHERE [System.IterationPath] UNDER 'Fin_Dev26' AND [System.AssignedTo] = @me AND [System.State] <> 'Closed' ORDER BY [System.ChangedDate] DESC"
+  "query": "SELECT [System.Id] FROM WorkItems WHERE [System.IterationPath] UNDER 'Fin_Dev26' AND [System.AssignedTo] = @me AND [System.State] <> 'Closed' AND [System.State] <> 'Prod Test' AND [System.State] <> 'Test' AND [System.State] <> 'Review' ORDER BY [System.ChangedDate] DESC"
 }
 ```
 
@@ -134,7 +134,7 @@ If more than 200 IDs, split into batches and fetch sequentially.
 |-------|-------|
 | `System.Id` | Work item ID |
 | `System.Title` | Title |
-| `System.State` | Status (New, On Hold, Deployment, Prod Test, Review) |
+| `System.State` | Status (New, Active, On Hold, Test, Review, Deployment, Prod Test, Closed) |
 | `System.WorkItemType` | Task or Bug |
 | `System.IterationPath` | Sprint (e.g., `Fin_Dev26\Sprint6`) |
 | `System.AreaPath` | Module (e.g., `Fin_Dev26\TÖS`) |
@@ -157,6 +157,17 @@ If more than 200 IDs, split into batches and fetch sequentially.
 | Relations | Related/parent work items (from `$expand=all`) |
 
 Save as `currentDevOpsItems`.
+
+#### Attachment & inline image analysis (DevOps + Infoset)
+
+For both DevOps and Infoset items, parse all text fields for inline images and attachments. Download and analyze each image — they often contain screenshots showing the exact bug, expected behavior, or UI context. This visual context is critical for accurate task categorization and description generation.
+
+**DevOps:** Parse `ReproSteps`, `Description`, and comment text for `<img src=".../_apis/wit/attachments/...">`.
+```bash
+curl -s -H "Authorization: Bearer {token}" "{attachment_url}" -o /tmp/work-sync-{id}-{index}.png
+```
+
+**Infoset:** Parse ticket description, comments, and logs for image URLs or attachment references. Download any linked images/screenshots.
 
 #### Discussion/Comments fetch (for matching)
 
@@ -229,6 +240,25 @@ Report counts: `NEW={n}, UPDATED={n}, CLOSED={n}, REOPENED={n}, SKIP={n}`
 
 If `--dry-run` and no NEW/UPDATED/CLOSED → report "No changes" and stop.
 
+**`--dry-run` diff table format (show before asking confirmation):**
+```
+=== Work Sync Dry Run ===
+
+| Kaynak          | NEW | UPDATED | CLOSED | SKIP |
+|-----------------|-----|---------|--------|------|
+| Infoset         |   3 |       2 |      1 |    8 |
+| DevOps          |   5 |       4 |      0 |   12 |
+| Work Plan       |   7 |       4 |      1 |   —  |
+
+Toplam Google Tasks yazımı: {n} create, {n} update, {n} complete
+Toplam Calendar yazımı: {n} create, {n} update, {n} delete
+
+Devam edilsin mi? (y/n)
+```
+
+If user confirms → proceed with Google writes (Steps 7-8).
+If user declines → skip Google writes, still generate DOCX report and terminal summary.
+
 ---
 
 ### Step 4: Unified Analysis (2-Pass)
@@ -278,22 +308,22 @@ For EVERY work item (from both sources), produce:
 |-------|-------------|
 | `workPlanId` | `wp-M{infosetId}` for matched, `wp-I{infosetId}` for Infoset-only, `wp-D{devopsId}` for DevOps-only |
 | `source` | `"infoset"`, `"devops"`, `"both"` |
-| `category` | Infoset: from content analysis (Odeme Hatasi, Entegrasyon Sorunu, Fatura Talebi, Teknik Ariza, Modul Hatasi, API Sorunu, Kullanici Yonetimi, Raporlama, Performans, Guvenlik, Genel Destek, Diger). DevOps: from AreaPath + content analysis |
-| `priority_score` | 1-100, unified scoring (see below) |
-| `effort_hours` | DevOps `Custom.EstimateTime` if available, else Claude estimate (0.5-8 hours) |
-| `action_summary` | What needs to be done (Turkish, 2-3 sentences) |
+| `category` | Infoset: from content analysis (Odeme Hatasi, Entegrasyon Sorunu, Fatura Talebi, Teknik Ariza, Modul Hatasi, API Sorunu, Kullanici Yonetimi, Raporlama, Performans, Guvenlik, Genel Destek, Diger). DevOps: from AreaPath + content |
+| `priorityScore` | 1-100, unified scoring (see below) |
+| `effortHours` | DevOps `Custom.EstimateTime` if available, else Claude estimate (see Effort Estimation Guide below) |
+| `actionSummary` | What needs to be done (Turkish, 2-3 sentences) |
 | `title` | `{emoji} [{score}] {company_or_module} - {subject} (#{primary_id})` |
 | `tier` | 1 (Acil), 2 (Bu hafta), 3 (Backlog) |
-| `waiting_party` | Combined assessment from Infoset activity + DevOps state |
+| `waitingParty` | Combined assessment from Infoset activity + DevOps state |
 | `customer` | Company name (from Infoset or DevOps title/AreaPath) |
-| `devops_state` | DevOps state if available |
+| `devopsState` | DevOps state if available |
 | `sprint` | Sprint name if available (from `System.IterationPath`) |
-| `infoset_id` | Infoset ticket ID if available |
-| `devops_id` | Primary DevOps work item ID if available |
-| `devops_ids` | All linked DevOps IDs (array) |
-| `age_days` | Days since creation (earliest creation date if matched) |
-| `sprints_carried` | Derived from current sprint number minus item's sprint number. E.g., item in Sprint3, current Sprint6 → carried 3 sprints. Uses `System.IterationPath` only. Items without sprint → 0. |
-| `needs_codebase_check` | true/false (from content analysis) |
+| `infosetId` | Infoset ticket ID if available |
+| `devopsId` | Primary DevOps work item ID if available |
+| `devopsIds` | All linked DevOps IDs (array) |
+| `ageDays` | Days since creation (earliest creation date if matched) |
+| `sprintsCarried` | Derived from current sprint number minus item's sprint number. E.g., item in Sprint3, current Sprint6 → carried 3 sprints. Uses `System.IterationPath` only. Items without sprint → 0. |
+| `needsCodebaseCheck` | true/false (from content analysis) |
 
 **Title format:**
 ```
@@ -315,11 +345,14 @@ For EVERY work item (from both sources), produce:
 
 **For DevOps items:**
 Derive from `System.State`:
-- New → "Bizde bekliyor"
+- New → "Bizde bekliyor" (yeni gelmiş iş)
+- Active → "Üzerinde çalışılıyor" (aktif geliştirme)
 - On Hold → "Bloke" (add reason from description if available)
-- Deployment → "Deploy bekliyor"
-- Prod Test → "Müşteri testi bekliyor"
-- Review → "Code review bekliyor"
+- Test → listeye dahil edilmez (sorumluluğumda değil, tester farklı kişi)
+- Review → listeye dahil edilmez (sorumluluğumda değil, PR açılmış)
+- Deployment → "Deploy bekliyor" (taşınması gerekiyor)
+- Prod Test → listeye dahil edilmez (benden çıkmış, sorun olursa tekrar açılır)
+- Closed → listeye dahil edilmez (tamamlanmış)
 
 **For matched items:** Combine both waiting parties into a single coherent assessment. If Infoset says "Müşteride bekliyor" but DevOps says "Bizde bekliyor" (e.g., code side still needs work), use "Bizde bekliyor" (take the more actionable one).
 
@@ -376,9 +409,9 @@ All weights are additive. Cap at 100.
 - DevOps Priority 0 (Critical): +15
 - DevOps Priority 1 (High): +10
 - DevOps Severity 1-Critical: +20, 2-High: +10
+- State = New (yeni iş, aksiyon gerekiyor): +10
+- State = Active (üzerinde çalışılıyor): +5
 - State = Deployment (code ready, needs deploy): +20
-- State = Prod Test (deployed, needs verification): +15
-- State = Review (code review pending): +15
 - State = On Hold (blocked): +5
 - Sprint overdue (task in older sprint than current): +15
 - Has deadline/termin (from description parsing): +20 if <5 days, +10 if <10 days
@@ -395,6 +428,94 @@ When Infoset ticket AND DevOps task are matched, take the HIGHER score from each
 - 70+ → Tier 1 (Acil)
 - 50-69 → Tier 2 (Bu hafta)
 - <50 → Tier 3 (Backlog)
+
+#### Effort Estimation Guide
+
+**Priority:** DevOps `Custom.EstimateTime` ALWAYS takes precedence over Claude estimates. If available, use the DevOps value directly. Only estimate when `Custom.EstimateTime` is null/0.
+
+**Claude estimation approach (when no DevOps estimate exists):**
+
+DO NOT use a fixed category→hours lookup table. Instead, analyze each item individually by following this process:
+
+**Step 1 — Understand what needs to be done:**
+- Read the ticket/task description, repro steps, and comments carefully
+- Identify the specific technical change required (which files, modules, services)
+- If the Finekra codebase is accessible, check the relevant code to understand scope
+- Determine if this is a fix (changing existing behavior) or new work (adding behavior)
+
+**Step 2 — Assess complexity factors (consider ALL of these):**
+- **Familiarity:** Is this a known pattern in the codebase, or first-time territory? First encounters with unfamiliar modules/APIs take longer.
+- **Scope:** How many files/modules/services are affected? Single-file fix vs cross-module change.
+- **Customer-specific config:** Does the customer have special configuration, custom mappings, or unique setup that needs investigation?
+- **Environment:** Is this a prod-only issue (requires careful testing, staged rollout) or reproducible in dev?
+- **Dependencies:** Does the fix depend on external parties (bank API, ERP vendor, customer IT)?
+- **Testing effort:** Can this be tested with unit tests, or does it require end-to-end verification with real data?
+- **Investigation needed:** Is the root cause known, or does it require debugging/log analysis first?
+- **Risk level:** Could the fix break other things? High-risk changes need more testing time.
+
+**Step 3 — Reference previous similar work:**
+- Check `state.json` for previously estimated items with similar characteristics
+- If a similar task was estimated at X hours before, use that as baseline
+- DevOps `Custom.EstimateTime` from related work items is a strong signal
+
+**Step 4 — Produce estimate:**
+- Estimate total hours including: investigation + implementation + testing + deployment preparation
+- Round UP to nearest 0.5h
+- Range: 0.5h (trivial config change) to 8h (major feature/integration)
+- When uncertain, estimate higher — finishing early is better than overrunning
+
+**Estimation signals (not rules, just signals to inform judgment):**
+- Config/constant change with known location → likely 0.5-1h
+- Single-file bug fix with clear repro → likely 1-2h
+- Multi-file fix or new validation logic → likely 2-3h
+- New integration or API endpoint → likely 3-5h
+- Full module/screen development → likely 5-8h
+- Lokal kurulum/taşıma (environment setup) → likely 6-8h
+- But ALWAYS override these with actual analysis of the specific item
+
+**Mapping effort to calendar slots:**
+
+| Effort | Slot usage |
+|--------|-----------|
+| 0.5h | Partial slot — 30 min of current slot, remainder available |
+| 1h | Slot 1 (09:30-10:30) fully, or partial of a larger slot |
+| 2h | Slot 2 (10:50-12:30) fully, or Slot 3 partially |
+| 3h | Slot 2 (100 min) + part of Slot 3 (80 min) |
+| 4h | Slot 2 (100 min) + Slot 3 (140 min) |
+| 5-6h | Slots 2+3+4 (355 min) |
+| 7-8h | Full day (415 min) + overflow to next day |
+
+**Rules:**
+- Round UP to nearest 0.5h (no 45-minute estimates)
+- Always write effort source in notes: "(DevOps)" or "(tahmini)"
+- If DevOps estimate exists but differs from Claude estimate by >50%, use DevOps estimate and note the discrepancy in analysis
+- The estimate must reflect the TOTAL time including investigation, not just coding
+
+#### Step 4b-extra: Write Effort Estimates Back to DevOps
+
+After effort estimation is complete, for each DevOps work item where `Custom.EstimateTime` is null/0, write the Claude estimate back to DevOps:
+
+```
+PATCH https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/workitems/{id}?api-version=7.1
+Content-Type: application/json-patch+json
+Authorization: Bearer {accessToken}
+
+[
+  {
+    "op": "add",
+    "path": "/fields/Custom.EstimateTime",
+    "value": {effortHours}
+  }
+]
+```
+
+**Rules:**
+- Only write when `Custom.EstimateTime` is null or 0 — NEVER overwrite existing estimates
+- Use the same Bearer token from Step 1b authentication
+- Log each update: "DevOps #{id} EstimateTime → {effortHours}s (tahmini)"
+- If the PATCH fails (403, 404, etc.), log warning and continue — do not stop the sync
+- Track updated IDs in terminal summary: "{n} DevOps iş için efor tahmini yazıldı"
+- This step runs AFTER analysis Pass 1 but BEFORE Pass 2 (so Pass 2 sees consistent data)
 
 #### Step 4c: Pass 2 — Self-Review
 
@@ -419,7 +540,7 @@ Merge all items into a single deduplicated list:
 1. Start with matched pairs → single entry per pair (keyed as `wp-M{infosetId}`)
 2. Add unmatched Infoset tickets (keyed as `wp-I{infosetId}`)
 3. Add unmatched DevOps items (keyed as `wp-D{devopsId}`)
-4. Sort by `priority_score` descending
+4. Sort by `priorityScore` descending
 
 This is the **Work Plan** — single source of truth for calendar planning and capacity calculation.
 
@@ -439,7 +560,7 @@ This is the **Work Plan** — single source of truth for calendar planning and c
 4. 15:50-17:45 (115 min)
 **Net work per day:** 415 min (6h 55min)
 
-**Planning horizon:** 10 business days from NOW (current date AND time).
+**Planning horizon:** 20 business days (4 weeks / 2 sprints) from NOW (current date AND time). All items MUST be scheduled — never leave items unplanned due to horizon limit.
 
 **Current time awareness:**
 When planning slots, check the current time in Europe/Istanbul:
@@ -475,12 +596,12 @@ Dini bayramlar (her yıl değişir — Ramazan Bayramı 3 gün + arife yarım g�
 - Bayram günleri: TAM TATİL, hiçbir şey planlanmaz
 - Check EVERY candidate date against both fixed and dini bayram tarihleri before scheduling
 
-**Fetch existing events:**
+**Fetch existing events (must cover full 20 business day horizon = ~30 calendar days):**
 ```
 mcp__claude_ai_Google_Calendar__gcal_list_events:
   calendarId: "primary"
   timeMin: "{today}T00:00:00"
-  timeMax: "{today+14days}T23:59:59"
+  timeMax: "{today+30days}T23:59:59"
   timeZone: "Europe/Istanbul"
   maxResults: 250
 ```
@@ -488,11 +609,11 @@ mcp__claude_ai_Google_Calendar__gcal_list_events:
 **Algorithm:**
 1. Build free slots per day (canonical slots minus non-sync existing events)
 2. **Company grouping:** Before slot assignment, group items by `customer` (company name). When multiple items share the same company, treat them as a single scheduling block:
-   - Block priority = highest `priority_score` among the group
+   - Block priority = highest `priorityScore` among the group
    - Block effort = sum of all item efforts in the group
-   - Within the block, order items by `priority_score` descending
+   - Within the block, order items by `priorityScore` descending
    - **DevOps-only items with no extractable company** are treated as individual items (no grouping), NOT grouped under a null bucket
-3. Sort ALL blocks/items by priority_score descending
+3. Sort ALL blocks/items by priorityScore descending
 4. For each block/item: place into earliest free slot(s), ensuring all items in a company group are scheduled in **adjacent slots on the same day**
 5. If a company block's total effort doesn't fit in the remaining day slots, schedule as many as possible together and overflow the rest to the next available day — but always keep same-company items adjacent
 6. If effort > single slot → split across multiple slots
@@ -502,7 +623,7 @@ mcp__claude_ai_Google_Calendar__gcal_list_events:
 
 **Full re-plan trigger conditions:**
 A FULL re-plan (delete all sync events, re-assign from scratch) is triggered when ANY of these are true:
-1. **UPDATED items** — an item's `priority_score` or `effort_hours` changed compared to state
+1. **UPDATED items** — an item's `priorityScore` or `effortHours` changed compared to state
 2. **Past-due events** — any sync event in state has `scheduledDate` before today AND the item is still active (not CLOSED)
 3. **NEW items** — new items were found that need to be scheduled among existing ones
 4. **CLOSED items** — closed item events freed up slots that should be reclaimed
@@ -516,7 +637,8 @@ When a full re-plan triggers:
    a. List ALL tasks in each list ("DevOps Tasks", "Infoset Tickets", "Work Plan") via `mcp__gtasks-mcp__list`
    b. Delete EVERY existing task in each list via `mcp__gtasks-mcp__delete` — this is a HARD CLEANUP
    c. The task lists should contain ONLY the tasks created in the current sync run, nothing else
-4. Re-plan ALL active Work Plan items from scratch — sort by priority_score descending, assign to earliest available slots starting from NOW (never schedule in the past)
+   d. **NEVER delete or recreate the task LISTS themselves** — only delete the TASKS inside them. Deleting and recreating lists changes their order in Google Tasks UI. Use `mcp__gtasks-mcp__delete` for individual tasks, NEVER `mcp__gtasks-mcp__delete-tasklist`.
+4. Re-plan ALL active Work Plan items from scratch — sort by priorityScore descending, assign to earliest available slots starting from NOW (never schedule in the past)
 5. Create new calendar events for ALL active items
 6. **Create ALL Google Tasks from scratch** in all 3 lists — for EVERY active item:
    - Always use `mcp__gtasks-mcp__create` (not update) — since old tasks were deleted
@@ -702,7 +824,7 @@ mcp__claude_ai_Google_Calendar__gcal_create_event:
   sendUpdates: "none"
   event:
     summary: "{emoji} [{score}] {company_or_module} - {subject} (#{primary_id})"
-    description: "{action_summary}\n\n{Infoset URL if available}\n{DevOps URL if available}"
+    description: "{actionSummary}\n\n{Infoset URL if available}\n{DevOps URL if available}"
     start: {dateTime: "{slot.start}", timeZone: "Europe/Istanbul"}
     end: {dateTime: "{slot.end}", timeZone: "Europe/Istanbul"}
     colorId: "{colorId}"
@@ -742,7 +864,7 @@ mcp__claude_ai_Google_Calendar__gcal_create_event:
   sendUpdates: "none"
   event:
     summary: "{emoji} [{score}] {company_or_module} - {subject} (#{primary_id})"
-    description: "{action_summary}\n\n{URLs}"
+    description: "{actionSummary}\n\n{URLs}"
     start: {dateTime: "{slot.start}", timeZone: "Europe/Istanbul"}
     end: {dateTime: "{slot.end}", timeZone: "Europe/Istanbul"}
     colorId: "{colorId}"
@@ -782,6 +904,9 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
       "actionSummary": "...",
       "waitingParty": "...",
       "customer": "Özçete",
+      "ageDays": 15,
+      "sprintsCarried": 2,
+      "needsCodebaseCheck": false,
       "googleTaskId_workPlan": "...",
       "googleTaskUri_workPlan": "...",
       "googleTaskId_infoset": "...",
@@ -813,6 +938,9 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
       "actionSummary": "...",
       "waitingParty": "...",
       "customer": "...",
+      "ageDays": 8,
+      "sprintsCarried": 0,
+      "needsCodebaseCheck": true,
       "googleTaskId_workPlan": "...",
       "googleTaskUri_workPlan": "...",
       "googleTaskId_infoset": "...",
@@ -844,6 +972,9 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
       "actionSummary": "...",
       "waitingParty": "Bizde bekliyor",
       "customer": null,
+      "ageDays": 22,
+      "sprintsCarried": 1,
+      "needsCodebaseCheck": false,
       "googleTaskId_workPlan": "...",
       "googleTaskUri_workPlan": "...",
       "googleTaskId_infoset": null,
@@ -903,41 +1034,216 @@ Increment `totalSyncs` from previous value. Set `lastSyncStatus` to `"success"` 
 Prepare a JSON payload with all analysis data and pipe it to the Python report generator:
 
 ```bash
-python3 /mnt/c/dev/infoset-mcp/scripts/generate-report.py <<'JSONEOF'
+python3 /mnt/c/dev/infoset-mcp/scripts/generate-report.py "/mnt/c/Users/Hakan/Documents/WorkSync/work-sync-{YYYY-MM-DD}.docx" <<'JSONEOF'
 {full analysis JSON payload}
 JSONEOF
 ```
 
-**JSON payload structure:**
-```json
-{
-  "syncDate": "2026-03-20",
-  "summary": {
-    "infosetTickets": 23,
-    "devopsTasks": 29,
-    "matched": 5,
-    "workPlanItems": 47,
-    "tier1Count": 5,
-    "tier2Count": 12,
-    "tier3Count": 30,
-    "totalEffortHours": 62,
-    "thisWeekCapacityPercent": 89,
-    "nextWeekCapacityPercent": 110
-  },
-  "matching": {
-    "matched": [...],
-    "infosetOnly": [...],
-    "devopsOnly": [...]
-  },
-  "workPlan": [...],
-  "customerCrossView": {...},
-  "weeklyCapacity": {...},
-  "trendAging": {...},
-  "duplicates": [...],
-  "actionItems": {...},
-  "syncResults": {...}
+The script reads JSON from stdin and writes the DOCX to the path given as the first positional argument. Create the output directory first if it does not exist:
+```bash
+mkdir -p "/mnt/c/Users/Hakan/Documents/WorkSync"
+```
+
+**CRITICAL — JSON payload MUST contain ALL fields with REAL data. The DOCX script renders empty sections if any field is missing or contains empty arrays/objects. Build the payload AFTER analysis is complete, using the actual analysis results — never use placeholder values.**
+
+**JSON payload construction — use this Python template to build from state/analysis data:**
+
+```python
+import json
+from datetime import datetime, timedelta
+from collections import defaultdict
+
+# Inputs — these are the actual objects from the sync session:
+# state = loaded state.json after analysis (dict)
+# items = state['workItems'] (dict of workPlanId → item)
+# matching = state['matching'] (dict with 'matched', 'infosetOnly', 'devopsOnly')
+# sync_date = datetime.now().strftime('%Y-%m-%d')  (str)
+# change_counts = {'new_infoset': N, 'new_devops': N, ...}  (dict — from Step 3)
+# duplicates_found = [...]  (list — from Pass 2 duplicate detection)
+
+# Count sources
+infoset_count = sum(1 for v in items.values() if v.get('source') in ('infoset', 'both'))
+devops_count = sum(1 for v in items.values() if v.get('source') in ('devops', 'both'))
+matched_count = len(matching.get('matched', []))
+
+# Build tier lists — EVERY item must be in exactly one tier
+tiers = {1: [], 2: [], 3: []}
+for wpid, v in items.items():
+    tier = v.get('tier', 3)
+    item_score = v.get('priorityScore', 0)
+    emoji = '🔴' if item_score>=80 else '🟠' if item_score>=60 else '🟡' if item_score>=40 else '🔵' if item_score>=20 else '⚪'
+    tiers[tier].append({
+        'id': wpid,
+        'title': f"{v.get('customer','') or ''} - {v.get('subject','')}",
+        'source': v.get('source',''),
+        'state': v.get('devopsState','') or v.get('status',''),
+        'score': item_score,
+        'effort': v.get('effortHours', 1),
+        'customer': v.get('customer',''),
+        'sprint': v.get('sprint','—') or '—',
+        'waiting': v.get('waitingParty',''),
+        'emoji': emoji,
+        'actionSummary': v.get('actionSummary', ''),
+        'ageDays': v.get('ageDays', 0),
+        'sprintsCarried': v.get('sprintsCarried', 0)
+    })
+
+# Build customer cross-view — group ALL items by customer
+cust_view = defaultdict(lambda: {'infoset': [], 'devops': [], 'totalEffort': 0, 'highestScore': 0})
+for wpid, v in items.items():
+    cust = v.get('customer') or 'Bilinmeyen'
+    src = v.get('source', '')
+    item_score = v.get('priorityScore', 0)
+    entry = {
+        'id': v.get('infosetId') or v.get('devopsId') or wpid,
+        'subject': v.get('subject',''),
+        'category': v.get('category',''),
+        'ageDays': v.get('ageDays', 0),
+        'state': v.get('devopsState','') or v.get('status',''),
+        'sprint': v.get('sprint','—') or '—',
+        'actionSummary': v.get('actionSummary', '')
+    }
+    if src in ('infoset', 'both'):
+        cust_view[cust]['infoset'].append(entry)
+    if src in ('devops', 'both'):
+        cust_view[cust]['devops'].append(entry)
+    cust_view[cust]['totalEffort'] += v.get('effortHours', 1)
+    cust_view[cust]['highestScore'] = max(cust_view[cust]['highestScore'], item_score)
+
+# Build capacity weeks — 4 weeks covering the 20 business day planning horizon
+total_effort = sum(v.get('effortHours', 1) for v in items.values())
+weekly_cap = 34.5  # 5 days x 6h55m
+
+# Group scheduled items by week
+from collections import Counter
+week_effort = Counter()
+for v in items.values():
+    sd = v.get('scheduledDate')
+    if sd:
+        d = datetime.strptime(sd, '%Y-%m-%d')
+        week_num = d.isocalendar()[1]
+        week_effort[week_num] += v.get('effortHours', 1)
+
+# Build week labels for the next 4 weeks starting from sync_date
+today = datetime.strptime(sync_date, '%Y-%m-%d')
+capacity_weeks = []
+for w in range(4):
+    week_start = today + timedelta(days=7 * w - today.weekday())  # Monday of each week
+    week_end = week_start + timedelta(days=4)  # Friday
+    wn = week_start.isocalendar()[1]
+    planned = round(week_effort.get(wn, 0), 1)
+    util = round((planned / weekly_cap) * 100) if weekly_cap > 0 else 0
+    capacity_weeks.append({
+        'label': f"Hafta {wn} ({week_start.strftime('%d.%m')}-{week_end.strftime('%d.%m')})",
+        'available': weekly_cap,
+        'planned': planned,
+        'utilization': f"{util}%"
+    })
+
+capacity_this_week = capacity_weeks[0]['utilization'] if capacity_weeks else '0%'
+capacity_next_week = capacity_weeks[1]['utilization'] if len(capacity_weeks) > 1 else '0%'
+
+# Determine current sprint dynamically from IterationPath values
+current_sprint = None
+for v in items.values():
+    sprint = v.get('sprint', '') or ''
+    if 'Sprint' in sprint:
+        sprint_num = int(''.join(c for c in sprint if c.isdigit()) or '0')
+        if current_sprint is None or sprint_num > current_sprint:
+            current_sprint = sprint_num
+current_sprint_name = f"Sprint{current_sprint}" if current_sprint else None
+
+# Build sprint carry-over
+sprint_carry = defaultdict(lambda: {'count': 0, 'note': ''})
+for v in items.values():
+    sprint = v.get('sprint','') or ''
+    if 'Sprint' in sprint and sprint != current_sprint_name:
+        sprint_carry[sprint]['count'] += 1
+
+# Build age distribution
+age_dist = {'over60': 0, '30to60': 0, '14to30': 0, 'under14': 0}
+for v in items.values():
+    age = v.get('ageDays', 0)
+    if age > 60: age_dist['over60'] += 1
+    elif age > 30: age_dist['30to60'] += 1
+    elif age > 14: age_dist['14to30'] += 1
+    else: age_dist['under14'] += 1
+
+# Build top actions — Tier 1 items sorted by score, top 5
+sorted_items = sorted(items.values(), key=lambda x: x.get('priorityScore', 0), reverse=True)
+actions = []
+for v in sorted_items[:5]:
+    if v.get('tier', 3) <= 2:  # Include Tier 1 and Tier 2 if no Tier 1
+        primary_id = v.get('infosetId') or v.get('devopsId') or ''
+        actions.append({
+            'id': f"#{primary_id}",
+            'description': v.get('actionSummary', ''),
+            'score': v.get('priorityScore', 0),
+            'tier': v.get('tier', 3)
+        })
+
+payload = {
+    'date': sync_date,
+    'summary': {
+        'infosetTickets': infoset_count,
+        'devopsTasks': devops_count,
+        'matched': matched_count,
+        'workPlanItems': len(items),
+        'capacityThisWeek': capacity_this_week,
+        'capacityNextWeek': capacity_next_week
+    },
+    'matching': {
+        'matched': [{'infosetId': m['infosetId'], 'devopsIds': m['devopsIds'],
+                      'customer': items.get(f"wp-M{m['infosetId']}", {}).get('customer', ''),
+                      'infosetSubject': items.get(f"wp-M{m['infosetId']}", {}).get('subject', ''),
+                      'devopsTitle': items.get(f"wp-M{m['infosetId']}", {}).get('subject', '')}
+                     for m in matching.get('matched', [])],
+        'infosetOnly': [{'id': v['infosetId'], 'customer': v.get('customer',''), 'subject': v.get('subject','')}
+                         for v in items.values() if v.get('source')=='infoset'],
+        'devopsOnly': [{'id': v['devopsId'], 'title': v.get('subject',''), 'sprint': v.get('sprint','—'), 'state': v.get('devopsState','')}
+                        for v in items.values() if v.get('source')=='devops']
+    },
+    'tiers': {'tier1': tiers[1], 'tier2': tiers[2], 'tier3': tiers[3]},
+    'customerView': dict(cust_view),
+    'capacity': {
+        'weeks': capacity_weeks,
+        'totalWork': round(total_effort, 1),
+        'weeklyCapacity': weekly_cap
+    },
+    'aging': {
+        'sprintCarry': [{'sprint': k, 'count': v['count'], 'note': v['note']} for k, v in sorted(sprint_carry.items())],
+        'distribution': age_dist
+    },
+    'duplicates': duplicates_found,
+    'actions': actions,
+    'syncResults': {
+        'new': {'infoset': change_counts.get('new_infoset', 0), 'devops': change_counts.get('new_devops', 0),
+                'workPlan': change_counts.get('new_workplan', 0), 'calendar': change_counts.get('new_calendar', 0)},
+        'updated': {'infoset': change_counts.get('updated_infoset', 0), 'devops': change_counts.get('updated_devops', 0),
+                    'workPlan': change_counts.get('updated_workplan', 0), 'calendar': change_counts.get('updated_calendar', 0)},
+        'closed': {'infoset': change_counts.get('closed_infoset', 0), 'devops': change_counts.get('closed_devops', 0),
+                   'workPlan': change_counts.get('closed_workplan', 0), 'calendar': change_counts.get('closed_calendar', 0)}
+    }
 }
 ```
+
+**Validation before sending to script:**
+- `tiers.tier1` + `tiers.tier2` + `tiers.tier3` item count MUST equal `summary.workPlanItems`
+- `customerView` MUST have at least one entry
+- `capacity.weeks` MUST have at least 2 entries
+- `actions` MUST have at least 1 entry
+- `syncResults` counts MUST be non-negative integers
+- Every tier item MUST have non-empty `actionSummary` — if empty, the DOCX section will show blank analysis
+- Every customerView item MUST have `ageDays` > 0 — calculate from `createdDate` if not in state
+- If any validation fails, log warning but still generate the report with available data
+
+**ageDays calculation (MANDATORY for every item):**
+Calculate `ageDays` from the item's `createdDate` (Infoset) or `System.CreatedDate` (DevOps):
+```python
+from datetime import datetime, timezone
+age_days = (datetime.now(timezone.utc) - datetime.fromisoformat(created_date.replace('Z', '+00:00'))).days
+```
+For matched items, use the EARLIEST creation date between Infoset and DevOps. Never leave `ageDays` as 0 or null.
 
 **File output:** `C:\Users\Hakan\Documents\WorkSync\work-sync-{YYYY-MM-DD}.docx`
 (Create the directory if it doesn't exist)
@@ -1030,6 +1336,7 @@ Toplam efor: ~{n} saat
   3. #{id} {action description}
   ...
 
+📝 DevOps efor tahmini: {n} iş güncellendi (EstimateTime boş olanlara yazıldı)
 📄 Detaylı rapor: C:\Users\Hakan\Documents\WorkSync\work-sync-{YYYY-MM-DD}.docx
 ```
 
@@ -1077,13 +1384,15 @@ If `--infoset-only`, show the old infoset-sync report format (table with ID/Firm
 - **State is the source of truth** for mapping workPlanId ↔ googleTaskId/calendarEventId
 - **sendUpdates: "none"** on all calendar writes — no email notifications
 - **Europe/Istanbul timezone** for all datetime operations
-- **Turkish** for all user-facing text (action_summary, titles, report, terminal output)
+- **Turkish** for all user-facing text (actionSummary, titles, report, terminal output)
 - **Real newlines in Google Tasks notes** — not `\n` literals. The MCP tool sends `\n` as literal text if you escape it.
 - **Company grouping** in calendar — same company tickets in adjacent slots
 - **DevOps-only items with no extractable company** are treated as individual items (no grouping), NOT grouped under a null bucket
 - **Turkey public holidays** — check both fixed and dini bayram dates before scheduling
 - **Google Tasks `update` needs `taskListId`** — always include it
 - **Google Tasks `due` dates MUST match calendar event dates** — never let them diverge
+- **NEVER delete task LISTS (`delete-tasklist`)** — only delete individual TASKS inside them. Recreating lists changes their order in Google Tasks UI.
+- **DOCX payload must contain ALL fields with real data** — build payload from actual analysis results using the Python template in Step 10. Validate before sending: tier counts must sum to workPlanItems, customerView must be non-empty, capacity.weeks must have entries.
 
 **New rules:**
 - **DevOps auth via `az account get-access-token`** (Bearer token, not PAT). Resource: `499b84ac-1321-427f-aa17-267ca6975798`
@@ -1111,6 +1420,7 @@ Resource: 499b84ac-1321-427f-aa17-267ca6975798
 WIQL Endpoint: POST {org}/{project}/_apis/wit/wiql?api-version=7.1
 Work Items Endpoint: GET {org}/{project}/_apis/wit/workitems?ids={ids}&$expand=all&api-version=7.1
 Comments Endpoint: GET {org}/{project}/_apis/wit/workitems/{id}/comments?$top=200&api-version=7.1-preview.4
+Update Work Item: PATCH {org}/{project}/_apis/wit/workitems/{id}?api-version=7.1 (Content-Type: application/json-patch+json)
 Work Item URL: https://polynomtech.visualstudio.com/Fin_Dev26/_workitems/edit/{id}
 ```
 

@@ -5,6 +5,11 @@
  */
 const { execSync } = require('child_process');
 
+if (process.argv.includes('--self-test')) {
+  process.stdout.write(JSON.stringify({ ok: true, hook: 'session-end-check' }));
+  process.exit(0);
+}
+
 try {
   // Check for uncommitted files with potential secrets
   const status = execSync('git status --porcelain 2>/dev/null || true', { encoding: 'utf8' });

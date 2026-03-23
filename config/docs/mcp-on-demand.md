@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-20 -->
 # On-Demand MCP Server Catalog
 
 The on-demand MCP catalog is now built into HakanMCP itself at `src/catalog/servers.json`. No separate documentation file is needed.
@@ -25,11 +26,6 @@ Use these HakanMCP tools directly:
 | `time` | Time | Timezone conversion |
 | `mermaid` | Mermaid | Diagram generation (flowchart, sequence, ER, etc.) |
 | `duckdb` | DuckDB | Analytical SQL on CSV/Parquet/JSON |
-| `puppeteer` | Puppeteer | Headless Chrome — screenshots, PDF, scraping |
-| `ddg-search` | DuckDuckGo Search | Free web search, no API key needed |
-| `coincap` | CoinCap Crypto | Real-time crypto prices, market cap, volume |
-| `airbnb` | Airbnb | Accommodation search, listing details, pricing |
-| `docs-fetcher` | DocsFetcher | Package docs from npm, PyPI, Go, Rust |
 
 ## Adding New Servers
 

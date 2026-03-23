@@ -1,5 +1,45 @@
 # Changelog
 
+## [3.2.0] - 2026-03-23
+
+### Added
+- PostToolUse lint hook (`posttooluse-lint-format.js`) — auto-lint after Write/Edit, auto-format off by default (`ENABLE_AUTOFORMAT=0`)
+- PostToolUse MCP health check (`mcp-health-check.js`) — periodic check every 50 Bash calls with auto-reconnect
+- GSD context monitor in statusline — color-coded context % (green/yellow/red) + active GSD phase display
+- Pentest framework v4 docs: `pentest-playbook.md` (hub), `pentest-recon.md`, `pentest-assessment.md`, `pentest-exploitation.md`, `pentest-counter-breach.md`
+- Pentest targets directory and kali-mcp tool inventory
+- Commands: `/pentest`, `/finekra-deploy-test`, `/finekra-task`, `/dev-sync`, `/work-sync` (replaces `/infoset-sync`)
+- WSL+NTFS encoding rules in CLAUDE.md Core Rules (force LF, ext4 symlink for large files)
+- Deploy and Research & Reuse routing signals in CLAUDE.md task routing
+- Model versions documented (Haiku 4.5, Sonnet 4.6, Opus 4.6)
+- `--self-test` support on all hooks (mcp-reconnect, mcp-health-check, session-end-check)
+- SessionStart hook timeouts (10s) on all hooks that lacked them
+- `last_updated` dates on all docs files, `created`/`updated` dates on all memory files
+- References in CLAUDE.md Section 8: rules/common/, hook-standards, agent-favorites, plan-naming, plugin-profiles
+
+### Changed
+- mcp-reconnect.js: checks ALL MCP scopes (not just user), matches `not connected` status
+- hook-health-check.js: removed phantom `gsd-context-monitor.js`, added 4 new hooks to expected list
+- pretooluse-safety.js: accepts both `--self-test` and `--test` flags
+- mcp-health-check PostToolUse: `Bash` matcher (was unfiltered)
+- On-demand catalog: 14 → 9 servers (removed 5 non-existent entries)
+- HakanMCP tool count: 131 → 107 (actual)
+- CLAUDE.md MCP table: removed burp-suite (unconfigured) and coupler-io (unused)
+- Removed duplicate Rube MCP entry from both .claude.json files (claude.ai connector sufficient)
+- performance.md: Opus 4.5 → Opus 4.6
+- Pentest domain signal simplified to `pentest-playbook.md (hub)`
+- Superpowers specs label → "Superpowers design docs (archive)"
+
+### Fixed
+- `.planning/STATE.md` reference now conditional (GSD projects only)
+- Team shutdown policy moved from memory-only to CLAUDE.md (authoritative)
+- Turkish text removed from CLAUDE.md Section 4 shutdown keywords
+- mcp-reconnect.js async error handling (`main().catch`)
+
+### Removed
+- `/infoset-sync` command (replaced by `/work-sync`)
+- Redundant memory files promoted to CLAUDE.md (feedback_fix_permanently_first, feedback_agent_teams_model, feedback_preferences)
+
 ## [3.1.0] - 2026-03-20
 
 ### Added
