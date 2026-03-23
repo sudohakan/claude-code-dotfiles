@@ -4,6 +4,8 @@ description: "Work Sync — unified work synchronization: fetch Infoset CRM tick
 
 # Work Sync
 
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp)
+
 Unified work synchronization command that fetches tasks from both Infoset CRM and Azure DevOps, performs cross-source matching and deep analysis, and syncs to Google Tasks + Calendar. Generates a DOCX report.
 
 **Project dir:** `/mnt/c/dev/infoset-mcp`

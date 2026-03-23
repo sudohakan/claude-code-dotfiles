@@ -5,7 +5,6 @@
 # Usage: bash install.sh
 # Parameters:
 #   --skip-plugins    : Skip plugin installation
-#   --skip-hakanmcp   : Skip HakanMCP installation
 #   --force           : Run without confirmation prompts
 # ============================================================
 
@@ -16,15 +15,16 @@ CLAUDE_DIR="$HOME/.claude"
 BACKUP_DIR="$HOME/.claude-backup-$(date +%Y%m%d-%H%M%S)"
 USERNAME="$(whoami)"
 TOTAL_STEPS=10
+MANIFEST_PATH="$SCRIPT_DIR/external-projects.manifest.json"
+BOOTSTRAP_SCRIPT="$SCRIPT_DIR/scripts/bootstrap_dev_projects.py"
+RESOLVE_CLAUDE_CONFIG_SCRIPT="$SCRIPT_DIR/scripts/resolve_claude_config.py"
 
 SKIP_PLUGINS=false
-SKIP_HAKANMCP=false
 FORCE=false
 
 for arg in "$@"; do
     case $arg in
         --skip-plugins)  SKIP_PLUGINS=true ;;
-        --skip-hakanmcp) SKIP_HAKANMCP=true ;;
         --force)         FORCE=true ;;
     esac
 done
@@ -182,9 +182,14 @@ else
             ok "Python installed via apt"
         fi
     fi
-    if [ -z "$PYTHON_CMD" ]; then
+if [ -z "$PYTHON_CMD" ]; then
         warn "Python automatic installation failed. Install manually: https://www.python.org/downloads/"
     fi
+fi
+
+if [ -z "$PYTHON_CMD" ]; then
+    err "Cannot continue without Python. It is required for Dippy and portable installer helpers."
+    exit 1
 fi
 
 # jq
@@ -197,6 +202,22 @@ else
             "Manual: winget install jqlang.jq"
     else
         warn "jq not found. Install: apt install jq / brew install jq"
+    fi
+fi
+
+# Bun (optional, helps some MCP project builds)
+if command -v bun &>/dev/null; then
+    ok "Bun : $(bun --version 2>/dev/null)"
+else
+    info "Bun not found, attempting optional install..."
+    if [ "$HAS_WINGET" = true ]; then
+        winget install -e --id Oven-sh.Bun --accept-source-agreements --accept-package-agreements 2>/dev/null || warn "Bun install skipped"
+    elif command -v brew &>/dev/null; then
+        brew install oven-sh/bun/bun 2>/dev/null || warn "Bun install skipped"
+    elif command -v apt-get &>/dev/null; then
+        curl -fsSL https://bun.sh/install | bash >/dev/null 2>&1 || warn "Bun install skipped"
+    else
+        warn "Bun not found. Some optional MCP builds may remain best-effort."
     fi
 fi
 
@@ -327,21 +348,18 @@ else
 fi
 
 # .claude.json
-if [ -f "$HOME/.claude.json" ]; then
-    warn "Existing .claude.json preserved."
+if [ -d "/c/" ]; then
+    DEV_ROOT="/c/dev"
 else
-    cp "$SCRIPT_DIR/home-config/.claude.json" "$HOME/.claude.json"
-    if [ "$USERNAME" != "Hakan" ]; then
-        sed -i'' -e"s|C:\\\\Users\\\\Hakan|C:\\\\Users\\\\${USERNAME}|g" "$HOME/.claude.json"
-    fi
-    ok ".claude.json created."
-    # Fix MCP path for Linux/macOS
-    if [ ! -d "/c/" ] && [ -f "$HOME/.claude.json" ]; then
-        sed -i'' -e"s|C:\\\\\\\\dev\\\\\\\\HakanMCP|$(echo "$HOME/dev/HakanMCP" | sed 's/\//\\\\\\\\/g')|g" "$HOME/.claude.json"
-        sed -i'' -e's|"cwd": "C:\\\\dev\\\\HakanMCP"|"cwd": "'"$HOME/dev/HakanMCP"'"|g' "$HOME/.claude.json"
-        ok ".claude.json paths fixed for $(uname -s)"
-    fi
+    DEV_ROOT="$HOME/dev"
 fi
+NODE_COMMAND="$(command -v node || echo node)"
+"$PYTHON_CMD" "$RESOLVE_CLAUDE_CONFIG_SCRIPT" \
+    --template "$SCRIPT_DIR/home-config/.claude.json" \
+    --target "$HOME/.claude.json" \
+    --dev-root "$DEV_ROOT" \
+    --node-command "$NODE_COMMAND"
+ok ".claude.json resolved from portable template."
 
 # -- STEP 8: Memory --
 step 8 "Transferring memory files..."
@@ -359,80 +377,22 @@ if [ "$USERNAME" != "Hakan" ]; then
 fi
 ok "Memory copied (${PROJECT_KEY})."
 
-# -- STEP 9: HakanMCP --
-step 9 "HakanMCP setup..."
+# -- STEP 9: Local MCP and dev projects --
+step 9 "Bootstrapping local MCP and dev projects..."
 
-if [ "$SKIP_HAKANMCP" = true ]; then
-    warn "HakanMCP skipped (--skip-hakanmcp)."
+if [ -d "$CLAUDE_DIR/hooks/dippy" ]; then
+    ok "Dippy already installed"
 else
-    # Platform-aware path: /c/dev on Git Bash Windows, ~/dev on Linux/macOS
-    if [ -d "/c/" ]; then
-        MCP_DIR="/c/dev/HakanMCP"
+    if command -v git &>/dev/null; then
+        git clone https://github.com/ldayton/Dippy "$CLAUDE_DIR/hooks/dippy" 2>/dev/null && ok "Dippy cloned" || warn "Dippy clone failed (optional)"
     else
-        MCP_DIR="$HOME/dev/HakanMCP"
-    fi
-    if [ -d "$MCP_DIR" ]; then
-        info "HakanMCP exists: $MCP_DIR — checking for updates..."
-        cd "$MCP_DIR"
-        LOCAL_HASH=$(git rev-parse HEAD 2>/dev/null)
-        git fetch origin main --quiet 2>/dev/null
-        REMOTE_HASH=$(git rev-parse origin/main 2>/dev/null)
-        if [ -n "$REMOTE_HASH" ] && [ "$LOCAL_HASH" != "$REMOTE_HASH" ]; then
-            info "Updates available. Pulling latest..."
-            git pull origin main --quiet 2>/dev/null
-            info "Running npm install..."
-            NPM_OK=true
-            npm install || { warn "npm install had errors"; NPM_OK=false; }
-            info "Running npm run build..."
-            npm run build || { warn "npm run build had errors"; NPM_OK=false; }
-            if [ "$NPM_OK" = true ]; then
-                ok "HakanMCP updated."
-            else
-                warn "HakanMCP updated with errors — check above."
-            fi
-        else
-            ok "HakanMCP is up to date."
-        fi
-        # Ensure .env exists
-        if [ -f "$MCP_DIR/.env.example" ] && [ ! -f "$MCP_DIR/.env" ]; then
-            cp "$MCP_DIR/.env.example" "$MCP_DIR/.env"
-            warn ".env created from .env.example — configure API keys in $MCP_DIR/.env"
-        fi
-        cd "$SCRIPT_DIR"
-    else
-        if command -v git &>/dev/null; then
-            info "Cloning HakanMCP..."
-            mkdir -p "$(dirname "$MCP_DIR")"
-            if git clone https://github.com/sudohakan/HakanMCP.git "$MCP_DIR" 2>/dev/null; then
-                cd "$MCP_DIR"
-                info "Running npm install..."
-                if ! npm install; then
-                    err "npm install failed. Check Node.js version and network connection."
-                    cd "$SCRIPT_DIR"
-                else
-                    info "Running npm run build..."
-                    if ! npm run build; then
-                        err "npm run build failed. Check build errors above."
-                        cd "$SCRIPT_DIR"
-                    else
-                        cd "$SCRIPT_DIR"
-                        # Setup .env from example
-                        if [ -f "$MCP_DIR/.env.example" ] && [ ! -f "$MCP_DIR/.env" ]; then
-                            cp "$MCP_DIR/.env.example" "$MCP_DIR/.env"
-                            warn ".env created from .env.example — configure API keys in $MCP_DIR/.env"
-                        fi
-                        ok "HakanMCP installed: $MCP_DIR"
-                    fi
-                fi
-            else
-                err "HakanMCP clone failed."
-                echo "       Manual: git clone https://github.com/sudohakan/HakanMCP.git /c/dev/HakanMCP"
-            fi
-        else
-            warn "Git not available, cannot clone HakanMCP."
-        fi
+        warn "Git not available, skipping Dippy"
     fi
 fi
+
+mkdir -p "$DEV_ROOT"
+"$PYTHON_CMD" "$BOOTSTRAP_SCRIPT" --manifest "$MANIFEST_PATH" --dev-root "$DEV_ROOT"
+ok "Local MCP and dev project bootstrap complete."
 
 # -- STEP 10: Plugins --
 step 10 "Installing plugins..."
@@ -509,8 +469,12 @@ check_item "Git"        "$(command -v git &>/dev/null && echo true || echo false
 check_item "Python"     "$( (command -v python3 &>/dev/null || command -v python &>/dev/null) && echo true || echo false)"
 check_item "jq"         "$(command -v jq &>/dev/null && echo true || echo false)"
 check_item "Claude CLI" "$(command -v claude &>/dev/null && echo true || echo false)"
-if [ -d "/c/" ]; then _MCP_CHECK="/c/dev/HakanMCP/dist/src/index.js"; else _MCP_CHECK="$HOME/dev/HakanMCP/dist/src/index.js"; fi
-check_item "HakanMCP"   "$([ -f "$_MCP_CHECK" ] && echo true || echo false)"
+if [ -d "/c/" ]; then DEV_ROOT="/c/dev"; else DEV_ROOT="$HOME/dev"; fi
+check_item "HakanMCP"   "$([ -f "$DEV_ROOT/HakanMCP/dist/src/index.js" ] && echo true || echo false)"
+check_item "gtasks-mcp" "$([ -f "$DEV_ROOT/gtasks-mcp/dist/index.js" ] && echo true || echo false)"
+check_item "infoset-mcp" "$([ -f "$DEV_ROOT/infoset-mcp/src/mcp-server.mjs" ] && echo true || echo false)"
+check_item "kali-mcp"   "$([ -f "$DEV_ROOT/kali-mcp/docker-compose.yml" ] && echo true || echo false)"
+check_item "pentest-framework" "$([ -d "$DEV_ROOT/pentest-framework/templates" ] && echo true || echo false)"
 check_item "Config"     "$([ -f "$CLAUDE_DIR/settings.json" ] && echo true || echo false)"
 check_item "Hooks"      "$([ -f "$CLAUDE_DIR/hooks/pretooluse-safety.js" ] && echo true || echo false)"
 check_item "GSD"        "$([ -f "$CLAUDE_DIR/get-shit-done/VERSION" ] && echo true || echo false)"

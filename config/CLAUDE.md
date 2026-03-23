@@ -1,5 +1,8 @@
 # Global Claude Instructions
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](../README.md#portable-local-dependencies)
+
 ## 1. Core Rules
 - Respond in the user's language. Short, direct, technical.
 - Only make changes explicitly requested or clearly necessary. No unrequested features, refactoring, comments, or error handling.
@@ -14,23 +17,16 @@
 - Minimize token consumption: no unnecessary context, redundant spawns, or speculative plugin loads.
 - Verify every change before reporting completion. Re-read files, confirm paths, check consistency.
 - Actionable problems → fix directly. Only explain if user-side steps are required.
-- **WSL browser rule:** NEVER open browsers inside WSL/WSLg — the user cannot see them. Always use `wslview` (from `wslu` package) to open URLs on the Windows side. `BROWSER=wslview` is set in `~/.bashrc`. For programmatic browser automation (Playwright MCP), the browser runs in WSL headlessly — that's fine for scraping/testing, but for user-facing auth flows (OAuth, login pages), always open the URL on Windows via `wslview` so the user can interact. If `wslview` is missing, install with `sudo apt install wslu`.
-- Browser/GUI setup (login, OAuth, wizard) → open auth URL via `wslview` on Windows side. Never use WSLg for user-facing browser windows. Install missing deps, fix errors, retry.
+- **WSL browser rule:** NEVER open browsers inside WSL/WSLg — the user cannot see them.
+  - **URLs for user:** Use `wslview <url>` (from `wslu` package, `BROWSER=wslview` in `~/.bashrc`).
+  - **Browser automation (Playwright MCP):** Connect to Windows Chrome via CDP. Config in `~/.claude/browser-last.json`. Setup details: `~/.claude/docs/browser-cdp-setup.md`.
+  - **OAuth/login flows:** Open URL via `wslview`, let user complete in Windows browser.
 - **Fix-it-permanently first:** When encountering any error or obstacle during a task, don't just work around it — first fix the root cause permanently (update config, install missing deps, fix scripts, add error handling to tooling) so the same problem never recurs. Only after the permanent fix is in place, continue with the original task. This applies to: broken auth flows, misconfigured tools, flaky scripts, missing dependencies, incorrect paths, encoding issues, and any repeatable failure. A workaround is acceptable only as a temporary measure while the permanent fix is being applied.
 - **Skill creation workflow:** When creating new skills (skills/ directory), use `superpowers:brainstorming` first, then `/skill-create` to generate with proper structure. Commands (commands/ directory) can be written directly after design — they are simpler spec files, not skill packages.
 - **Continuous improvement:** When user feedback during execution reveals a gap in any custom skill, command, or hook (missing fields, wrong flow, failed edge case), immediately update the relevant file, verify the fix works, then continue the task. All custom skills, commands, and hooks must self-improve through use.
 - **WSL+NTFS encoding:** When creating `.sh` files on Windows/NTFS, always force LF line endings (not CRLF). Add `*.sh text eol=lf` to `.gitattributes`. WSL cannot execute CRLF scripts.
 - **WSL large files:** WSL NTFS driver cannot read back files larger than ~1MB that contain shell escape sequences. For large generated files, write to ext4 (`/home/`) and symlink if needed.
-- **Dotfiles sync:** Whenever any file under `~/.claude/` is created, modified, or deleted (docs, commands, agents, teams, hooks, settings, rules, skills), the dotfiles repo MUST be synchronized before the task is considered complete. Workflow:
-  1. Copy changed files to `/mnt/c/dev/claude-code-dotfiles/config/` (mirror the directory structure)
-  2. Check `.gitignore` — never commit `.env`, credentials, API keys, tokens, or session data
-  3. Use `git.exe` for all git operations (Windows credential helper)
-  4. Stage only the changed files (`git.exe add <specific files>`, not `-A`)
-  5. Commit with descriptive message
-  6. If VERSION/CHANGELOG.md exist and changes are significant: bump version, update changelog, update README.md counts/descriptions
-  7. Push to remote: `git.exe push origin main`
-  8. Verify: `git.exe status` shows clean working tree
-  This rule applies to ALL changes — pentest modules, agent roles, commands, hooks, settings, everything under `~/.claude/`.
+- **Dotfiles sync:** Whenever any file under `~/.claude/` is created, modified, or deleted, the dotfiles repo MUST be synchronized before the task is considered complete. Use `/dotfiles-sync` command or follow the workflow in the command definition. This applies to ALL changes under `~/.claude/`.
 
 ## 2. Model Selection
 - Default: `sonnet`. Always pass `model` explicitly when spawning agents/teammates.
@@ -223,31 +219,10 @@ Note: Some servers (Playwright, Gmail, LinkedIn) are accessible via both native 
 | magic-21st (21st.dev) | Generating UI components (`/ui` prefix) — React+Tailwind |
 | Rube (Composio) | Connecting to 600+ apps. Use `RUBE_SEARCH_TOOLS` to discover tools first |
 
-**Rube Connected Apps:**
-| App | Signals to Use |
-|-----|---------------|
-| Notion | Create/query/update pages and DBs. Spec reading, wiki, project tracking |
-| GitHub | Issue/PR creation, repo search, code search. Prefer Rube over git.exe for remote ops |
-| Gmail | Read/write/search email — Gmail MCP also available but Rube works too |
-| Trello | Board/card/list management, task tracking, project organization |
-| LinkedIn | Create/delete posts, profile info, company page sharing, link/image sharing |
-| Slack | Send/schedule messages, list/find channels, fetch history. Connected to Finekraa workspace |
-| Gemini | Image generation (Nano Banana), text generation. Use for AI-generated visuals |
+**Rube Connected Apps:** Notion, GitHub, Trello, Slack (Finekraa workspace), Gemini (image gen). Use `RUBE_SEARCH_TOOLS` for full list. For Gmail/LinkedIn prefer native MCP over Rube.
 
 ### On-Demand MCP (HakanMCP catalog)
-9 auth-free servers. Connect via `mcp_connectFromCatalog` — prefer these over Bash workarounds when the task fits.
-
-| Server | Connect When |
-|--------|-------------|
-| Fetch | WebFetch truncates or fails on a URL |
-| Filesystem | Need recursive directory tree or batch file reads |
-| Git | Cross-branch diff, blame analysis, commit pattern search — beyond simple `git` commands |
-| Memory | Building knowledge graph, entity-relation tracking |
-| Sequential Thinking | 3+ alternatives to evaluate, complex trade-off, systematic hypothesis testing |
-| SQLite | Project has .sqlite/.db files to query |
-| Time | Timezone conversion or cross-timezone scheduling |
-| Mermaid | Diagram generation requested (flowchart, sequence, architecture) |
-| DuckDB | SQL analytics on local CSV/Parquet/JSON files |
+9 auth-free servers via `mcp_connectFromCatalog`. Full list: `~/.claude/docs/mcp-on-demand.md`
 
 ### MCP Error Handling
 - Error → investigate and retry within same MCP first (different params, reconnect).
@@ -273,7 +248,7 @@ All `~/.claude/` → WSL: `/home/hakan/.claude/` | Windows: `C:\Users\Hakan\.cla
 | Agent teams workflow | `~/.claude/docs/agent-teams.md` |
 | Ralph Loop spec | `~/.claude/docs/review-ralph.md` |
 | .claudeignore templates | `~/.claude/docs/claudeignore-templates.md` |
-| Pentest framework v4 | `~/.claude/docs/pentest-playbook.md` (hub) + `pentest-recon.md` + `pentest-assessment.md` + `pentest-exploitation.md` + `pentest-counter-breach.md` + `pentest-targets/` + `kali-mcp/tool-inventory.md` + `/mnt/c/dev/pentest-framework/` |
+| Pentest framework | `~/.claude/docs/pentest-playbook.md` (hub) + `pentest-recon.md` + `pentest-assessment.md` + `pentest-exploitation.md` + `pentest-counter-breach.md` + `pentest-targets/` + `kali-mcp/tool-inventory.md` + `/mnt/c/dev/pentest-framework/` |
 | Dotfiles repo | WSL: `/mnt/c/dev/claude-code-dotfiles` |
 | Rules (common) | `~/.claude/rules/common/` |
 | Hook standards | `~/.claude/docs/hook-standards.md` |

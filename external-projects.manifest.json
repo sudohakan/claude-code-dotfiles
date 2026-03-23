@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "description": "Bootstrap manifest for local dev projects that the Claude setup depends on.",
+  "defaults": {
+    "windowsDevRoot": "C:/dev",
+    "posixDevRoot": "$HOME/dev"
+  },
+  "projects": [
+    {
+      "id": "hakanmcp",
+      "name": "HakanMCP",
+      "required": true,
+      "category": "mcp-server",
+      "directoryName": "HakanMCP",
+      "repoUrl": "https://github.com/sudohakan/HakanMCP.git",
+      "branch": "main",
+      "bootstrapType": "node",
+      "installCommands": [
+        "npm install",
+        "npm run build"
+      ],
+      "verifyPaths": [
+        "dist/src/index.js"
+      ],
+      "copyEnvExample": true,
+      "mcpServers": [
+        "HakanMCP"
+      ],
+      "notes": [
+        "Primary local MCP platform. Installer should keep this repo updated."
+      ]
+    },
+    {
+      "id": "gtasks-mcp",
+      "name": "gtasks-mcp",
+      "required": true,
+      "category": "mcp-server",
+      "directoryName": "gtasks-mcp",
+      "repoUrl": "https://github.com/sudohakan/gtasks-mcp.git",
+      "branch": "master",
+      "bootstrapType": "node",
+      "installCommands": [
+        "npm install",
+        "npm run build"
+      ],
+      "verifyPaths": [
+        "dist/index.js"
+      ],
+      "bestEffortBuild": true,
+      "mcpServers": [
+        "gtasks-mcp"
+      ],
+      "notes": [
+        "Build may require Bun. If build fails but dist/index.js exists, keep going."
+      ]
+    },
+    {
+      "id": "infoset-mcp",
+      "name": "infoset-mcp",
+      "required": true,
+      "category": "mcp-server",
+      "directoryName": "infoset-mcp",
+      "repoUrl": "https://github.com/sudohakan/infoset-mcp.git",
+      "branch": "main",
+      "bootstrapType": "node",
+      "installCommands": [
+        "npm install"
+      ],
+      "verifyPaths": [
+        "src/mcp-server.mjs",
+        "scripts/env-wrapper.sh"
+      ],
+      "mcpServers": [
+        "infoset"
+      ],
+      "notes": [
+        "Wrapper script path is used directly from the Claude MCP config."
+      ]
+    },
+    {
+      "id": "kali-mcp",
+      "name": "kali-mcp",
+      "required": true,
+      "category": "mcp-server",
+      "directoryName": "kali-mcp",
+      "repoUrl": "https://github.com/sudohakan/kali-mcp-server.git",
+      "branch": "master",
+      "bootstrapType": "docker-compose",
+      "verifyPaths": [
+        "docker-compose.yml"
+      ],
+      "mcpServers": [
+        "kali-mcp"
+      ],
+      "notes": [
+        "Repository is cloned and validated automatically. Starting the SSE service remains an explicit post-install action."
+      ]
+    },
+    {
+      "id": "pentest-framework",
+      "name": "pentest-framework",
+      "required": true,
+      "category": "workspace-data",
+      "directoryName": "pentest-framework",
+      "bootstrapType": "manual-scaffold",
+      "scaffoldDirectories": [
+        "data",
+        "scripts",
+        "templates"
+      ],
+      "notes": [
+        "Local framework directory used by kali-mcp volumes and pentest docs. This manifest only scaffolds the structure when the repo is absent."
+      ]
+    }
+  ]
+}

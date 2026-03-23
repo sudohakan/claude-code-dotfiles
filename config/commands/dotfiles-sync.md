@@ -66,6 +66,8 @@ git -C "$REPO" diff --cached --name-only | xargs grep -l -i 'password\|api_key\|
 
 Exclude known safe patterns (`YOUR_PASSWORD`, `YOUR_API_KEY`, `process.env.`, `$INFOSET_PASSWORD`).
 
+Additionally verify that `home-config/.claude.json` contains only the sanitized MCP template, not raw account state (`oauthAccount`, `mcpOAuth`, `accessToken`, `refreshToken`).
+
 If real credentials found, list them and abort. Do not commit.
 
 ### Step 5: Version Decision
@@ -119,7 +121,7 @@ Do NOT push automatically. Inform the user: "Committed locally. Push when ready:
 | 8 | `teams/agents/*.md`, `teams/favorites.json`, `teams/*.md` | `teams/` | Selective copy |
 | 9 | `mcp-configs/` | `mcp-configs/` | rsync |
 | 10 | `plugins/known_marketplaces.json`, `plugins/blocklist.json` | `plugins/` | File copy |
-| 11 | `~/.claude.json` | `home-config/.claude.json` | File copy |
+| 11 | `~/.claude.json` | `home-config/.claude.json` | Sanitized MCP template export |
 
 ## Never Sync
 
@@ -130,3 +132,4 @@ Do NOT push automatically. Inform the user: "Committed locally. Push when ready:
 - `hooks/dippy/` (cloned separately by installer)
 - `node_modules/`, `__pycache__/`, `*.pyc`
 - Any file matching `*.credential*`, `*.secret*`, `*.token*`, `.env*`
+- Raw `~/.claude.json` account state (`oauthAccount`, `mcpOAuth`, access/refresh tokens)

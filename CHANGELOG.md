@@ -1,5 +1,25 @@
 # Changelog
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](README.md#portable-local-dependencies)
+
+## [3.4.0] - 2026-03-23
+
+### Added
+- Portable local dependency bootstrap via `external-projects.manifest.json` for [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), and the `pentest-framework` scaffold
+- Installer helper scripts: `bootstrap_dev_projects.py`, `resolve_claude_config.py`, `link_project_mentions.py`
+- Repo-wide related-project link blocks across markdown docs for interactive project discovery and cross-navigation
+
+### Changed
+- `install.ps1` and `install.sh` now resolve a sanitized portable `~/.claude.json` template and bootstrap local MCP/dev dependencies automatically
+- `home-config/.claude.json` now ships as a machine-safe MCP template with portable dev-root placeholders and a Bash-based infoset wrapper call
+- `sync.sh` now normalizes both native and POSIX dev-root paths when exporting the sanitized home config
+- Maintenance hooks and docs were aligned with storage hygiene, trend tracking, and project/session archival utilities
+
+### Fixed
+- Dotfiles install flow no longer depends on a manually preserved raw `.claude.json` for local MCP path setup
+- Markdown references to companion projects are now consistently linkable from docs and command guides
+
 ## [3.3.0] - 2026-03-23
 
 ### Added

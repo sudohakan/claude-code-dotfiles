@@ -1,5 +1,8 @@
 # Config Docs Analysis Report
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 **Date:** 2026-03-10
 **Analyzed by:** Claude Opus 4.6
 **Scope:** All files in `config/docs/` cross-referenced against `config/CLAUDE.md`, `config/commands/`, `config/hooks/`, and `config/settings.json`

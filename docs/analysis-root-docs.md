@@ -1,5 +1,8 @@
 # Root Documentation Analysis Report
 
+
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 **Date:** 2026-03-10
 **Scope:** All GitHub-facing markdown files in `claude-code-dotfiles`
 **Current version:** 1.13.3

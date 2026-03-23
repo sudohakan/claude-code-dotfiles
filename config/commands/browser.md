@@ -1,5 +1,7 @@
 # Browser Launch — CDP Connection for Playwright MCP
 
+**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP)
+
 When this command is executed, follow the steps below in order.
 
 Usage: `/browser [chrome|edge|firefox|brave|opera|opera-gx|vivaldi] [--clean] [--port=XXXX] [--connect]`
@@ -118,7 +120,7 @@ After launch: verify process is running (1s delay). On failure: report install/p
 
 ---
 
-## 8.1. Playwright MCP Connection (HakanMCP Bridge)
+## 8.1. Playwright MCP Connection ([HakanMCP](https://github.com/sudohakan/HakanMCP) Bridge)
 
 Call `mcp__HakanMCP__mcp_connect`:
 - `command`: `"npx"`, `args`: `["-y", "@playwright/mcp@latest", "--cdp-endpoint", "{webSocketDebuggerUrl}"]`
