@@ -151,6 +151,53 @@ ACCEPTANCE: how to verify the fix worked
 
 **If `--check`:** Skip all Google Tasks writes, show findings table only.
 
+### Step 3.5: Ship & CI Gate
+
+After analysis, for each project with a remote:
+
+**A. Ship check — detect uncommitted/unpushed changes:**
+
+```bash
+for dir in /mnt/c/dev/*/; do
+  [ -d "$dir/.git" ] || continue
+  cd "$dir"
+  branch=$(git branch --show-current)
+  remote=$(git remote get-url origin 2>/dev/null)
+  [ -z "$remote" ] && continue
+  changes=$(git status --porcelain | wc -l)
+  unpushed=$(git log origin/$branch..$branch --oneline 2>/dev/null | wc -l)
+  [ "$changes" -gt 0 ] || [ "$unpushed" -gt 0 ] && echo "SHIP_NEEDED: $(basename $dir)"
+done
+```
+
+For each project with pending changes:
+1. Show summary: `<project> [$branch] → $changes uncommitted, $unpushed unpushed`
+2. Invoke `/ship --path=<dir>` automatically — no confirmation needed for clean ships
+3. Report results in final table
+
+**B. CI verification — ensure all projects pass CI:**
+
+```bash
+for repo in <all remote repos>; do
+  ci=$(gh.exe run list --repo "$repo" --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null)
+  echo "$repo: $ci"
+done
+```
+
+For each project with CI failure:
+1. Fetch failure logs: `gh.exe run view <run_id> --repo <repo> --log-failed | tail -30`
+2. Analyze the root cause from logs
+3. **Auto-fix if possible** — common fixes:
+   - Symlink issues → remove symlink, replace with real file or delete
+   - Download URL broken → update URL or switch to package manager
+   - Test failures from new code → fix the code
+   - Dependency issues → update lockfile
+4. Commit fix on a `fix/ci-*` branch, push, create PR, merge
+5. Verify CI passes on the merge commit: `gh.exe run list --repo <repo> --limit 1`
+6. If auto-fix fails after 2 attempts → report as unresolved in final table
+
+**CI must be green for ALL projects before Step 4.** If any project is red after auto-fix attempts, flag it as `❌ UNRESOLVED` in the report.
+
 ### Step 4: Report
 
 Show formatted summary:
@@ -158,11 +205,14 @@ Show formatted summary:
 ```
 Dev Sync complete — <n> projects analyzed, <m> issues found
 
-| Project | CI | Docs | #1 | #2 | #3 |
-|---------|-----|------|----|----|----|
-| HakanMCP | ✅ | 8/8 | [HIGH] CI silenced | [MED] No coverage | [LOW] Wrong dep |
-| ... | | | | | |
+| Project | Version | CI | Ship | Docs | #1 | #2 | #3 |
+|---------|---------|:--:|:----:|:----:|----|----|----|
+| HakanMCP | 2.1.1 | ✅ | — | 8/8 | [HIGH] ... | [MED] ... | [LOW] ... |
+| kali-mcp | 1.1.0 | ✅ | shipped | 8/8 | [HIGH] ... | [HIGH] ... | [MED] ... |
+| ... | | | | | | | |
 
+Ship: <n> projects shipped
+CI: <n>/<total> green (list any red with reason)
 Google Tasks: <n> parent tasks, <m> subtasks synced to "Dev - Projects"
 ```
 
