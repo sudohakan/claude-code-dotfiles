@@ -7,7 +7,7 @@
 
 **Production-ready Claude Code configuration — batteries included.**
 
-![Version](https://img.shields.io/badge/version-3.4.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.5.0-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)
@@ -39,7 +39,7 @@
 - **File-History Archiver** &mdash; `file-history-hygiene.js` archives oversized stale history sessions to keep `~/.claude/file-history` lean
 - **Project Session Archiver** &mdash; `project-session-hygiene.js` archives stale oversized per-project session artifacts while preserving `memory/`
 - **Automatic Reversible Maintenance** &mdash; daily cleanup can auto-archive stale history and heavy project sessions while leaving alias merges in inspect-only mode by default
-- **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) (107 tools) + 9 on-demand servers + 31 templates
+- **MCP Integration** &mdash; [HakanMCP](https://github.com/sudohakan/HakanMCP) (112 tools) + 10 on-demand servers + 31 templates
 - **Portable Local Dependency Bootstrap** &mdash; installer provisions [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), and the [`pentest-framework` scaffold](config/commands/pentest.md) from a shared manifest
 - **Portable MCP Template Resolution** &mdash; `.claude.json` is distributed as a sanitized template and resolved per machine without leaking OAuth/account state
 - **Pentest Framework** &mdash; full-spectrum offensive security: URL/IP/WiFi/BT/AD/Cloud/K8s/IoT/Mobile, 55+ exploit chains, 31 modules, 9 specialist agents
@@ -299,8 +299,8 @@ Create teams with `/team` &mdash; compose any combination of roles.
 
 | Server | Purpose |
 |--------|---------|
-| **[HakanMCP](https://github.com/sudohakan/HakanMCP)** | DB queries, API testing, system monitoring, backup, 9 on-demand servers (107 tools) |
-| **Playwright** | Browser automation, UI testing, web scraping |
+| **[HakanMCP](https://github.com/sudohakan/HakanMCP)** | DB queries, API testing, system monitoring, backup, 10 on-demand servers, and low-token browser wrappers (112 tools) |
+| **Raw Playwright MCP** | Optional fallback only for unsupported browser actions via HakanMCP |
 | **[kali-mcp](https://github.com/sudohakan/kali-mcp-server)** | Offensive security (36 tools: nmap, nuclei, sqlmap, hydra, feroxbuster, etc.) |
 | **NotebookLM** | Deep research, multi-source synthesis, audio/video generation |
 | **context7** | Library/framework documentation lookup |

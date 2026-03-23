@@ -40,7 +40,7 @@ bash /mnt/c/dev/claude-code-dotfiles/setup-wsl-claude.sh
 | 7 | Fix paths | Auto-updates if username differs |
 | 8 | **Transfer memory** | Cross-project knowledge base files |
 | 9 | **Bootstrap local MCP/dev projects** | Uses `external-projects.manifest.json` to provision [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), and the [`pentest-framework` scaffold](config/commands/pentest.md) |
-| 10 | **Install plugins** | 14 official + 11 Trail of Bits + 3 Anthropic = 28 plugins |
+| 10 | **Install plugins** | 13 official + 11 Trail of Bits + 3 Anthropic = 27 plugins |
 
 **After installation, just run `claude login` and you're ready.**
 
@@ -75,7 +75,7 @@ The script auto-installs missing software (via winget):
 | **Bun** | Optional helper for some MCP builds | Best-effort |
 | **Claude Code CLI** | Main tool | Yes (npm) |
 | **Manifest-defined local projects** | [HakanMCP](https://github.com/sudohakan/HakanMCP) + related local MCP/dev repos | Yes (git clone/update + install/build/validate) |
-| **28 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
+| **27 Plugins** | Superpowers, GSD, Trail of Bits, etc. | Yes (claude plugins) |
 
 ### Optional (Manual install):
 
@@ -203,7 +203,7 @@ Replace `C:/Users/Hakan` with your own username in `settings.json` where needed.
 ```bash
 claude login
 claude plugins install superpowers
-claude plugins install code-review context7 feature-dev ralph-loop playwright typescript-lsp
+claude plugins install code-review context7 feature-dev ralph-loop typescript-lsp
 claude plugins install frontend-design skill-creator commit-commands code-simplifier
 claude plugins install pr-review-toolkit security-guidance claude-md-management
 claude plugins add-marketplace trailofbits https://github.com/trailofbits/skills
@@ -247,7 +247,7 @@ The installer resolves `home-config/.claude.json` into a machine-local `~/.claud
 | [infoset-mcp](https://github.com/sudohakan/infoset-mcp) | Automatic (manifest bootstrap) | — |
 | [kali-mcp](https://github.com/sudohakan/kali-mcp-server) | Repo prepared automatically, service start remains explicit | `docker compose up` in local repo |
 | context7 | Automatic (plugin) | — |
-| Playwright | Automatic (plugin) | — |
+| HakanMCP browser bridge | Automatic via [HakanMCP](https://github.com/sudohakan/HakanMCP) bootstrap | Use `/browser` or HakanMCP wrapper tools |
 | NotebookLM | `nlm login` (Google auth) | Add to `.claude.json` mcpServers |
 | Gmail / Calendar | OAuth via Claude remote MCP | Only when explicitly needed |
 | container-use | Copy `container-use.exe` to `~/bin/` | Optional — Docker required |

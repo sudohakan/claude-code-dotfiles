@@ -15,3 +15,4 @@ This file defines the intended plugin groupings for low-context and specialized 
 - Use `minimal` for day-to-day coding when security analysis is not the focus.
 - Use `dev` when broader engineering tooling is needed.
 - Use `security` only for explicit security review or audit tasks.
+- Browser automation is routed through HakanMCP browser wrappers, not the direct Playwright plugin.

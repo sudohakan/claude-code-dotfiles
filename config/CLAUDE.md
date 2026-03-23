@@ -1,8 +1,5 @@
 # Global Claude Instructions
 
-
-**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](../README.md#portable-local-dependencies)
-
 ## 1. Core Rules
 - Respond in the user's language. Short, direct, technical.
 - Only make changes explicitly requested or clearly necessary. No unrequested features, refactoring, comments, or error handling.
@@ -19,7 +16,8 @@
 - Actionable problems → fix directly. Only explain if user-side steps are required.
 - **WSL browser rule:** NEVER open browsers inside WSL/WSLg — the user cannot see them.
   - **URLs for user:** Use `wslview <url>` (from `wslu` package, `BROWSER=wslview` in `~/.bashrc`).
-  - **Browser automation (Playwright MCP):** Connect to Windows Chrome via CDP. Config in `~/.claude/browser-last.json`. Setup details: `~/.claude/docs/browser-cdp-setup.md`.
+  - **Browser automation:** Use HakanMCP browser wrappers first (`mcp_browserConnect`, `mcp_browserNavigateExtract`, `mcp_browserProbeLogin`, `mcp_browserCaptureProof`). Connect to Windows Chrome via CDP and store state in `~/.claude/browser-last.json`. Setup details: `~/.claude/docs/browser-cdp-setup.md`.
+  - **Raw Playwright:** only via HakanMCP `mcp_callTool` when a wrapper does not cover the required action.
   - **OAuth/login flows:** Open URL via `wslview`, let user complete in Windows browser.
 - **Fix-it-permanently first:** When encountering any error or obstacle during a task, don't just work around it — first fix the root cause permanently (update config, install missing deps, fix scripts, add error handling to tooling) so the same problem never recurs. Only after the permanent fix is in place, continue with the original task. This applies to: broken auth flows, misconfigured tools, flaky scripts, missing dependencies, incorrect paths, encoding issues, and any repeatable failure. A workaround is acceptable only as a temporary measure while the permanent fix is being applied.
 - **Skill creation workflow:** When creating new skills (skills/ directory), use `superpowers:brainstorming` first, then `/skill-create` to generate with proper structure. Commands (commands/ directory) can be written directly after design — they are simpler spec files, not skill packages.
@@ -89,7 +87,7 @@ Intent-based routing. Read the user's goal, not their exact words. Multiple sign
 | Intent | Action | Reference |
 |--------|--------|-----------|
 | UI/UX work, visual design, frontend styling, component creation | `ui-ux-pro-max` skill. Component generation via `magic-21st` MCP (`/ui ...`) | `~/.claude/docs/ui-ux.md` |
-| Offensive security: testing a site/app/API's defenses, finding weaknesses, red team exercises | `/pentest <url>` command. `kali-mcp` + Playwright. Authorized targets only. | `~/.claude/docs/pentest-playbook.md` (hub) |
+| Offensive security: testing a site/app/API's defenses, finding weaknesses, red team exercises | `/pentest <url>` command. `kali-mcp` + HakanMCP browser wrappers. Authorized targets only. | `~/.claude/docs/pentest-playbook.md` (hub) |
 | Need to understand an unfamiliar library, framework, or API | `context7` MCP — query docs before coding | |
 
 ### Ralph Loop
@@ -157,7 +155,6 @@ Available plugins and their capabilities. Use judgment — these are tools, not 
 | **context7** | Library/framework docs needed, API unclear, unfamiliar dependency. Query before writing code — not after. |
 | **code-review** | Post-implementation code review. |
 | **security-guidance** | Security best practices, vulnerability patterns. |
-| **playwright** | UI testing, browser interaction, web scraping, visual verification needed. |
 | **typescript-lsp** | TypeScript type checking, language server features needed. |
 | **claude-md-management** | User asks to audit or improve CLAUDE.md files. |
 
@@ -201,14 +198,13 @@ When user wants to connect a new external service, check ALL sources in parallel
 ### MCP Servers
 Use when the task benefits from the server's capability. Match by intent, not keywords.
 
-Note: Some servers (Playwright, Gmail, LinkedIn) are accessible via both native MCP and Rube/plugins. Prefer native MCP for speed; use Rube as fallback.
+Note: Some capabilities (browser automation, Gmail, LinkedIn) are accessible via multiple routes. For browser work prefer HakanMCP browser wrappers first, then HakanMCP `mcp_callTool`, then other alternatives only if required.
 
 | Server | When the task involves... |
 |--------|--------------------------|
 | context7 | Understanding a library/framework API, need current docs or examples |
-| HakanMCP | Database operations, API testing, system monitoring, backup, or connecting to an on-demand MCP. Guide: `~/.claude/docs/mcp-usage-guide.md` |
+| HakanMCP | Database operations, API testing, system monitoring, backup, on-demand MCP connections, and browser automation through low-token wrappers. Guide: `~/.claude/docs/mcp-usage-guide.md` |
 | NotebookLM | Deep research across multiple sources, generating audio/video/slide content |
-| Playwright | Interacting with a web page, automating browser actions, visual testing, scraping |
 | Gmail | Reading, searching, or drafting email |
 | Google Calendar | Scheduling, finding free time, managing calendar events |
 | gtasks-mcp | Managing task lists, creating/updating/searching tasks |

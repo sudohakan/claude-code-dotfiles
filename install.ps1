@@ -427,7 +427,7 @@ if ($SkipPlugins) {
 
         $officialPlugins = @(
             "superpowers", "code-review", "context7", "feature-dev",
-            "ralph-loop", "playwright", "typescript-lsp", "frontend-design",
+            "ralph-loop", "typescript-lsp", "frontend-design",
             "skill-creator", "commit-commands", "code-simplifier",
             "pr-review-toolkit", "security-guidance", "claude-md-management"
         )
