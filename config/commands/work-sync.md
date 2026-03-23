@@ -88,9 +88,10 @@ mcp__infoset__infoset_list_tickets:
 
 If `totalItems > 100`, paginate with `page: 2`, `page: 3`, etc.
 
-**Stage filter:** Only include tickets with `stageId: 91133` (Yazılım kolonu). Discard tickets in other stages (77519=Üzerinde Çalışılıyor, 83548, etc.) — they are not the user's responsibility.
+**Stage filter (applied AFTER Step 2 matching, not here):**
+Do NOT filter by stage during fetch. Keep ALL open/pending tickets from the response. The stage filter is applied in Step 2.5 after matching is complete.
 
-Save filtered tickets as `currentInfosetTickets`.
+Save unfiltered tickets as `allInfosetTickets`.
 
 ### Step 1b: Fetch Azure DevOps Work Items
 
@@ -187,25 +188,48 @@ Store all comment text per work item for use in Step 2 matching.
 
 **Skip this step if `-d` or `-i` flag is set (only one source active).**
 
-**Method:** Search DevOps work item comments/discussion for Infoset ticket URLs.
+**Method:** Search DevOps work item comments/discussion AND text fields for Infoset ticket URLs.
 
 **Regex:** `dashboard\.infoset\.app/tickets/(\d+)`
 
-Scan ALL fetched comment text for each DevOps work item. Extract Infoset ticket IDs from matched URLs.
+Scan these sources for each DevOps work item (in order):
+1. ALL fetched comment text (discussion) — paginate with `continuationToken` if needed
+2. `Microsoft.VSTS.TCM.ReproSteps` (Repro Steps)
+3. `System.Description` (Description)
 
-**Edge cases:**
+Extract Infoset ticket IDs from matched URLs. Deduplicate across all sources.
+
+#### Backfill: Fetch matched tickets not in initial Infoset fetch
+
+After URL scanning, some matched Infoset IDs may NOT be in `allInfosetTickets` (from Step 1a) because:
+- Ticket was closed (status 3/4) — not fetched by `status: [1, 2]`
+- Ticket was resolved but DevOps task is still active
+
+**For each matched Infoset ID not in `allInfosetTickets`:**
+```
+mcp__infoset__infoset_get_ticket:
+  ticketId: {matchedInfosetId}
+```
+Add the fetched ticket to `allInfosetTickets` with a flag `backfilled: true`. This preserves the customer/subject context for the matched DevOps work item.
+
+**Matched items with closed Infoset tickets** are valid matches — the DevOps item originated from that Infoset request. The Work Plan entry uses `source: "both"` and notes that the Infoset ticket is closed while DevOps work continues.
+
+#### Edge cases
 
 | Case | Behavior |
 |------|----------|
 | Multiple Infoset URLs in one DevOps item | Create separate match entry for each Infoset ID. Work Plan: one entry per Infoset ticket, each linking to the same DevOps item. All linked IDs noted in notes. |
 | One Infoset ticket in multiple DevOps items | One Work Plan entry per Infoset ticket. All linked DevOps IDs listed in notes. Primary DevOps ID = highest priority or most recently changed. |
 | No Infoset URL found | DevOps-only item, no matching attempted. |
+| Matched Infoset ticket is closed (status 3/4) | Still a valid match. Backfill ticket data. Work Plan entry: `source: "both"`, `infosetClosed: true`. Customer context preserved from the closed ticket. |
+| Matched Infoset ticket is in non-Yazılım stage | Still a valid match. Include it regardless of stage. |
 
-**Output classifications:**
+#### Output classifications
 
 | Result | Meaning |
 |--------|---------|
-| Match found | Infoset ticket #{id} ↔ DevOps work item #{id} |
+| Match found (active) | Infoset ticket #{id} (open) ↔ DevOps work item #{id} |
+| Match found (closed) | Infoset ticket #{id} (closed) ↔ DevOps work item #{id} — DevOps work continues |
 | Infoset only | Ticket has no DevOps counterpart |
 | DevOps only | Work item has no Infoset ticket |
 
@@ -215,9 +239,28 @@ Scan ALL fetched comment text for each DevOps work item. Extract Infoset ticket 
 ```
 === Eşleştirme Raporu ===
 Eşleşen: {n} iş (Infoset ↔ DevOps)
+  - {n} aktif Infoset ticket ile
+  - {n} kapatılmış Infoset ticket ile (DevOps devam ediyor)
 Sadece Infoset: {n} ticket (DevOps karşılığı yok)
 Sadece DevOps: {n} task
 ```
+
+---
+
+### Step 2.5: Apply Stage Filter
+
+**After matching is complete**, apply the stage filter to produce `currentInfosetTickets`:
+
+Include tickets that match ANY of these conditions:
+1. `stageId: 91133` (Yazılım kolonu) — user's primary queue
+2. Ticket has a DevOps match (from Step 2) — regardless of stage or status
+3. Ticket was backfilled (closed but matched) — `backfilled: true`
+
+Discard all other tickets from `allInfosetTickets`.
+
+Save as `currentInfosetTickets`.
+
+**Why this order matters:** Matching must run before stage filtering. Matched tickets often move to other stages (Üzerinde Çalışılıyor, resolved, etc.) while the DevOps task is still active. Filtering before matching would break the link and show 0 matches.
 
 ---
 
@@ -538,11 +581,15 @@ After initial analysis, perform verification pass:
 Merge all items into a single deduplicated list:
 
 1. Start with matched pairs → single entry per pair (keyed as `wp-M{infosetId}`)
-2. Add unmatched Infoset tickets (keyed as `wp-I{infosetId}`)
+   - If Infoset ticket is closed (`backfilled: true`), the entry still uses `wp-M{infosetId}` but `infosetClosed: true`
+   - Customer/subject comes from Infoset ticket data (backfilled), DevOps state/sprint from DevOps
+2. Add unmatched Infoset tickets from `currentInfosetTickets` (keyed as `wp-I{infosetId}`)
 3. Add unmatched DevOps items (keyed as `wp-D{devopsId}`)
 4. Sort by `priorityScore` descending
 
 This is the **Work Plan** — single source of truth for calendar planning and capacity calculation.
+
+**Deduplication:** A DevOps item that is matched (has `wp-M` entry) is NOT also added as `wp-D`. Same for Infoset.
 
 ---
 
