@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-15 -->
 # MCP Usage Guide
 
 ## When to Use Which MCP
@@ -32,7 +33,7 @@
 - Example: "Fill and submit the registration form"
 - Do NOT use: for static HTML analysis (use Read instead)
 
-### HakanMCP (131 tools)
+### HakanMCP (107 tools)
 - Trigger: Any task in the categories below
 
 | Category | Example Tools | When to Use |

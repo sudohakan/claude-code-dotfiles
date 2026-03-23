@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-15 -->
 # Advanced Toolset
 
 ## Claude Squad — Multi-Agent Orchestration

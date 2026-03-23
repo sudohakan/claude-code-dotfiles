@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-16 -->
 # Agent Teams Guide
 
 This file is the local reference for Claude Code Agent Teams. It is aligned with the official documentation at [code.claude.com/docs/en/agent-teams](https://code.claude.com/docs/en/agent-teams).

@@ -14,6 +14,11 @@
 - Verify every change before reporting completion. Re-read files, confirm paths, check consistency.
 - Actionable problems → fix directly. Only explain if user-side steps are required.
 - Browser/GUI setup (login, OAuth, wizard) → run directly via WSLg. Install missing deps, fix errors, retry. Never leave manual steps for the user.
+- **Fix-it-permanently first:** When encountering any error or obstacle during a task, don't just work around it — first fix the root cause permanently (update config, install missing deps, fix scripts, add error handling to tooling) so the same problem never recurs. Only after the permanent fix is in place, continue with the original task. This applies to: broken auth flows, misconfigured tools, flaky scripts, missing dependencies, incorrect paths, encoding issues, and any repeatable failure. A workaround is acceptable only as a temporary measure while the permanent fix is being applied.
+- **Skill creation workflow:** When creating new skills (skills/ directory), use `superpowers:brainstorming` first, then `/skill-create` to generate with proper structure. Commands (commands/ directory) can be written directly after design — they are simpler spec files, not skill packages.
+- **Continuous improvement:** When user feedback during execution reveals a gap in any custom skill, command, or hook (missing fields, wrong flow, failed edge case), immediately update the relevant file, verify the fix works, then continue the task. All custom skills, commands, and hooks must self-improve through use.
+- **WSL+NTFS encoding:** When creating `.sh` files on Windows/NTFS, always force LF line endings (not CRLF). Add `*.sh text eol=lf` to `.gitattributes`. WSL cannot execute CRLF scripts.
+- **WSL large files:** WSL NTFS driver cannot read back files larger than ~1MB that contain shell escape sequences. For large generated files, write to ext4 (`/home/`) and symlink if needed.
 
 ## 2. Model Selection
 - Default: `sonnet`. Always pass `model` explicitly when spawning agents/teammates.
@@ -21,6 +26,7 @@
 - Complex architectural decisions (2+ services, irreversible): `opus`.
 - Team leader (orchestrator): always `opus`.
 - Superpowers/Ralph loop: inherit default (`sonnet`).
+- Current versions: Haiku 4.5 (fast, cost-effective), Sonnet 4.6 (best coding), Opus 4.6 (deepest reasoning).
 
 ## 3. Task Routing
 
@@ -31,33 +37,52 @@
 User asks to create a team → use `/team`. Individual team commands (`/buildteam`, etc.) are deprecated.
 
 ### Routing Signals
-Use judgment based on these signals. Multiple may apply — pick the best fit or combine.
+Intent-based routing. Read the user's goal, not their exact words. Multiple signals may apply — pick the best fit or combine.
 
-| Signal | Consider |
-|--------|----------|
+**Structural signals** — always check these first:
+
+| Condition | Action |
+|-----------|--------|
 | Team already active | Route through team leader — don't bypass |
-| Single step, obvious | Handle directly, no workflow needed |
-| "Bug", error, unexpected behavior | `superpowers:systematic-debugging` |
-| Independent, self-contained task | Subagent |
-| Vague request, unclear direction | `superpowers:brainstorming` |
-| Multi-step, requirements clear | `superpowers:writing-plans` or ECC `/blueprint` for complex multi-session work |
-| Several independent tasks | `superpowers:dispatching-parallel-agents` |
 | `.planning/ROADMAP.md` exists | GSD workflow. `gsd:quick` for small tasks |
-| Measurable, automatable success criterion | Ralph Loop (`ralph-loop:ralph-loop`) |
-| Feature implementation starting | Consider `superpowers:test-driven-development` or ECC `/tdd` |
-| Work looks done | `superpowers:verification-before-completion` (always run before claiming done) |
-| Code just written | Consider code review — `superpowers:requesting-code-review` or `/code-review` |
-| Build fails | ECC `/build-fix` — minimal diffs, get build green |
-| UI/UX work, design, frontend styling | `ui-ux-pro-max` skill. Component generation via `magic-21st` MCP (`/ui ...`) |
-| Pentest, vulnerability scan, security audit | `kali-mcp` for scanning/exploitation. Burp Suite for web app testing. Authorized targets only. |
-| Dead code, cleanup, refactoring | ECC `/refactor-clean` |
-| E2E test needed | ECC `/e2e` — Playwright test generation |
-| Docs or codemaps outdated | ECC `/update-docs` or `/update-codemaps` |
-| Prompt needs improvement | ECC `/prompt-optimize` |
-| Session ending or context growing large | Consider ECC `/save-session` |
 | Session starting | Consider ECC `/resume-session` if prior session exists |
+| Session ending or context growing large | Consider ECC `/save-session` |
+
+**Task complexity signals** — how to approach the work:
+
+| Intent | Action |
+|--------|--------|
+| Single step, outcome obvious | Handle directly, no workflow needed |
 | Quick side question during deep work | ECC `/aside` — don't pollute main context |
-| Unfamiliar library or API | `context7` MCP — query docs before coding |
+| Multiple independent tasks that can run in parallel | `superpowers:dispatching-parallel-agents` |
+| Single self-contained task to delegate | Subagent |
+| Unclear direction, needs exploration | `superpowers:brainstorming` |
+| Clear requirements, multiple steps needed | `superpowers:writing-plans` or ECC `/blueprint` for complex multi-session work |
+| Measurable success criterion, automatable verification | Ralph Loop (`ralph-loop:ralph-loop`) |
+
+**Development lifecycle signals** — what phase the work is in:
+
+| Intent | Action |
+|--------|--------|
+| About to write a new feature or fix a bug | Consider `superpowers:test-driven-development` or ECC `/tdd` |
+| Something is broken, behaving unexpectedly, or producing errors | `superpowers:systematic-debugging` |
+| Build or compilation fails | ECC `/build-fix` — minimal diffs, get build green |
+| Code was just written or modified | Consider code review — `superpowers:requesting-code-review` or `/code-review` |
+| Work appears complete, about to report done | `superpowers:verification-before-completion` (always run before claiming done) |
+| Removing unused code, consolidating, cleaning up | ECC `/refactor-clean` |
+| Need end-to-end or integration tests | ECC `/e2e` — Playwright test generation |
+| Documentation or codemaps need updating | ECC `/update-docs` or `/update-codemaps` |
+| A prompt or instruction needs to be improved | ECC `/prompt-optimize` |
+| Deploying to test/prod | `/deploy` or `/finekra-deploy-test` for Finekra test servers |
+| Starting new implementation from scratch | Check `rules/common/development-workflow.md` — Research & Reuse step is mandatory |
+
+**Domain-specific signals** — specialized workflows based on subject area:
+
+| Intent | Action | Reference |
+|--------|--------|-----------|
+| UI/UX work, visual design, frontend styling, component creation | `ui-ux-pro-max` skill. Component generation via `magic-21st` MCP (`/ui ...`) | `~/.claude/docs/ui-ux.md` |
+| Offensive security: testing a site/app/API's defenses, finding weaknesses, red team exercises | `/pentest <url>` command. `kali-mcp` + Playwright. Authorized targets only. | `~/.claude/docs/pentest-playbook.md` (hub) |
+| Need to understand an unfamiliar library, framework, or API | `context7` MCP — query docs before coding | |
 
 ### Ralph Loop
 All must be true: measurable criterion in one sentence, automated verification (tests/lint/build), no design decisions needed, max 3-10 iterations.
@@ -66,6 +91,7 @@ Args format: `~/.claude/docs/review-ralph.md`.
 ## 4. Agent Teams
 Use for coordinated, long-running work with parallel workstreams.
 - Never auto-create teams. Keep alive until user requests shutdown.
+- Never send shutdown to teammates when tasks complete — idle teammates are normal. Shutdown only when user explicitly requests it (e.g., "shutdown" or equivalent in any language). Task completion, idle loops, and token concerns are never shutdown triggers.
 - Role definitions: `~/.claude/teams/agents/`
 - Full workflow: `~/.claude/docs/agent-teams.md`
 
@@ -88,7 +114,7 @@ Use for coordinated, long-running work with parallel workstreams.
 Memory path: `~/.claude/projects/<project-key>/memory/`
 
 ### Session Continuity
-- Session start or `/compact`: read `.memory/session-continuity.md` (primary), then `MEMORY.md` / `.planning/STATE.md` if needed.
+- Session start or `/compact`: read `.memory/session-continuity.md` (primary), then `MEMORY.md`. If `.planning/STATE.md` exists (GSD projects only), read it too.
 - Keep compact: latest state only, under 12 lines.
 - Write only before `/compact` when context exceeds ~90%.
 - Teams: only leader reads/writes session-continuity.
@@ -98,6 +124,19 @@ Memory path: `~/.claude/projects/<project-key>/memory/`
 - `.memory/patterns.md` — established project patterns
 - `.memory/decisions.md` — architectural/workflow decisions
 - Update `MEMORY.md` index on changes.
+
+### Memory File Frontmatter Format
+All memory files (except MEMORY.md, decisions.md, patterns.md, solutions.md) must include frontmatter:
+```yaml
+---
+name: <snake_case_identifier>
+description: <one-line summary>
+type: feedback | reference | user | project
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+---
+```
+`created` and `updated` are required fields in ISO date format. Set both to the file's creation date on first write; update `updated` on each subsequent edit.
 
 ## 6. Plugins & Skills
 
@@ -152,23 +191,25 @@ When user wants to connect a new external service, check ALL sources in parallel
 **Selection priority:** Free dedicated MCP > HakanMCP auth-free > Rube (Rube has cost and shared API limits, prefer free alternatives when available). If Rube is the only option or significantly better featured, use it. Always present options to user with trade-offs.
 
 ### MCP Servers
-| Server | Signals to Consider Using |
+Use when the task benefits from the server's capability. Match by intent, not keywords.
+
+Note: Some servers (Playwright, Gmail, LinkedIn) are accessible via both native MCP and Rube/plugins. Prefer native MCP for speed; use Rube as fallback.
+
+| Server | When the task involves... |
 |--------|--------------------------|
-| context7 | Unfamiliar library, need API reference, version-specific examples |
-| HakanMCP | DB queries, API testing, system monitoring, backup, on-demand MCP catalog. Guide: `~/.claude/docs/mcp-usage-guide.md` |
-| NotebookLM | Deep research, multi-source synthesis, audio/video/slide generation |
-| Playwright | Browser automation, UI testing, web scraping, visual verification needed. |
-| Gmail | User explicitly asks about email |
-| Google Calendar | User explicitly asks about scheduling |
-| gtasks-mcp | User explicitly asks about tasks |
-| infoset | CRM data needed (tickets, contacts, companies) |
-| coupler-io | Dataflow or data integration queries |
-| container-use | Docker container operations |
-| kali-mcp | Penetration testing, vulnerability scanning, network recon. 35 tools: nmap, sqlmap, hydra, metasploit, nikto, amass, subfinder, testssl. Docker container (port 8000 SSE). Authorized pentest/CTF/defensive use only. |
-| linkedin | LinkedIn profile scraping, people/company/job search. Dedicated MCP (Patchright browser-based). Rube LinkedIn connection is backup for posting. |
-| burp-suite | Web application security testing via Burp Suite Community. Install MCP extension from BApp Store. Use for HTTP traffic analysis, vulnerability scanning. |
-| magic-21st (21st.dev) | `/ui` for UI component generation — React+Tailwind, writes directly to project |
-| Rube (Composio) | 600+ app. Prefer Rube over separate MCP for connected apps. Use `RUBE_SEARCH_TOOLS` first to discover tools. |
+| context7 | Understanding a library/framework API, need current docs or examples |
+| HakanMCP | Database operations, API testing, system monitoring, backup, or connecting to an on-demand MCP. Guide: `~/.claude/docs/mcp-usage-guide.md` |
+| NotebookLM | Deep research across multiple sources, generating audio/video/slide content |
+| Playwright | Interacting with a web page, automating browser actions, visual testing, scraping |
+| Gmail | Reading, searching, or drafting email |
+| Google Calendar | Scheduling, finding free time, managing calendar events |
+| gtasks-mcp | Managing task lists, creating/updating/searching tasks |
+| infoset | Accessing CRM data — tickets, contacts, companies |
+| container-use | Managing Docker containers |
+| kali-mcp | Offensive security testing, network recon, vulnerability scanning. Tools: nmap, nuclei, feroxbuster, ffuf, katana, sqlmap, hydra, grpcurl + 28 more (36 total). **Ref**: `pentest-playbook.md` (hub) |
+| linkedin | Looking up people, companies, or jobs on LinkedIn |
+| magic-21st (21st.dev) | Generating UI components (`/ui` prefix) — React+Tailwind |
+| Rube (Composio) | Connecting to 600+ apps. Use `RUBE_SEARCH_TOOLS` to discover tools first |
 
 **Rube Connected Apps:**
 | App | Signals to Use |
@@ -182,7 +223,7 @@ When user wants to connect a new external service, check ALL sources in parallel
 | Gemini | Image generation (Nano Banana), text generation. Use for AI-generated visuals |
 
 ### On-Demand MCP (HakanMCP catalog)
-14 auth-free servers. Connect via `mcp_connectFromCatalog` — prefer these over Bash workarounds when the task fits.
+9 auth-free servers. Connect via `mcp_connectFromCatalog` — prefer these over Bash workarounds when the task fits.
 
 | Server | Connect When |
 |--------|-------------|
@@ -195,11 +236,6 @@ When user wants to connect a new external service, check ALL sources in parallel
 | Time | Timezone conversion or cross-timezone scheduling |
 | Mermaid | Diagram generation requested (flowchart, sequence, architecture) |
 | DuckDB | SQL analytics on local CSV/Parquet/JSON files |
-| Puppeteer | Headless Chrome — screenshots, PDF, scraping, form filling (Playwright alternative) |
-| DuckDuckGo Search | Free web search without API key — privacy-focused, WebSearch alternative |
-| CoinCap Crypto | Real-time cryptocurrency prices, market cap, volume |
-| Airbnb | Accommodation search, listing details, pricing |
-| DocsFetcher | Package docs from npm, PyPI, Go, Rust ecosystems (Context7 alternative) |
 
 ### MCP Error Handling
 - Error → investigate and retry within same MCP first (different params, reconnect).
@@ -215,7 +251,7 @@ All `~/.claude/` → WSL: `/home/hakan/.claude/` | Windows: `C:\Users\Hakan\.cla
 | Resource | Path |
 |----------|------|
 | GSD workflow | `~/.claude/get-shit-done/` and `~/.claude/commands/gsd/` |
-| Superpowers specs | `~/.claude/docs/superpowers/specs/` |
+| Superpowers design docs (archive) | `~/.claude/docs/superpowers/specs/` |
 | Dippy hooks | `~/.claude/docs/dippy.md` |
 | UI/UX guidance | `~/.claude/docs/ui-ux.md` |
 | Decision matrix | `~/.claude/docs/decision-matrix.md` |
@@ -225,4 +261,10 @@ All `~/.claude/` → WSL: `/home/hakan/.claude/` | Windows: `C:\Users\Hakan\.cla
 | Agent teams workflow | `~/.claude/docs/agent-teams.md` |
 | Ralph Loop spec | `~/.claude/docs/review-ralph.md` |
 | .claudeignore templates | `~/.claude/docs/claudeignore-templates.md` |
+| Pentest framework v4 | `~/.claude/docs/pentest-playbook.md` (hub) + `pentest-recon.md` + `pentest-assessment.md` + `pentest-exploitation.md` + `pentest-counter-breach.md` + `pentest-targets/` + `kali-mcp/tool-inventory.md` + `/mnt/c/dev/pentest-framework/` |
 | Dotfiles repo | WSL: `/mnt/c/dev/claude-code-dotfiles` |
+| Rules (common) | `~/.claude/rules/common/` |
+| Hook standards | `~/.claude/docs/hook-standards.md` |
+| Agent favorites | `~/.claude/docs/agent-favorites.md` |
+| Plan naming | `~/.claude/docs/plan-naming.md` |
+| Plugin profiles | `~/.claude/docs/plugin-profiles.md` |

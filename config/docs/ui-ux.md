@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-13 -->
 # UI/UX Pro Max Reference
 
 This file is a lightweight pointer, not a second ruleset.

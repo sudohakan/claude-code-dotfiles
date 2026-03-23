@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-13 -->
 # Dippy Hook
 
 `dippy-hook` runs before Bash tool usage as the first command-layer guard in your Claude setup.

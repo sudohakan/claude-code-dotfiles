@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-13 -->
 # Plugin Profiles
 
 This file defines the intended plugin groupings for low-context and specialized sessions.

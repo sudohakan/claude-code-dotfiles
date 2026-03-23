@@ -1,3 +1,4 @@
+<!-- last_updated: 2026-03-13 -->
 # Hook Standards
 
 Use these standards for local Claude hooks.

@@ -295,7 +295,7 @@ Merge all items into single deduplicated list:
 - Breaks: 10:30-10:50, 12:30-13:10 (lunch), 15:30-15:50
 - 4 canonical slots: 09:30-10:30, 10:50-12:30, 13:10-15:30, 15:50-17:45
 - Net work per day: 415 min (6h 55min)
-- Planning horizon: 10 business days from NOW
+- Planning horizon: 20 business days (4 weeks / 2 sprints) from NOW
 - Current time awareness (skip passed slots)
 - Turkey public holidays (fixed + dini bayramlar for current year)
 - Company grouping: same-company tickets in adjacent slots. DevOps-only items with no extractable company are treated as individual items (no grouping), NOT grouped under a null bucket.
