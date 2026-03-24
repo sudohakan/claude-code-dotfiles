@@ -25,6 +25,7 @@
 - WSL+NTFS `.sh` files: force LF endings. Add `*.sh text eol=lf` to `.gitattributes`.
 - WSL large files: NTFS driver cannot read back files >~1MB with shell escape sequences. Write to `/home/` and symlink.
 - Dotfiles sync: after any `~/.claude/` change, sync the dotfiles repo before task is complete. Use `/dotfiles-sync`.
+- Writing style for all directive files (CLAUDE.md, rules, docs, commands, skills, agent definitions): no emoji, no decorative separators (===, ***), no verbose explanations when a table/list suffices, no "NOTE/IMPORTANT/CRITICAL" prefixes, plain markdown only (##/### headers, bullets, tables, code blocks). Every line must be actionable. This applies to new files and edits to existing files.
 
 ## 2. Model Selection
 
