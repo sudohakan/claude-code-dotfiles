@@ -1,104 +1,104 @@
 ---
-description: "Playbook — automated offensive security pipeline: recon (3 waves), vulnerability assessment (2A-2Z+), adaptive exploitation, post-exploitation operations, DOCX report generation"
+description: "Playbook — automated offensive security pipeline: recon (3 waves), vulnerability assessment (2A-2Z+), adaptive exploitation, post-exploitation, DOCX report generation"
 ---
 
 # Playbook
 
-Automated offensive security pipeline. Recon, adaptive vulnerability assessment, aggressive auto-exploitation with post-exploitation operations across 15 access types, and professional DOCX reporting.
+Automated offensive security pipeline. Recon, adaptive vulnerability assessment, auto-exploitation, and DOCX reporting.
 
-**Data dir:** `/mnt/c/dev/pentest-framework/data/<domain>/`
+**Data dir:** `/mnt/c/dev/pentest-framework/data/<DOMAIN>/`
 **Target profiles:** `~/.claude/docs/pentest-targets/`
 **Playbook (split):**
-- `~/.claude/docs/pentest-playbook.md` — hub: tools, phase 0/0.5, phase 4/5, refs
+- `~/.claude/docs/pentest-playbook.md` — hub: tools, phases 0/0.5/4/5, refs
 - `~/.claude/docs/pentest-recon.md` — Phase 1: recon (3 waves)
 - `~/.claude/docs/pentest-assessment.md` — Phase 2 + 2.5: assessment + correlation
 - `~/.claude/docs/pentest-exploitation.md` — Phase 3A/3B: exploit chains + arsenals
 - `~/.claude/docs/pentest-counter-breach.md` — Phase 3C: counter-breach
-**Core architecture:** `~/.claude/docs/pentest-architecture.md`
-**Operating rules:** `~/.claude/docs/pentest-operations.md`
-**Tool inventory:** `~/.claude/docs/kali-mcp/tool-inventory.md`
-**Capability matrix:** `~/.claude/docs/kali-mcp/capability-matrix.md`
+
+**Supporting:**
+- `~/.claude/docs/pentest-architecture.md` — schema and load policy
+- `~/.claude/docs/pentest-operations.md` — runtime discipline
+- `~/.claude/docs/kali-mcp/tool-inventory.md` — tool reference
+- `~/.claude/docs/kali-mcp/capability-matrix.md` — tool support matrix
+- `/opt/opsec/` — OPSEC toolkit (stealth_session.py, preflight.sh, fake_identity.py, clean_metadata.sh)
 
 ## Arguments
 
-Parse `$ARGUMENTS`:
-
 ```
-/playbook <url> [flags]
+/playbook <target> [flags]
 ```
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `<target>` | Yes | URL, IP address, CIDR range, or flag-based target (auto-detected) |
+| `<target>` | Yes | URL, IP, CIDR, or flag-based target (auto-detected) |
 | `--depth short\|standard\|deep` | No | Time budget (default: standard) |
 | `--scope web\|infra\|full` | No | Test scope (default: full) |
 | `--resume` | No | Continue from last checkpoint, skip completed tests |
-| `--skip-recon` | No | Skip recon phases, jump straight to assessment using existing recon data |
-| `--report-only` | No | Generate DOCX report from existing findings.json, no new scanning |
-| `--counter-breach` | No | Skip recon/assessment — direct access + Phase 3C counter-breach operations on YOUR OWN compromised server |
-| `--prepare-defense` | No | Install Layer 1 defensive mechanisms on YOUR OWN server (break glass, tunnel, canary, deadman switch) |
-| `--emergency-recover` | No | Unprepared recovery — hosting provider contact, DNS redirect, backup restore guide |
+| `--skip-recon` | No | Skip recon, jump to assessment using existing recon data |
+| `--report-only` | No | Generate DOCX from existing findings.json, no scanning |
+| `--counter-breach` | No | Skip recon/assessment — Phase 3C counter-breach on YOUR server |
+| `--prepare-defense` | No | Install Layer 1 defensive mechanisms on YOUR server |
+| `--emergency-recover` | No | Unprepared recovery guide |
 
 **Time budgets:**
 
 | Depth | Budget | Tier coverage |
 |-------|--------|---------------|
-| short | 8 hours | Tier 1 only (critical vectors) |
-| standard | 40 hours | Tier 1 + 2 (all high-probability) |
-| deep | 80 hours | Tier 1 + 2 + 3 (exhaustive) |
+| short | 8 hours | Tier 1 only |
+| standard | 40 hours | Tier 1 + 2 |
+| deep | 80 hours | Tier 1 + 2 + 3 |
 
 **Scope modifiers:**
 
 | Scope | Behavior |
 |-------|----------|
-| web | Web app only — skip nmap/infra scans |
+| web | Web app only — skip nmap/infra |
 | infra | Infrastructure only — skip web app tests |
-| full | Everything — web + infra + API |
+| full | Web + infra + API |
 
 **Flags:**
 
 | Flag | Description |
 |------|-------------|
-| `--wifi` | Scan nearby WiFi networks and attack |
+| `--wifi` | Scan and attack nearby WiFi networks |
 | `--bluetooth` | BLE device scan + exploitation |
-| `--ad <DC_IP>` | Active Directory domain attack |
+| `--ad <DC_IP>` | Active Directory attack |
 | `--cloud aws\|azure\|gcp` | Cloud infrastructure assessment |
 | `--iot <IP:PORT>` | Industrial protocol testing |
 | `--mobile <APK\|IPA>` | Mobile app analysis |
-| `--full-spectrum` | Every applicable module |
+| `--full-spectrum` | All applicable modules |
 | `--team` | Multi-agent swarm mode |
 | `--apt APT28\|APT29\|LAZARUS` | Adversary emulation |
 | `--purple` | Attack + detect simultaneously |
-| `--stealth` | Low-and-slow, evasion-first |
-| `--noisy` | Maximum speed, no stealth |
+| `--stealth` | Low-and-slow, evasion-first (OPSEC profile: stealth) |
+| `--noisy` | Maximum speed, no stealth (OPSEC profile: noisy) |
 | `--continuous` | Continuous ASM monitoring |
 | `--comply PCI\|ISO\|NIST\|KVKK` | Map findings to compliance framework |
 | `--social` | Include social engineering vectors |
 | `--osint-only` | OSINT only, no active scanning |
-| `--org <name>` | Load org-specific templates |
-| `--wifi-deauth` | Aggressive WiFi (includes deauth) |
+| `--org <name>` | Load org-specific nuclei templates |
 | `--pivot` | Enable lateral movement after foothold |
 | `--quick-wins` | 15-min fast checks only |
-| `--confirm-exploit` | Require human confirmation before each exploit (disables auto-exploit) |
+| `--confirm-exploit` | Require human confirmation before each exploit |
 
-**CRITICAL — Flag routing (check BEFORE doing anything else):**
+**Flag routing (check BEFORE anything else):**
 
-0. If `$ARGUMENTS` contains `--quick-wins` → jump directly to **Quick Wins Mode**. Skip all other phases.
-1. If `$ARGUMENTS` is empty → display help text below and **STOP. Do not proceed to any phase.**
-2. If `$ARGUMENTS` contains `--help` or `-h` → display help text below and **STOP. Do not proceed to any phase.**
-3. If `$ARGUMENTS` contains `--report-only` → jump directly to **Phase 4: Reporting**. Skip all other phases.
-4. If `$ARGUMENTS` contains `--counter-breach` → jump directly to **Counter-Breach Mode**. Skip all other phases.
-5. If `$ARGUMENTS` contains `--prepare-defense` → jump directly to **Defense Preparation Mode**. Skip all other phases.
-6. If `$ARGUMENTS` contains `--emergency-recover` → jump directly to **Emergency Recovery Mode**. Skip all other phases.
-7. Otherwise → proceed to **Phase 0: Target Init** with the URL and flags.
-8. If `$ARGUMENTS` contains `--osint-only` → run ONLY Phase 1 Wave 0 (OSINT) then skip to Phase 4. Load pentest-osint.md.
-9. If `$ARGUMENTS` contains `--apt` → load pentest-adversary-emulation.md, apply APT profile TTPs throughout all phases.
-10. If `$ARGUMENTS` contains `--purple` → load pentest-purple-team.md, measure detection after each attack.
-11. If `$ARGUMENTS` contains `--social` → include pentest-social-engineering.md and pentest-phishing.md in Phase 2.
-12. If `$ARGUMENTS` contains `--stealth` → apply stealth parameters from section 0.0.8 to all tool calls.
-13. If `$ARGUMENTS` contains `--noisy` → use maximum speed/threads for all tools (nmap -T5, feroxbuster -t 100, etc.)
-14. If `$ARGUMENTS` contains `--continuous` → after full scan, enter monitoring loop per pentest-continuous-asm.md.
-15. If `$ARGUMENTS` contains `--pivot` → after exploitation, enable lateral movement per pentest-ip-intrusion.md Phase 3IP Layer 3.
+0. `--quick-wins` → jump to Quick Wins Mode. Stop after.
+1. Empty `$ARGUMENTS` → display help text. Stop.
+2. `--help` or `-h` → display help text. Stop.
+3. `--report-only` → jump to Phase 4. Skip all other phases.
+4. `--counter-breach` → jump to Counter-Breach Mode. Skip all other phases.
+5. `--prepare-defense` → jump to Defense Preparation Mode. Skip all other phases.
+6. `--emergency-recover` → jump to Emergency Recovery Mode. Skip all other phases.
+7. Otherwise → Phase 0: Target Init.
+8. `--osint-only` → Phase 1 Wave 0 only, then Phase 4. Load pentest-osint.md.
+9. `--apt` → load pentest-adversary-emulation.md, apply APT TTPs throughout.
+10. `--purple` → load pentest-purple-team.md, measure detection after each attack.
+11. `--social` → include pentest-social-engineering.md and pentest-phishing.md in Phase 2.
+12. `--stealth` → apply stealth OPSEC profile; load `/opt/opsec/profile.json` (profile: stealth).
+13. `--noisy` → apply noisy OPSEC profile; nmap -T5, feroxbuster -t 100, no delays.
+14. `--continuous` → after full scan, enter monitoring loop per pentest-continuous-asm.md.
+15. `--pivot` → after exploitation, enable lateral movement per pentest-ip-intrusion.md Phase 3IP Layer 3.
 
 ---
 
@@ -106,102 +106,179 @@ Parse `$ARGUMENTS`:
 
 Display:
 ```
-=== Playbook — Offensive Security Pipeline ===
+Playbook — Offensive Security Pipeline
 
-/playbook <url>                        Full pipeline: recon → vuln assessment → exploitation → report
-/playbook <url> --depth short          Quick test (8 hours, critical vectors only)
-/playbook <url> --depth deep           Deep test (80 hours, all vectors)
-/playbook <url> --scope web            Web application only (nmap/infra skipped)
-/playbook <url> --scope infra          Infrastructure only (web app skipped)
-/playbook <url> --resume               Resume previous test from last checkpoint
-/playbook <url> --skip-recon           Skip recon, proceed to assessment with existing data
-/playbook <url> --report-only          Generate DOCX report from existing findings
-/playbook <url> --counter-breach       Emergency: your server is compromised — access + protection
-/playbook 192.168.1.100                    Direct IP penetration test
-/playbook 10.0.0.0/24                      Subnet scan
-/playbook --wifi                           Scan and attack nearby WiFi networks
-/playbook --ad 192.168.1.1                Active Directory attack
-/playbook <url> --team                     Multi-agent swarm mode
-/playbook <url> --apt APT28               APT28 adversary emulation
-/playbook <url> --purple                   Purple team (attack + detect simultaneously)
-/playbook <url> --stealth                  Stealth mode (slow, evades IDS)
-/playbook <url> --quick-wins               Quick results in 15 minutes
-/playbook <url> --comply PCI               PCI DSS compliance mapping
+/playbook <url>                        Full pipeline: recon → assessment → exploitation → report
+/playbook <url> --depth short          8-hour test (critical vectors only)
+/playbook <url> --depth deep           80-hour test (all vectors)
+/playbook <url> --scope web            Web application only
+/playbook <url> --scope infra          Infrastructure only
+/playbook <url> --resume               Resume from last checkpoint
+/playbook <url> --skip-recon           Skip recon, proceed with existing data
+/playbook <url> --report-only          Generate DOCX from existing findings
+/playbook <url> --counter-breach       Emergency: your server is compromised
+/playbook 192.168.1.100                Direct IP penetration test
+/playbook 10.0.0.0/24                  Subnet scan
+/playbook --wifi                       Scan and attack nearby WiFi
+/playbook --ad 192.168.1.1             Active Directory attack
+/playbook <url> --team                 Multi-agent swarm mode
+/playbook <url> --apt APT28            APT28 adversary emulation
+/playbook <url> --purple               Purple team (attack + detect)
+/playbook <url> --stealth              Stealth mode (slow, evades IDS)
+/playbook <url> --quick-wins           Fast results in 15 minutes
+/playbook <url> --comply PCI           PCI DSS compliance mapping
 
-Flag combinations:
-  --depth deep --scope web            Deep web test
-  --resume --depth standard           Resume with standard budget
-
-Pipeline phases:
-  Phase 0:   Target init + kali-mcp session
+Phases:
+  Phase 0:   Target init + OPSEC profile + kali-mcp session
   Phase 0.5: Prioritization (Tier 1 → 2 → 3)
-  Phase 1:   Automated recon (3 waves — DNS, nmap, feroxbuster, nuclei, katana...)
-  Phase 2:   Vulnerability assessment (2A-2U: Auth, API, Injection, GraphQL, gRPC, WebSocket, SSE, Web3, Supply Chain...)
+  Phase 1:   Recon (3 waves — DNS, nmap, feroxbuster, nuclei, katana)
+  Phase 2:   Assessment (2A-2Z+: Auth, API, Injection, GraphQL, gRPC, WebSocket...)
   Phase 2.5: Finding correlation + attack chain construction
-  Phase 3:   Exploitation (with user approval)
-  Phase 3C:  Counter-breach (protect your own server — only with --counter-breach)
+  Phase 3:   Exploitation (user approval required)
+  Phase 3C:  Counter-breach (--counter-breach only)
   Phase 4:   DOCX report generation
-  Phase 5:   State save
-
-Tools (via kali-mcp):
-  nmap, nuclei, feroxbuster, ffuf, katana, httpx, gau, sqlmap, hydra,
-  grpcurl, nikto, gobuster, metasploit, openssl, shred + 20 more
+  Phase 5:   State save + cleanup
 
 Outputs:
-  Findings DB:  /mnt/c/dev/pentest-framework/data/<domain>/findings.json
-  Evidence:     /mnt/c/dev/pentest-framework/data/<domain>/evidence/
-  DOCX Report:  C:\dev\kali-mcp\pentest-reports\<domain>-pentest-raporu.docx
-  Target State: ~/.claude/docs/pentest-targets/<domain>.md
-
-Playbook:       ~/.claude/docs/pentest-playbook.md
-Tool Inventory: ~/.claude/docs/kali-mcp/tool-inventory.md
-================================
+  Findings DB:  /mnt/c/dev/pentest-framework/data/<DOMAIN>/findings.json
+  Evidence:     /mnt/c/dev/pentest-framework/data/<DOMAIN>/evidence/
+  DOCX Report:  C:\dev\kali-mcp\pentest-reports\<DOMAIN>-pentest-raporu.docx
+  Target State: ~/.claude/docs/pentest-targets/<DOMAIN>.md
 ```
-Done — stop here.
+Stop — do not proceed to any phase.
 
 ---
 
 ## Quick Wins Mode
 
-Run ONLY the highest-probability, lowest-effort checks (~15 min):
+Run only highest-probability, lowest-effort checks (~15 min):
 
 1. Default credentials on detected login forms
 2. Unauthenticated API endpoints (/api, /swagger, /graphql)
 3. Security header check
 4. robots.txt / .env / .git/HEAD exposure
 5. SSL/TLS weakness check
-6. nuclei -severity critical scan
+6. `nuclei -severity critical` scan
 7. Anonymous FTP/SMB/Redis/MongoDB check
-8. Docker API unauthenticated (2375)
+8. Docker API unauthenticated (port 2375)
 9. Elasticsearch/Kibana open access (9200, 5601)
 
-After quick wins: display findings and recommend full assessment if issues found.
-Skip: Phase 2 detailed tests, Phase 3 exploitation, Phase 2.5 correlation.
+After: display findings, recommend full assessment if issues found. Skip Phase 2 detailed tests, Phase 3, Phase 2.5.
 
 ---
 
-## CRITICAL RULES
+## Critical Rules
 
-**Read before executing:**
+0. **Generic framework only.** Never write target-specific data (domains, IPs, credentials, findings) into playbook files. All target data goes in `pentest-targets/<DOMAIN>.md` and `data/<DOMAIN>/`. Use `<TARGET>`, `<DOMAIN>`, `<KALI_SESSION>`, `<IP>` placeholders in all playbook docs.
+1. All analysis happens in this session. Never shell out to `claude` CLI.
+2. All kali-mcp calls use `mcp__kali-mcp__*` tools directly.
+3. Browser automation is budgeted. Prefer kali-mcp primitives first. Use HakanMCP browser wrappers only for login-gated flows, JS-only proof, or screenshots.
+4. All user-facing output in English. Tool calls, JSON, evidence files stay in English.
+5. Evidence on every finding. No finding enters findings.json without at least one artifact.
+6. findings.json is source of truth for all phase state, finding metadata, and coverage tracking.
+7. Real newlines in notes/descriptions — never `\n` literal strings.
+8. Authorized targets only. If target not in pentest-targets/ and not clearly a test/internal domain, ask for authorization before proceeding.
+9. Deduplication always. Compute dedupeKey before adding any finding; merge evidence instead of duplicating.
+10. Load only relevant plugin docs. Follow pentest-architecture.md load policy.
+11. Aggressive auto-exploit. When a vulnerability is confirmed in Phase 2, immediately execute the matching exploit recipe before moving to the next test. Human confirmation only required with `--confirm-exploit`.
+12. Depth-first exploitation. When exploitation yields new access (credentials, shell, network), immediately use that access before continuing assessment.
+13. Phase gate — user approval required at each phase transition. Present findings summary and ask to proceed or go deeper.
+14. Continuous findings recording. Write to findings.json after each confirmed vulnerability. Never accumulate more than 3 unrecorded findings.
+15. Operations log. Maintain `operations.json` alongside findings.json. Log every significant action with timestamp, phase, action, target, result, notes. Check before starting any test to avoid repeating work.
+16. Loot file. Maintain `loot.md` alongside findings.json. Record all credentials, accounts, infrastructure intel, exposed files, extracted data, and unfinished attack vectors. Update on every new discovery.
+17. Active data collection. Whenever accessible data is found, save it immediately — do not wait for instruction. Exposed files → `exposed-files/`, extracted data → `extracted/`. Files returning 200 are downloaded in real-time.
+18. Self-improving playbook. When a new technique, tool, or vector is discovered not already in the playbook, add it to the relevant `pentest-*.md` file before continuing. At engagement end, review operations.json for ad-hoc techniques and formalize them.
 
-1. **All analysis happens in THIS session.** Never shell out to `claude` CLI. Never spawn external Claude processes.
-2. **All kali-mcp calls use MCP tools** — `mcp__kali-mcp__*` tools directly. Never wrap in bash unless kali-mcp has no equivalent.
-3. **Browser automation is budgeted.** Prefer `kali-mcp` primitives first (`fetch`, `header_analysis`, `form_analysis`, `spider_website`, `web_enumeration`). Use HakanMCP browser wrappers only for login-gated flows, JS-only proof, or screenshots. Raw browser calls go through HakanMCP `mcp_callTool` only when wrappers are insufficient.
-4. **English for all user-facing output.** Tool calls, JSON, evidence files stay in English.
-5. **Evidence on every finding.** No finding gets committed to findings.json without at minimum one evidence artifact.
-6. **findings.json is source of truth.** All phase state, finding metadata, coverage tracking lives here.
-7. **Real newlines in notes/descriptions.** Never use `\n` literal strings.
-8. **Authorized targets only.** Read `~/.claude/docs/pentest-targets/<domain>.md` — if target not listed and not obviously a test/internal domain, ask user for authorization confirmation before proceeding.
-9. **Deduplication always.** Before adding a finding, compute dedupeKey and check existing findings. Merge evidence, don't create duplicates.
-10. **Load only relevant plugin docs.** Do not preload unrelated modules; follow `pentest-architecture.md`.
-11. **Aggressive auto-exploit.** When a vulnerability is confirmed during Phase 2, immediately execute the matching exploit recipe from `playbook-exploit.md` before moving to the next test. Do not wait for Phase 3. The intrusion loop (FIND → BREACH → PROVE → DEEPEN) runs automatically. Human confirmation is only required if `--confirm-exploit` flag is set.
-12. **Depth-first exploitation.** When exploitation yields new access (credentials, shell, internal network), immediately use that access to discover and exploit further before continuing assessment. New attack surface feeds back into Phase 2.
-13. **Phase gate — user approval required.** When each phase completes and sufficient data has been gathered within a phase, ask the user for approval BEFORE proceeding to the next step. Present a summary (findings discovered, coverage, gaps) and ask:
-    - "Is sufficient data collected? Continue or go deeper?"
-    - If user approves → proceed to next phase
-    - If user says "continue" / "go deeper" / "more" → run additional tests in the same phase
-    - This rule applies to ALL phase transitions: Recon→Assessment, Assessment→Exploit, Exploit→Report
-    - The same approval mechanism applies between sub-steps within a phase (Wave 1→2→3, Tier 1→2→3)
+    Auto-integration protocol:
+    - Research output → classify target file: new CVE → `pentest-advanced-attacks.md`; new path → `pentest-discovery-paths.md`; new chain → `pentest-exploitation.md`; new post-exploit → `pentest-post-exploit-ops.md`
+    - Format per technique: `## 2XX — Name (CVE-YYYY-NNNNN)` / Added date / When to use / Auth required / Detection command / Exploitation command / Affected versions
+    - Cross-reference new technique ID in exploit decision engine in `pentest-exploitation.md`
+    - Update `<!-- last_updated: -->` header in modified files
+
+    Formalized techniques log:
+    - 2AE: Livewire v3 Property Hydration RCE (CVE-2025-54068)
+    - 2AF: Laravel Queue Job Deserialization
+    - 2AG: Yii2 Behavior/Event Injection (CVE-2026-25498)
+    - 2AH: PHP 8.2 Phar Stream Wrapper Deserialization
+    - 2AI: Laravel Reverb Redis Deserialization (CVE-2026-23524)
+    - 2AJ: LiteSpeed WAF Bypass Techniques
+    - 2AK: 13 Engagement-Learned Techniques (EL-01 to EL-13)
+
+19. **OPSEC — zero trace.** Maintain operational security throughout the engagement.
+
+    OPSEC profile selection (at Phase 0):
+    - Load `/opt/opsec/profile.json` and select profile based on flags:
+
+    | Flag | Profile | Behavior |
+    |------|---------|----------|
+    | `--stealth` | stealth | Slow timing, Tor routing, stealth_session.py for all HTTP, macchanger, max evasion |
+    | (default) | balanced | Randomized UA, moderate delays (0.3-2s), proxychains optional |
+    | `--noisy` | noisy | No delays, direct requests, max threads, speed over stealth |
+
+    Identity discipline:
+
+    | Category | Rule |
+    |----------|------|
+    | User-Agent | Real browser UA always. Never python-requests, curl, sqlmap defaults. Randomize per session. |
+    | Account names | No real name, pentest, hack, test, exploit, shell, proof, scan, brute. Use realistic common names. |
+    | File names | Uploaded files use normal names (photo.jpg, document.pdf). Never shell.php, exploit.py, proof.png. |
+    | Ticket/message content | No XSS payloads or jargon visible to admins. If payload is sanitized, abandon that vector. |
+    | Metadata | Clean EXIF/metadata from all uploaded files using `clean_metadata.sh` before upload. |
+    | Timing | Random delay 0.3-2s between requests. Brute-force min 0.5s. No fixed-interval robotics. |
+    | Referrer/Origin | Mimic target domain's own headers. No external domain Referer. |
+    | IP awareness | All kali-mcp requests from single IP. High-volume ops (brute force) will log that IP. |
+
+    Pre-action OPSEC check (before each operation):
+
+    | Check | Fail action |
+    |-------|-------------|
+    | User-Agent is realistic | Fix before proceeding |
+    | Operation creates suspicious log pattern | Rate-limit or abandon |
+    | Account/file/ticket name is neutral | Rename before proceeding |
+    | Operation is reversible | Confirm with user if not |
+    | Operation may trigger admin notification | Get user approval first |
+    | Delays are in place for high-volume ops | Add delay before proceeding |
+    | Referrer/Origin header correct | Fix before proceeding |
+
+    Post-engagement cleanup (Phase 5, mandatory):
+
+    | Category | Action |
+    |----------|--------|
+    | Accounts created | List (username, email, ID); delete if possible; report those that cannot be deleted |
+    | Files uploaded | List (URL, file_id); delete via API if available; note cache expiry otherwise |
+    | Tickets/messages | List (ID, content summary); close/delete if possible; flag XSS-payload tickets |
+    | Config changes | Revert any update-config or .env changes; report rotated API keys |
+    | DB traces | List triggered password reset tokens and mass-assignment record changes |
+    | Log estimate | Approximate request count, brute-force footprint, source IP (kali-mcp IP) |
+
+    Cleanup report appended to STATUS.md as `## Cleanup Report`.
+
+20. **Adaptive goal engine.** Goals evolve with findings.
+
+    Tier A — User-defined goals: set at engagement start. Never remove without user approval.
+
+    Tier B — Auto-generated goals (generated after each significant finding):
+
+    | Finding Type | Auto-Generated Goal |
+    |-------------|---------------------|
+    | Credentials (DB/SMTP/API) | Validate on all services; check password reuse across panels |
+    | IMAP/email access | Dump inbox; monitor password reset tokens; harvest customer data |
+    | APP_KEY / secret key | Decrypt cookies; forge sessions; deserialization RCE |
+    | Source code access | Extract all credentials; map internal architecture; find hidden endpoints |
+    | CDN/storage write | Upload proof file; asset manipulation; stored XSS via CDN |
+    | XSS confirmed | Craft stored XSS for admin token theft via ticket/support system |
+    | API access (authenticated) | Enumerate all endpoints; test privilege escalation; extract data |
+    | New panel/domain | Lateral movement; credential reuse; shared infrastructure exploit |
+    | File upload capability | PHP/shell upload; polyglot files; Phar deserialization chain |
+    | Debug mode / error disclosure | Stack trace harvesting; config extraction; RCE via debug tools |
+    | WAF bypass (partial) | Chain with remaining blocked exploit; document bypass technique |
+    | User account on target | Privilege escalation; IDOR testing; stored XSS via user features |
+    | Payment system found | Callback manipulation; balance injection; transaction forgery |
+    | Session/cookie understood | Session hijack; cookie forge; driver change exploit |
+
+    Goal lifecycle: finding → check table → generate goal (description, required access, success metric) → add to STATUS.md under `## Auto-Generated Goals` → attempt immediately if resources available → on success: record in loot.md + update findings.json.
+
+    Re-evaluation triggers: new credential, new endpoint/panel, successful exploit, phase transition, every 10 operations.
 
 ---
 
@@ -209,198 +286,115 @@ Skip: Phase 2 detailed tests, Phase 3 exploitation, Phase 2.5 correlation.
 
 ### 0.0.5 — Detect Target Type
 
-From `<target>` and flags, determine the flow:
-
-| Pattern | Type | Flow |
-|---------|------|------|
+| Pattern | Type | Action |
+|---------|------|--------|
 | `http[s]://...` | URL | Standard web pentest |
 | `x.x.x.x` (IPv4) | IP | Load pentest-ip-intrusion.md |
 | `x:x:x:x:x:x:x:x` (IPv6) | IP | Load pentest-ip-intrusion.md |
 | `x.x.x.x/nn` (CIDR) | CIDR | Host discovery → per-host IP flow |
-| `--wifi` flag | WiFi | Load pentest-wifi-assault.md |
-| `--bluetooth` flag | BT | Load pentest-bluetooth.md |
-| `--ad <DC_IP>` flag | AD | Load pentest-active-directory.md |
-| `--cloud` flag | Cloud | Load pentest-cloud-pivot.md |
-| `--iot` flag | IoT | Load pentest-iot-ot.md |
-| `--mobile` flag | Mobile | Load pentest-mobile.md |
+| `--wifi` | WiFi | Load pentest-wifi-assault.md |
+| `--bluetooth` | BT | Load pentest-bluetooth.md |
+| `--ad <DC_IP>` | AD | Load pentest-active-directory.md |
+| `--cloud` | Cloud | Load pentest-cloud-pivot.md |
+| `--iot` | IoT | Load pentest-iot-ot.md |
+| `--mobile` | Mobile | Load pentest-mobile.md |
 | `--full-spectrum` | All | Load all applicable modules (team mode recommended) |
 
 ### 0.0.6 — Authorization Tier Check
 
 | Tier | Target Types | Action |
 |------|-------------|--------|
-| 1 | URL, OSINT | Proceed (existing model) |
+| 1 | URL, OSINT | Proceed |
 | 2 | IP, CIDR | Confirm: "Do you have authorization to scan this IP range?" |
 | 3 | WiFi, BT | Confirm: "WiFi/BT attacks may affect nearby devices. Authorization confirmed?" |
-| 4 | Social eng. | Confirm: "Social engineering targets real individuals. Is written authorization in place?" |
-| 5 | Destructive | Per-action confirmation required |
+| 4 | Social engineering | Confirm: "Social engineering targets real individuals. Written authorization in place?" |
+| 5 | Destructive actions | Per-action confirmation required |
 
-### 0.0.7 — Preflight Tool Check
+### 0.0.7 — Preflight Tool Check and OPSEC Profile
 
-Verify tools available for selected modules:
 ```bash
-# Run in kali-mcp at session start
+# Run via kali-mcp
 run("which nmap nuclei feroxbuster 2>/dev/null && echo 'Core OK' || echo 'Core MISSING'")
+run("/opt/opsec/preflight.sh")
 ```
 
-If tools missing for a selected module: list them, ask user to skip or install.
+Load OPSEC profile based on flags (stealth / balanced / noisy). Configure stealth_session.py if profile is stealth or balanced.
 
-### 0.1 — Parse URL and Extract Domain
+If tools missing: list them, ask user to skip or install.
 
-From `<url>`:
+### 0.1 — Parse Target
+
+From `<target>`:
 - Extract scheme, host, port
-- Domain = host without `www.` prefix (e.g., `https://www.app.example.com` → domain = `app.example.com`; use base domain `example.com` for file naming)
-- Set `TARGET_URL` = original URL as given
-- Set `TARGET_DOMAIN` = extracted domain
-- Set `DATA_DIR` = `/mnt/c/dev/pentest-framework/data/<domain>/`
-- Set `FINDINGS_FILE` = `<DATA_DIR>/findings.json`
-- Set `EVIDENCE_DIR` = `<DATA_DIR>/evidence/`
+- `TARGET_URL` = original target as given
+- `TARGET_DOMAIN` = host without `www.` prefix (use base domain for file naming)
+- `DATA_DIR` = `/mnt/c/dev/pentest-framework/data/<DOMAIN>/`
+- `FINDINGS_FILE` = `<DATA_DIR>/findings.json`
+- `EVIDENCE_DIR` = `<DATA_DIR>/evidence/`
 
 ### 0.2 — Check Target Profile
 
-Check if `~/.claude/docs/pentest-targets/<domain>.md` exists using Read tool.
+Check `~/.claude/docs/pentest-targets/<DOMAIN>.md` with Read tool.
 
-**If file exists:**
-- Read it
-- Display previous findings summary:
-  ```
-  === Previous Pentest Data ===
-  Target:         <domain>
-  Last scan:      {lastScan}
-  Total findings: {totalFindings} ({critical} critical, {high} high, {medium} medium, {low} low)
-  Status:         Delta mode — completed tests will be skipped
-  ============================
-  ```
+If exists:
+- Read it; display previous findings summary (last scan, total findings, severity counts)
 - Set `DELTA_MODE = true`
 
-**If file does not exist:**
-- Display:
-  ```
-  Target profile not found. Creating new profile: <domain>
-  ```
-- Create file from template (see **Appendix A: Target Profile Template**)
+If not exists:
+- Create from template (see pentest-playbook.md Target Profile Template)
 - Set `DELTA_MODE = false`
 
 ### 0.3 — Create Data Directories
 
-Create directory structure:
-```
-/mnt/c/dev/pentest-framework/data/<domain>/
-├── findings.json          (init if not exists)
-├── evidence/
-│   ├── screenshots/
-│   ├── http-captures/
-│   └── tool-outputs/
-└── reports/
+```bash
+mkdir -p /mnt/c/dev/pentest-framework/data/<DOMAIN>/evidence/{screenshots,http-captures,tool-outputs}
+mkdir -p /mnt/c/dev/pentest-framework/data/<DOMAIN>/{extracted,exposed-files,reports}
 ```
 
-Use Bash tool to create dirs:
-```bash
-mkdir -p /mnt/c/dev/pentest-framework/data/<domain>/evidence/screenshots
-mkdir -p /mnt/c/dev/pentest-framework/data/<domain>/evidence/http-captures
-mkdir -p /mnt/c/dev/pentest-framework/data/<domain>/evidence/tool-outputs
-mkdir -p /mnt/c/dev/pentest-framework/data/<domain>/reports
-```
+Initialize `extracted/README.md` index and empty `loot.md`.
 
 ### 0.4 — Initialize findings.json
 
-If `findings.json` does not exist, create:
-```json
-{
-  "target": "<domain>",
-  "targetType": "<detected type>",
-  "targetUrl": "<TARGET_URL>",
-  "created": "<ISO timestamp>",
-  "lastScan": "<ISO timestamp>",
-  "scanConfig": {
-    "depth": "<depth>",
-    "scope": "<scope>"
-  },
-  "findings": [],
-  "chains": [],
-  "coverage": {},
-  "stats": {
-    "totalFindings": 0,
-    "critical": 0,
-    "high": 0,
-    "medium": 0,
-    "low": 0,
-    "info": 0,
-    "velocity": 0,
-    "hoursSpent": 0
-  },
-  "recon": {}
-}
-```
+If not exists, create from schema in `pentest-architecture.md`. If `--resume` is set, read existing file and build `SKIP_LIST` from completed coverage entries.
 
-If `findings.json` already exists and `--resume` is set → read it, load `coverage` map to track completed tests.
+If `--skip-recon` is set, verify `recon` field is not empty — abort with warning if it is.
 
 ### 0.5 — Create kali-mcp Session
 
 ```
-mcp__kali-mcp__session_create:
-  session_name: "pentest-<domain>-<YYYYMMDD>"
+session_create(session_name="pentest-<DOMAIN>-<YYYYMMDD>")
 ```
 
 Save returned session ID as `KALI_SESSION`.
 
-Display:
-```
-=== Pentest Starting ===
-Target:    <TARGET_URL>
-Domain:    <TARGET_DOMAIN>
-Depth:     <depth> (<budget> hour budget)
-Scope:     <scope>
-Session:   <KALI_SESSION>
-Data dir:  <DATA_DIR>
-Mode:      <Delta / New scan>
-=======================
-```
+Display start banner: Target, Domain, Depth, Scope, OPSEC profile, Session, Data dir, Mode.
 
 ---
 
 ## Phase 0.5: Prioritization
 
-### Time Budget and Tier Selection
+| Tier | Tests | When |
+|------|-------|------|
+| 1 | User enumeration (2B), BOLA/sequential IDs (2C), rate limit (2M), API spec exposure, security headers (2N), robots.txt/sitemap | Always (fast signal gathering) |
+| 2 | Auth bypass (2A), SQLi (2F), XSS (2G), SSRF (2J), XXE (2K), file upload (2I), JWT attacks (2D), business logic (2L), command injection (2H), open redirect (2O) | standard + deep |
+| 3 | GraphQL (2P), gRPC (2Q), WebSocket, OAuth, race conditions, mass assignment (2E), advanced chains | deep only |
 
-Based on `--depth`:
-- `short` (8h): Run Tier 1 only
-- `standard` (40h): Run Tier 1 + Tier 2
-- `deep` (80h): Run Tier 1 + Tier 2 + Tier 3
+OOB testing setup (Tier 2+): start `interactsh-client` listener before assessment begins.
 
-**Tier definitions:**
-
-| Tier | Tests | Priority |
-|------|-------|----------|
-| 1 | User enumeration (2B), BOLA sequential IDs (2C), rate limit (2M), swagger/API spec exposure, security headers (2N), robots.txt/sitemap info disclosure | Fast/cheap signal gathering — always run first |
-| 2 | Auth bypass (2A), SQLi (2F), XSS (2G), SSRF (2J), XXE (2K), file upload (2I), JWT attacks (2D), business logic (2L), command injection (2H), open redirect (2O) | High probability — run if time allows |
-| 3 | GraphQL (2P), gRPC (2Q), WebSocket, OAuth flows, race conditions, mass assignment (2E), advanced chaining | Exhaustive — deep only |
-
-### Resume Check
-
-If `--resume` is set:
-- Read `coverage` from findings.json
-- Build `SKIP_LIST` = all test IDs where `coverage[id].status == "completed"`
-- Display: `{n} tests previously completed, skipping`
-- **Note:** kali-mcp session outputs from previous runs are not available — only findings.json coverage data is restored. Raw tool output and session history from the prior run cannot be replayed.
-
-If `--skip-recon` is set:
-- Add all Wave 1, 2, 3 recon steps to SKIP_LIST
-- Verify existing recon data is in findings.json `recon` field before proceeding
-- **Abort guard:** If findings.json `recon` field is empty or missing → abort with:
-  `WARNING: No existing recon data found. Remove --skip-recon or run full recon first.`
+```bash
+# Via kali-mcp
+run("interactsh-client -server oast.pro -n 1 > /tmp/interactsh.log 2>&1 &")
+```
 
 ---
 
 ## Phase Execution
 
-Load the relevant phase file based on current progress:
+Load the relevant phase command file:
 
-| Phase | File | Content |
-|-------|------|---------|
+| Phase | Command file | Content |
+|-------|-------------|---------|
 | Phase 1: Recon | `~/.claude/commands/playbook-recon.md` | 3-wave parallel recon |
-| Phase 2: Assessment | `~/.claude/commands/playbook-assessment.md` | Test modules 2A-2Q + finding recording |
-| Phase 2.5-3: Exploit | `~/.claude/commands/playbook-exploit.md` | Auto-exploit on detection, post-exploitation, intrusion loop, lateral movement, counter-breach |
-| Phase 4-5: Report | `~/.claude/commands/playbook-reporting.md` | DOCX report, state save, appendices |
-
-Proceed through phases sequentially. Read each file when entering that phase.
+| Phase 2: Assessment | `~/.claude/commands/playbook-assessment.md` | Test modules 2A-2Z+ |
+| Phase 2.5-3: Exploit | `~/.claude/commands/playbook-exploit.md` | Auto-exploit, post-exploitation, intrusion loop |
+| Phase 4-5: Report | `~/.claude/commands/playbook-reporting.md` | DOCX report, state save |

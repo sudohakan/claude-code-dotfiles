@@ -1,42 +1,26 @@
-<!-- last_updated: 2026-03-15 -->
+<!-- last_updated: 2026-03-24 -->
 # MCP Usage Guide
 
-## When to Use Which MCP
+## context7
+Query before writing code with any third-party library or API.
+- Trigger: third-party library, framework, or API; unclear signature, config option, or best practice
+- Not for: standard language built-ins (Array.map, string methods, etc.)
 
-### context7
-**Always query before writing code with third-party libraries/APIs.**
-- Trigger: Third-party library, framework, or API in use
-- Trigger: API signature, config option, or best practice unclear
-- Example: "Using React Query — what is the `invalidateQueries` signature?"
-- Example: "Setting up Prisma relations for the first time"
-- Do NOT use: for standard language built-ins (Array.map, string methods, etc.)
+## Gmail
+- Trigger: writing/drafting email, reading/researching threads, searching email history
+- Not for: tasks unrelated to communication
 
-### Gmail
-- Trigger: Writing or drafting an email
-- Trigger: Reading/researching past threads related to a task
-- Trigger: Searching for context in email history
-- Example: "Draft a follow-up to the API integration discussion"
-- Do NOT use: for tasks unrelated to communication
+## Google Calendar
+- Trigger: scheduling, checking availability, creating events, responding to invitations
+- Not for: non-calendar time management
 
-### Google Calendar
-- Trigger: Scheduling a meeting or checking availability
-- Trigger: Creating an event or responding to an invitation
-- Example: "Find a free slot this week for a 30-minute sync"
-- Example: "Create a recurring standup on Tuesdays at 10:00"
-- Do NOT use: for non-calendar time management
-
-### HakanMCP Browser Bridge
-- Trigger: Browser automation task where token/context efficiency matters
-- Trigger: Login probing, screenshot proof, JS-heavy page inspection
-- Trigger: Live site inspection that only needs compact summaries instead of full browser dumps
-- Example: "Take a screenshot of the dashboard after login"
-- Example: "Check whether this page is a login form"
+## HakanMCP Browser Bridge
+- Trigger: browser automation, login probing, screenshot proof, JS-heavy page inspection
 - Preferred tools: `mcp_browserConnect`, `mcp_browserNavigateExtract`, `mcp_browserProbeLogin`, `mcp_browserCaptureProof`
-- Use raw browser actions only through `mcp_callTool` when the wrappers are insufficient
-- Do NOT use: for static HTML analysis (use Read instead)
+- Raw actions only via `mcp_callTool` when wrappers are insufficient
+- Not for: static HTML analysis (use Read tool)
 
-### HakanMCP (112 tools)
-- Trigger: Any task in the categories below
+## HakanMCP (112 tools)
 
 | Category | Example Tools | When to Use |
 |----------|--------------|-------------|
@@ -49,27 +33,13 @@
 | AI/Swarm | provider, orchestration | AI workflow coordination |
 | Backup | create, restore | File/DB backup operations |
 
-- Do NOT use: for simple file reads or text processing
+Not for: simple file reads or text processing.
 
-### notebooklm-mcp-cli (35 tools)
-- Trigger: Deep research synthesis across multiple sources
-- Trigger: Creating or querying a NotebookLM notebook
-- Trigger: Generating audio/video/slide output from research
+## notebooklm-mcp-cli (35 tools)
+- Trigger: deep research synthesis across multiple sources, NotebookLM notebooks, audio/video/slide generation
+- Not for: single-document reading (use Read tool)
 
-| Category | When to Use |
-|----------|-------------|
-| Notebook CRUD | Create, open, delete notebooks |
-| Source ingestion | Add URL, file, Google Drive doc |
-| Query/chat | Ask questions across sources |
-| Media generation | Audio overview, briefing doc |
-| Cross-notebook | Search across multiple notebooks |
-
-- Example: "Summarize these 3 API docs into a comparison table"
-- Do NOT use: for single-document reading (use Read tool instead)
-
----
-
-## When to Disable / Minimize MCP Usage
-- Pure code editing in a single file — no MCP needed
-- Narrow-scope project work (working inside `source/repos/X`) — only use project-relevant MCPs
-- When context window is under pressure — disable inactive MCPs
+## When to Minimize MCP Usage
+- Pure code editing in a single file
+- Narrow-scope project work — only use project-relevant MCPs
+- Context window under pressure — disable inactive MCPs

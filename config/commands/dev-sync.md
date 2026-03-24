@@ -1,7 +1,5 @@
 # Dev Sync — Project Health & Improvement Tracker
 
-**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp)
-
 Analyze all projects in `C:\dev\`, identify real issues from source code, and sync findings to Google Tasks as parent tasks with subtasks.
 
 **Standard:** `C:\dev\CLAUDE.md`
@@ -25,7 +23,7 @@ Parse `<args>`:
    ```
    | Project | Open | Done | Top Issue |
    |---------|------|------|-----------|
-   | [HakanMCP](https://github.com/sudohakan/HakanMCP) | 2 | 1 | [HIGH] CI tests silenced |
+   | HakanMCP | 2 | 1 | [HIGH] CI tests silenced |
    ```
 4. Done — stop here.
 

@@ -121,7 +121,8 @@ If task branch found → checkout. If not → determine environment before creat
 **Environment detection (critical for branch strategy):**
 - Check work item title, description, reproSteps, tags, and areaPath for any customer name, company name, or environment identifier
 - Search existing remote branches for customer-specific branches: `git.exe branch -r` — look for branches that match any entity mentioned in the work item
-- **No customer/environment mentioned** → cloud, create `Task-<ID>` from master
+- **No customer/environment mentioned** → cloud, create `Task-<DevOpsID>` from master
+- **Branch naming:** ALWAYS use DevOps task ID (`Task-XXXXX`), never Infoset ticket ID. If work item originated from Infoset, a DevOps task must be created first and its ID used for the branch name.
 - **Customer/environment mentioned** → find that customer's most recent branch and work there
 - **Ambiguous** → ASK user which environment before proceeding
 - NEVER assume cloud by default — wrong branch = wrong deployment target
@@ -137,7 +138,9 @@ Based on classification:
 4. Wait for user confirmation
 5. Implement the fix/feature
 6. Verify the change (build, review)
-7. Inform user — do NOT commit unless asked
+7. Run `/code-review:code-review` to review the changes
+8. Fix any critical/high findings
+9. Inform user — do NOT commit unless asked
 
 **Analysis / Info:**
 1. Research the topic in the codebase
@@ -149,15 +152,93 @@ Based on classification:
 1. Show evidence (commit, code state)
 2. Confirm with user
 
-### Step 5: Status Update (optional)
+### Step 4.5: PR (after commit & push)
 
-If user asks, update the work item status via REST API:
+After commit and push, if work is on a separate task branch, create a PR:
+
+```bash
+# Azure DevOps PR creation
+az repos pr create \
+  --organization https://dev.azure.com/polynomtech \
+  --project "<project-name>" \
+  --repository "<repo-name>" \
+  --source-branch "Task-<DevOpsID>" \
+  --target-branch "<target-branch>" \
+  --title "<commit message>" \
+  --description "<brief description>" \
+  --work-items <DevOpsID> \
+  --labels "<project-tag>"
+```
+
+**PR Rules:**
+- **Target branch:** master for cloud, customer branch for on-premise
+- **Title:** Same as commit message (Turkish, single sentence)
+- **Work Items:** Link the DevOps task ID
+- **Tags/Labels:** Project name (e.g., "Finekra-Logo", "Paratic-Platinum", "Paratic-Platinum-React")
+- **Required reviewers (3):** Add via PUT `_apis/git/repositories/{repo}/pullRequests/{id}/reviewers/{userId}` with `{"vote":0,"isRequired":true}`
+  - Anıl Karayurt: `a96c7024-4d8c-6b52-8603-6206f8ae2261`
+  - Hüseyin Keskin: `7c958b17-0556-6788-9de1-a00e7b687616`
+  - Koray Kavruk: `69f508e4-e635-6ba2-9e29-42b96e4db4aa`
+- **Optional reviewers** (not all projects accessible to them, add with `"isRequired":false`):
+  - Burak Biçkioğlu: `793f1d07-a40d-4951-a188-a6f2947443f4`
+  - Kemal Erol: `f657daa6-8400-4b21-9c5c-c3416ffa770c`
+- **PR is optional** — user decides whether to create one. Some work goes directly to the target branch.
+- **After PR:** Add a comment to the DevOps work item discussion explaining what was done in plain Turkish — no technical jargon, understandable by non-technical people (analysts, testers, managers). Use the comments API:
+  ```
+  POST _apis/wit/workitems/{id}/comments?api-version=7.1-preview.4
+  {"text": "<plain language explanation>"}
+  ```
+
+### Step 5: DevOps Task Management
+
+Every task MUST have a corresponding DevOps work item with all fields properly filled. If one doesn't exist, create it (see Step 1). Throughout the workflow, keep the work item updated.
+
+**Required fields on every DevOps task:**
+
+| Field | API Path | How to determine |
+|-------|----------|-----------------|
+| Title | `System.Title` | Clear Turkish description of the work |
+| Area Path | `System.AreaPath` | Module (TÖS, ERP, POS, etc.) |
+| Iteration Path | `System.IterationPath` | Current sprint (e.g., `Fin_Dev26\Sprint6`) |
+| Assigned To | `System.AssignedTo` | Hakan Topçu |
+| State | `System.State` | See state transitions below |
+| Priority | `Microsoft.VSTS.Common.Priority` | 1=Critical, 2=High, 3=Medium, 4=Low |
+| Severity | `Microsoft.VSTS.Common.Severity` | For bugs: 1-Critical, 2-High, 3-Medium, 4-Low |
+| Repro Steps | `Microsoft.VSTS.TCM.ReproSteps` | Detailed problem description, steps to reproduce |
+| Estimate Time | `Custom.EstimateTime` | Estimated effort in hours (double) — how long a human developer would take WITHOUT AI assistance (analysis + coding + testing). NOT how long AI took. |
+| Development Time | `Custom.DevelopmentTime` | Should reflect realistic human effort — close to estimate. Minor variance OK, large deviation not. |
+| Tester | `Custom.Tester` | Usually the analyst who created the task. Ask user if unclear |
+| Estimate Complete Date | TBD | Expected completion date |
+| Work Item Type | `System.WorkItemType` | Bug or Task based on nature of work |
+
+**State transitions — update as work progresses:**
+
+| Action | Set State To |
+|--------|-------------|
+| Starting work | Active |
+| Waiting/blocked | On Hold |
+| Code done, deploying to test | Test |
+| Sending to tester | Test |
+| PR created | Review |
+| Deploy needed | Deployment |
+| Completed, in prod test | Prod Test |
+
+**Discussion/Comments:**
+- If user confirmation is needed (from Infoset), reply in the DevOps discussion
+- If tester asks a question, respond in discussion
+- Always keep discussion updated with progress
+
+**Update via REST API:**
 ```
 PATCH https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/workitems/{id}?api-version=7.1
 Authorization: Bearer {token}
 Content-Type: application/json-patch+json
 
-[{"op": "replace", "path": "/fields/System.State", "value": "<new-state>"}]
+[
+  {"op": "replace", "path": "/fields/System.State", "value": "<state>"},
+  {"op": "replace", "path": "/fields/Custom.EstimateTime", "value": <hours>},
+  {"op": "replace", "path": "/fields/Custom.DevelopmentTime", "value": <hours>}
+]
 ```
 
 ## Critical Rules
@@ -168,6 +249,7 @@ Content-Type: application/json-patch+json
 4. **Cross-reference always** — check DevOps comments for Infoset links and vice versa
 5. **Stay in contact** — report progress, ask when uncertain, don't assume scope
 6. **Minimal changes** — fix what's asked, nothing more
+9. **Commit messages** — Finekra projects: always Turkish, single sentence, plain (no conventional commit prefixes like feat/fix)
 7. **Strict scope** — NEVER make changes beyond what the work item describes. No "while I'm here" improvements, no related fixes, no refactoring. If a related issue is noticed, inform the user but do NOT fix it unless asked.
 8. **Continuous improvement** — when user feedback reveals a gap in this skill (missing fields, wrong flow, etc.), update the skill file immediately, then verify the fix works before continuing the task
 

@@ -28,7 +28,7 @@
 
 - **GSD Workflow** &mdash; 34 phase-based commands covering plan, execute, verify, debug, and milestone management
 - **37 Specialized Agents** &mdash; language reviewers, build resolvers, planners, architects, security reviewers, and more
-- **125 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration, pentest
+- **126 Slash Commands** &mdash; language-specific build/test/review, session persistence, multi-model workflows, team orchestration, pentest, WSL diagnostics
 - **51 Skill Sets** &mdash; framework patterns (Django, Laravel, Spring Boot, Kotlin), testing, TDD, verification, continuous learning
 - **50 Coding Rules** across 9 languages (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
 - **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
@@ -64,7 +64,7 @@ bash ~/dev/claude-code-dotfiles/install.sh
 claude login
 ```
 
-> **WSL users:** Run `bash setup-wsl-claude.sh` for full environment setup (Node.js, Claude CLI, symlinks, tmux, SSH, Tailscale).
+> **WSL users:** Run `bash setup-wsl-claude.sh` for full environment setup (Node.js, Claude CLI, symlinks, tmux, SSH, Tailscale). After first launch, run `/wsl-health` inside Claude to verify tmux, cwd, Claude binary resolution, and MCP startup paths.
 
 See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what each step does.
 
@@ -124,7 +124,7 @@ The portable `.claude.json` template in [`home-config/.claude.json`](home-config
 </details>
 
 <details>
-<summary><h3>Commands (125 slash commands)</h3></summary>
+<summary><h3>Commands (126 slash commands)</h3></summary>
 
 **GSD Workflow (34 commands)**
 
@@ -179,7 +179,25 @@ The portable `.claude.json` template in [`home-config/.claude.json`](home-config
 
 **Utilities (13+ commands)**
 
-`/status` &bull; `/maintenance-status` &bull; `/browser` &bull; `/deploy` &bull; `/docs` &bull; `/aside` &bull; `/add-mcp` &bull; `/prompt-optimize` &bull; `/refactor-clean` &bull; `/e2e` &bull; `/build-fix` &bull; `/update-docs` &bull; `/update-codemaps`
+`/status` &bull; `/maintenance-status` &bull; `/wsl-health` &bull; `/browser` &bull; `/deploy` &bull; `/docs` &bull; `/aside` &bull; `/add-mcp` &bull; `/prompt-optimize` &bull; `/refactor-clean` &bull; `/e2e` &bull; `/build-fix` &bull; `/update-docs` &bull; `/update-codemaps`
+
+## WSL Troubleshooting
+
+If Claude is launched inside `WSL -> tmux` and you see issues like `uv_cwd`, broken panes, or MCP servers falling into `failed`, use this order:
+
+1. Run `bash setup-wsl-claude.sh` once to install the WSL wrapper and tmux bindings.
+2. Start a fresh session: `tmux new -s claude`
+3. Launch Claude from a valid working directory such as `/mnt/c/Users/<you>` or your WSL home.
+4. Inside Claude, run `/wsl-health`
+
+Common symptom mapping:
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| `uv_cwd` on startup | stale tmux pane cwd | open a fresh pane/session or `cd` to a valid path, then relaunch |
+| `claude` resolves to Windows shim first | PATH ordering drift | use the WSL wrapper from `setup-wsl-claude.sh` |
+| stdio MCP shows `failed` in WSL | missing `cwd` or missing local repo path | run `/wsl-health` and fix the exact server path it reports |
+| `kali-mcp` fails | SSE service not running | start the local service and re-check `http://localhost:8000/sse` |
 
 </details>
 

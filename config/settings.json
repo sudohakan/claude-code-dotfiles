@@ -3,7 +3,7 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ENABLE_SECURITY_REMINDER": "0",
-    "ECC_HOOK_PROFILE": "strict",
+    "ECC_HOOK_PROFILE": "balanced",
     "ENABLE_AUTOFORMAT": "0"
   },
   "hooks": {

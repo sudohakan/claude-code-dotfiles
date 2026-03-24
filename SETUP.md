@@ -121,9 +121,10 @@ config/
 ├── docs/                     # 55 reference docs
 │   ├── agent-teams.md, mcp-usage-guide.md, claudeignore-templates.md, ...
 │   └── pentest-*.md, review guides, workflow specs, ...
-├── commands/                 # 125 slash commands
+├── commands/                 # 126 slash commands
 │   ├── status.md                # /status — workspace + hygiene orientation
 │   ├── maintenance-status.md    # /maintenance-status — storage, trend, and auto-action summary
+│   ├── wsl-health.md            # /wsl-health — WSL + tmux + Claude + MCP readiness check
 │   ├── todo-overview.md         # /todo-overview — pending work overview
 │   ├── dotfiles-sync.md         # /dotfiles-sync — live -> repo sync workflow
 │   ├── commit.md                # /commit — conventional commit
@@ -227,8 +228,31 @@ claude --version                              # Is CLI working?
 node ~/.claude/hooks/pretooluse-safety.js --test  # Are hooks active? (30/30)
 node ~/.claude/hooks/retention-cleanup.js --self-test  # Is storage hygiene hook present?
 claude plugins list                           # Are plugins installed?
+## Inside Claude: /wsl-health                 # On WSL, verify tmux/cwd/MCP startup health
 # Inside Claude: /gsd:help                    # Is GSD working?
 ```
+
+## WSL Troubleshooting
+
+If you run Claude from `WSL -> tmux`, the failure modes are usually operational rather than install-related:
+
+| Symptom | Cause | Action |
+|---------|-------|--------|
+| `Error: ENOENT ... uv_cwd` | pane inherited a deleted or invalid cwd | start a fresh tmux pane/session from a valid directory |
+| `claude` works outside tmux but not inside | stale pane metadata or wrong binary resolution | reload shell, then run `/wsl-health` inside Claude |
+| many MCP servers show `failed` only in WSL | stdio child process inherited bad cwd or missing local repo path | inspect `/wsl-health` output and fix reported server paths/cwd |
+| `kali-mcp` only fails in WSL | local SSE service is down | bring the service up, then re-check `/wsl-health` |
+
+Recommended WSL workflow:
+
+```bash
+bash /mnt/c/dev/claude-code-dotfiles/setup-wsl-claude.sh
+tmux new -s claude
+cd /mnt/c/Users/Hakan
+claude
+```
+
+Then run `/wsl-health` inside Claude once before heavy work.
 
 ---
 

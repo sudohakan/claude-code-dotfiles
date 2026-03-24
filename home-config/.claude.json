@@ -24,9 +24,8 @@
     },
     "infoset": {
       "type": "stdio",
-      "command": "bash",
+      "command": "__DEV_ROOT_POSIX__/infoset-mcp/scripts/env-wrapper.sh",
       "args": [
-        "__DEV_ROOT_POSIX__/infoset-mcp/scripts/env-wrapper.sh",
         "__DEV_ROOT_POSIX__/infoset-mcp/src/mcp-server.mjs"
       ],
       "env": {},

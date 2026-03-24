@@ -1,8 +1,5 @@
 # Work Sync — Design Spec
 
-
-**Related projects:** [infoset-mcp](https://github.com/sudohakan/infoset-mcp)
-
 **Date:** 2026-03-20
 **Replaces:** `/infoset-sync`
 **Command:** `/work-sync`

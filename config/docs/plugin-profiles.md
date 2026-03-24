@@ -1,18 +1,14 @@
-<!-- last_updated: 2026-03-13 -->
+<!-- last_updated: 2026-03-24 -->
 # Plugin Profiles
 
-This file defines the intended plugin groupings for low-context and specialized sessions.
-
-## Source Of Truth
-- Profile definitions live in `~/.claude/plugin-profiles.json`.
+Source of truth: `~/.claude/plugin-profiles.json`.
 
 ## Profiles
-- `minimal`: lowest routine context overhead
-- `dev`: general engineering work
-- `security`: security-heavy review sessions
 
-## Usage
-- Use `minimal` for day-to-day coding when security analysis is not the focus.
-- Use `dev` when broader engineering tooling is needed.
-- Use `security` only for explicit security review or audit tasks.
-- Browser automation is routed through HakanMCP browser wrappers, not the direct Playwright plugin.
+| Profile | Use When |
+|---------|----------|
+| `minimal` | Day-to-day coding, no security analysis needed |
+| `dev` | General engineering work, broader tooling needed |
+| `security` | Explicit security review or audit tasks |
+
+Browser automation always routes through HakanMCP browser wrappers, not the direct Playwright plugin.

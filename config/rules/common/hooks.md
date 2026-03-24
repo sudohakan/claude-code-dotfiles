@@ -1,30 +1,14 @@
 # Hooks System
 
 ## Hook Types
-
-- **PreToolUse**: Before tool execution (validation, parameter modification)
-- **PostToolUse**: After tool execution (auto-format, checks)
-- **Stop**: When session ends (final verification)
+- PreToolUse: before tool execution (validation, parameter modification)
+- PostToolUse: after tool execution (auto-format, checks)
+- Stop: when session ends (final verification)
 
 ## Auto-Accept Permissions
-
-Use with caution:
 - Enable for trusted, well-defined plans
 - Disable for exploratory work
-- Never use dangerously-skip-permissions flag
-- Configure `allowedTools` in `~/.claude.json` instead
+- Configure `allowedTools` in `~/.claude.json` — never use dangerously-skip-permissions
 
 ## TodoWrite Best Practices
-
-Use TodoWrite tool to:
-- Track progress on multi-step tasks
-- Verify understanding of instructions
-- Enable real-time steering
-- Show granular implementation steps
-
-Todo list reveals:
-- Out of order steps
-- Missing items
-- Extra unnecessary items
-- Wrong granularity
-- Misinterpreted requirements
+Use TodoWrite to track progress on multi-step tasks, verify understanding, enable real-time steering, and show granular steps. A good todo list reveals out-of-order steps, missing items, wrong granularity, and misinterpreted requirements.

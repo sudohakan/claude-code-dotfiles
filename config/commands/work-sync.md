@@ -4,8 +4,6 @@ description: "Work Sync — unified work synchronization: fetch Infoset CRM tick
 
 # Work Sync
 
-**Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp)
-
 Unified work synchronization command that fetches tasks from both Infoset CRM and Azure DevOps, performs cross-source matching and deep analysis, and syncs to Google Tasks + Calendar. Generates a DOCX report.
 
 **Project dir:** `/mnt/c/dev/infoset-mcp`
@@ -1450,6 +1448,7 @@ If `--infoset-only`, show the old infoset-sync report format (table with ID/Firm
 - **Matched items = single Work Plan entry** with both URLs in notes
 - **`Custom.EstimateTime` takes precedence** over Claude effort estimate when available
 - **Full analysis report on EVERY run** — no summary-only mode
+- **ALWAYS execute Google writes (Steps 7-8) on every full sync run** — even when change detection shows 0 NEW/UPDATED/CLOSED. The "no changes" optimization is ONLY valid for `--dry-run` mode. Full sync mode (`/work-sync` with no flags) MUST always delete all existing sync events/tasks and recreate them from scratch. This ensures Google Tasks notes, due dates, calendar colors, and scheduling stay correct even when the underlying data hasn't changed. Never skip Google writes based on change detection in full sync mode.
 - **Self-review pass (Pass 2) on analysis** before finalizing — always verify score consistency, tier assignments, duplicates, effort estimates, and matched item coherence
 - **3 Google Tasks lists** maintained in parallel: "DevOps Tasks" (raw), "Infoset Tickets" (raw), "Work Plan" (deduplicated)
 - **DOCX generation must not block sync** — if it fails, Google writes are still completed

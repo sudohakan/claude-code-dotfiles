@@ -33,6 +33,49 @@ else
   echo "  Claude Code installed."
 fi
 
+echo "  Ensuring WSL shell always uses the local Claude binary..."
+if ! grep -q 'Claude Code WSL bootstrap' "$HOME/.bashrc" 2>/dev/null; then
+  cat >> "$HOME/.bashrc" <<'BASHRCBLOCK'
+
+# Claude Code WSL bootstrap
+if ! builtin pwd >/dev/null 2>&1; then
+  cd /mnt/c/Users/Hakan 2>/dev/null || cd "$HOME" 2>/dev/null || :
+fi
+
+export NPM_GLOBAL="$HOME/.npm-global"
+export PATH="$NPM_GLOBAL/bin:$PATH"
+export CLAUDE_WSL_BIN="$NPM_GLOBAL/bin/claude"
+
+claude() {
+  local claude_bin="${CLAUDE_WSL_BIN:-$HOME/.npm-global/bin/claude}"
+  local arg
+  local has_skip=0
+
+  if ! builtin pwd >/dev/null 2>&1; then
+    cd /mnt/c/Users/Hakan 2>/dev/null || cd "$HOME" 2>/dev/null || return 1
+  fi
+
+  if [ ! -x "$claude_bin" ]; then
+    echo "Claude binary not found at $claude_bin" >&2
+    return 127
+  fi
+
+  for arg in "$@"; do
+    if [ "$arg" = "--dangerously-skip-permissions" ]; then
+      has_skip=1
+      break
+    fi
+  done
+
+  if [ "$has_skip" -eq 0 ]; then
+    "$claude_bin" --dangerously-skip-permissions "$@"
+  else
+    "$claude_bin" "$@"
+  fi
+}
+BASHRCBLOCK
+fi
+
 # --- 3. Symlink ~/.claude → /mnt/c/Users/Hakan/.claude ---
 echo ""
 echo "[3/7] Setting up .claude symlink..."
@@ -103,6 +146,9 @@ set -g visual-activity off
 
 # Renumber windows when one is closed
 set -g renumber-windows on
+bind c new-window -c "#{pane_current_path}"
+bind '"' split-window -v -c "#{pane_current_path}"
+bind % split-window -h -c "#{pane_current_path}"
 TMUXCONF
 echo "  tmux configured: ~/.tmux.conf"
 
@@ -158,6 +204,7 @@ echo "  1. Start tmux session:  tmux new -s claude"
 echo "  2. Run Claude Code:     claude"
 echo "  3. Detach from tmux:    Ctrl+B, then D"
 echo "  4. Reattach later:      tmux attach -t claude"
+echo "  5. Inside Claude:       /wsl-health"
 echo ""
 echo "Remote Access (from phone):"
 echo "  1. Run: sudo tailscale up"

@@ -1,8 +1,5 @@
 # kali-mcp Complete Tool Inventory
 
-
-**Related projects:** [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](../../../README.md#portable-local-dependencies)
-
 ## 1. CORE OPERATIONS
 
 ### run - Execute arbitrary shell commands

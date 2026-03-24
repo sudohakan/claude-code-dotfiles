@@ -21,4 +21,5 @@ When this command is executed, gather and present a compact status snapshot.
 - If storage hygiene data exists, highlight only the heaviest 3 top-level areas, the heaviest 3 projects, and whether duplicate project-key aliases remain.
 - If hygiene snapshots exist, summarize them as `clean` / `needs attention` with exact candidate counts and archive path when recent apply runs exist.
 - If deeper workspace maintenance detail is useful, point to `/maintenance-status` for trend and auto-action history.
+- If the user is on WSL and the issue smells like tmux / cwd / MCP startup drift, point to `/wsl-health`.
 - If a section has no data, say so briefly and move on.

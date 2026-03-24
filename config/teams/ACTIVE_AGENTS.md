@@ -1,13 +1,13 @@
 # Active Agents
 
-Bu dosya, Agent Teams icin kullanilan cekirdek rol setini tanimlar. Amaç rol secimini kisa, izlenebilir ve token-dostu tutmaktir.
+Defines the core role set for Agent Teams. Purpose: keep role selection short, traceable, and token-efficient.
 
 ## Rules
-- Aktif ajan sayisi mevcut takim komutlarinin kullandigi cekirdek rollerle sinirli tutulur
-- Yeni ihtiyac cikarsa once mevcut cekirdek rollerden biri genisletilir
-- Sıkıştırılmış uzmanlik eslesmeleri `ROLE_COMPRESSION_MAP.md` icinde tutulur
+- Active agent count is limited to core roles used by team commands.
+- Expand an existing core role before adding a new one.
+- Compressed specialty mappings live in `ROLE_COMPRESSION_MAP.md`.
 
-## Aktif Cekirdek Roller
+## Core Roles
 - `backend-architect`
 - `business-analyst`
 - `cloud-architect`
@@ -27,7 +27,7 @@ Bu dosya, Agent Teams icin kullanilan cekirdek rol setini tanimlar. Amaç rol se
 - `ui-ux-designer`
 
 ## Notes
-- Bu liste favori listesi degildir; aktif kutuphaneyi tanimlar.
-- Bu liste su anki takim komutlari (`/e2eteam`, `/buildteam`, `/opsteam`, `/growthteam`, `/researchteam`) ile fiilen kullanilan rollerden olusur.
-- Team kurarken tam rol yoksa en yakin aktif rol secilir.
-- Rol davranisinin ana kaynagi `teams/agents/<role>.md` dosyasidir.
+- This is the active library, not a favorites list.
+- These roles map to `/e2eteam`, `/buildteam`, `/opsteam`, `/growthteam`, `/researchteam` commands.
+- Pick the nearest active role if an exact match is unavailable.
+- Role behavior is defined in `teams/agents/<role>.md`.
