@@ -1,0 +1,1 @@
+/home/hakan/.claude/commands-ext4/playbook-assessment.md
