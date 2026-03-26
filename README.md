@@ -7,7 +7,7 @@
 
 **Production-ready Claude Code configuration — batteries included.**
 
-![Version](https://img.shields.io/badge/version-3.5.7-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.6.0-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)

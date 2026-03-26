@@ -3,6 +3,34 @@
 
 **Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](README.md#portable-local-dependencies)
 
+## [3.6.0] - 2026-03-26
+
+### Added
+- sync.sh: 3 new sync targets — profiles/, scripts/, get-shit-done/
+- sync.sh: settings.local.json and plugin-profiles.json added to core config files
+- fix-plugin-root.js SessionStart hook for WSL plugin path fix
+- token-guard.js PreToolUse hook
+- pentest-opsec-layers.md registered in playbook hub
+- INDEX.md full structure map for docs
+- playbook-extract, claude-news, n8n, finekra-deploy-onprem commands
+
+### Changed
+- CLAUDE.md: "ECC-Only Capabilities" renamed to "ECC and Standalone Commands", haiku description expanded
+- Pentest docs: 9 conflicts fixed (stealth speeds, auto-exploit logic, working hours, hub registration)
+- Pentest docs: ~200 lines of duplicate payloads/scripts replaced with cross-references
+- Rules: removed 22 lines duplicating CLAUDE.md (agents, performance, development-workflow, hooks)
+- AGENTS.md stripped to ECC-unique agents only
+- agent-teams.md trimmed of CLAUDE.md §4 duplicate lines
+- kotlin-build.md merged with gradle-build Android/KMP specifics
+- dotfiles-sync command rewritten: fixed repo_path field, security scan, simplified version flow
+
+### Removed
+- 5 deprecated team commands (buildteam, e2eteam, growthteam, opsteam, researchteam)
+- 5 stale multi-model commands (multi-backend/frontend/plan/execute/workflow) — moved to deprecated
+- decision-matrix.md, tools-reference.md, agent-favorites.md (redundant with CLAUDE.md)
+- PLUGIN_SCHEMA_NOTES.md, README.md (ECC internal, boilerplate)
+- 3 redundant memory files (feedback_verify_all_changes, feedback_directives_language, feedback_do_not_explain)
+
 ## [3.5.7] - 2026-03-26
 
 ### Changed
