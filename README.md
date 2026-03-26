@@ -7,7 +7,7 @@
 
 **Production-ready Claude Code configuration — batteries included.**
 
-![Version](https://img.shields.io/badge/version-3.5.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.5.7-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey?style=for-the-badge)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-required-purple?style=for-the-badge)
@@ -33,6 +33,10 @@
 - **50 Coding Rules** across 9 languages (TypeScript, Python, Go, Rust, Kotlin, C++, Swift, PHP, Perl) + common standards
 - **3-Layer Safety** &mdash; Dippy auto-approve, credential blocker, unicode injection protection
 - **Automated Sync** &mdash; `sync.sh` keeps the repo matched with your live configuration while sanitizing machine-local MCP credentials
+- **Shared Claude + Codex Home Mode** &mdash; `scripts/enable-shared-claude-codex.ps1` replaces copy-based parity with junction/hardlink-backed shared assets
+- **Codex-Compatible Shared Skills** &mdash; shared `SKILL.md` assets now load without Codex frontmatter warnings in child sessions
+- **Execution-First Dev Sync** &mdash; `/dev-sync` now consumes and resolves existing open `[HIGH]` subtasks before creating new backlog output
+- **Claude-First Ownership Model** &mdash; `~/.claude` is the canonical runtime source, Codex consumes it, and the repo is fed by reverse sync instead of serving as the live authority
 - **Storage Hygiene Reporting** &mdash; daily cleanup also writes a cache report for the largest `projects/` and `file-history/` entries plus duplicate project aliases
 - **Storage Trend Tracking** &mdash; daily snapshots accumulate into 7-day and 30-day trend summaries for workspace growth
 - **Alias Consolidation Utility** &mdash; `project-alias-hygiene.js` safely merges duplicate project keys and archives unresolved leftovers
@@ -69,6 +73,26 @@ claude login
 See [SETUP.md](SETUP.md) for detailed installation steps, parameters, and what each step does.
 
 The installer now bootstraps the local repos that your Claude setup depends on from [`external-projects.manifest.json`](external-projects.manifest.json). Fresh machines get the same local MCP/project layout under `C:\dev` or `~/dev` without syncing credentials.
+
+## Shared Claude + Codex
+
+If Claude is your mature setup and you want Codex to consume the exact same content instead of a drifting copy, run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "C:\dev\claude-code-dotfiles\scripts\enable-shared-claude-codex.ps1"
+```
+
+This mode:
+
+- keeps `~/.claude` as the canonical live configuration tree and materializes any previously repo-backed managed paths back into real local files/directories
+- points Codex managed folders such as `agents`, `docs`, `get-shit-done`, and `mcp-configs` directly at the live `~/.claude` tree
+- links shared hooks, skills, teams, plugin metadata, and prompt files from `~/.claude` into `~/.codex`
+- keeps runtime-only surfaces local, including `~/.claude/hooks/dippy`, `~/.claude/skills/learned`, `~/.codex/skills/.system`, and generated Codex `AGENTS.md`
+- hardlinks Codex `prompts/*.md` directly to the live Claude command markdown sources, including the `gsd-*` prompt aliases
+- points Codex `model_instructions_file` at `~/.codex/CLAUDE.md` while keeping `~/.codex/CLAUDE_GLOBAL.md` as a compatibility alias, so the live global Claude policy becomes Codex's primary instruction source and `AGENTS.md` stays a minimal bootstrap file
+- leaves `claude-code-dotfiles` as a distribution and reverse-sync layer; use `sync.sh` to export the current live Claude state back into the repo
+
+When an existing local path needs to be replaced, the script moves it into `~/.claude/backups/` or `~/.codex/backups/` first.
 
 ## Portable Local Dependencies
 

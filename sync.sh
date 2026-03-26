@@ -113,7 +113,7 @@ done
 ok()   { echo -e "  \033[32m[OK] $1\033[0m"; }
 warn() { echo -e "  \033[33m[--] $1\033[0m"; }
 info() { echo -e "  \033[36m$1\033[0m"; }
-step() { echo -e "\n\033[33m[$1/10] $2\033[0m"; }
+step() { echo -e "\n\033[33m[$1/13] $2\033[0m"; }
 
 RSYNC_FLAGS="-a --delete"
 [ "$DRY_RUN" = true ] && RSYNC_FLAGS="$RSYNC_FLAGS --dry-run"
@@ -133,7 +133,7 @@ echo " Target: $CONFIG_DIR"
 echo "============================================"
 
 step 1 "Core config files"
-for f in CLAUDE.md settings.json package.json gsd-file-manifest.json project-registry.json; do
+for f in CLAUDE.md settings.json settings.local.json package.json gsd-file-manifest.json project-registry.json plugin-profiles.json; do
     if [ -f "$CLAUDE_DIR/$f" ]; then
         if [ "$DRY_RUN" = true ]; then
             info "Would copy: $f"
@@ -168,6 +168,7 @@ ok "$(find "$CONFIG_DIR/commands/" -name '*.md' 2>/dev/null | wc -l) commands"
 step 4 "Docs"
 rsync $RSYNC_FLAGS \
     --exclude='plans/' \
+    --exclude='superpowers/plans/' \
     "$CLAUDE_DIR/docs/" "$CONFIG_DIR/docs/"
 ok "$(find "$CONFIG_DIR/docs/" -type f 2>/dev/null | wc -l) doc files"
 
@@ -213,7 +214,26 @@ for f in known_marketplaces.json blocklist.json; do
 done
 ok "MCP configs and plugin metadata"
 
-step 10 "Home config (.claude.json template)"
+step 10 "Profiles"
+mkdir -p "$CONFIG_DIR/profiles"
+[ -d "$CLAUDE_DIR/profiles" ] && rsync $RSYNC_FLAGS \
+    --include='*.md' --exclude='*' \
+    "$CLAUDE_DIR/profiles/" "$CONFIG_DIR/profiles/"
+ok "$(find "$CONFIG_DIR/profiles/" -name '*.md' 2>/dev/null | wc -l) profiles"
+
+step 11 "Scripts"
+mkdir -p "$CONFIG_DIR/scripts"
+[ -d "$CLAUDE_DIR/scripts" ] && rsync $RSYNC_FLAGS \
+    --exclude='__pycache__/' \
+    "$CLAUDE_DIR/scripts/" "$CONFIG_DIR/scripts/"
+ok "$(find "$CONFIG_DIR/scripts/" -type f 2>/dev/null | wc -l) scripts"
+
+step 12 "GSD (get-shit-done)"
+[ -d "$CLAUDE_DIR/get-shit-done" ] && rsync $RSYNC_FLAGS \
+    "$CLAUDE_DIR/get-shit-done/" "$CONFIG_DIR/get-shit-done/"
+ok "GSD workflow files"
+
+step 13 "Home config (.claude.json template)"
 if [ -f "$HOME/.claude.json" ]; then
     mkdir -p "$HOME_CONFIG_DIR"
     if [ "$DRY_RUN" = true ]; then

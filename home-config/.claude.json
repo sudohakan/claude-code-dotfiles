@@ -39,7 +39,7 @@
         "@21st-dev/magic@latest"
       ],
       "env": {
-        "API_KEY": "YOUR_API_KEY_HERE"
+        "API_KEY": ""
       }
     },
     "linkedin": {
@@ -52,6 +52,13 @@
     "kali-mcp": {
       "type": "sse",
       "url": "http://localhost:8000/sse"
+    },
+    "n8n": {
+      "type": "stdio",
+      "command": "/home/hakan/.claude/scripts/n8n-mcp-wrapper.sh",
+      "args": [],
+      "env": {},
+      "timeout": 60000
     }
   }
 }

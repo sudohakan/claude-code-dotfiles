@@ -20,10 +20,6 @@ Extends `git-workflow.md` with the full pipeline that happens before git operati
    - RED → GREEN → IMPROVE
    - Verify 80%+ coverage
 
-3. **Code Review**
-   - Use code-reviewer agent immediately after writing code
-   - Fix CRITICAL and HIGH issues; fix MEDIUM when possible
-
-4. **Commit & Push**
+3. **Commit & Push**
    - Conventional commits format
    - See `git-workflow.md`

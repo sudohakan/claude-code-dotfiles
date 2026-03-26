@@ -215,7 +215,13 @@ else
     elif command -v brew &>/dev/null; then
         brew install oven-sh/bun/bun 2>/dev/null || warn "Bun install skipped"
     elif command -v apt-get &>/dev/null; then
-        curl -fsSL https://bun.sh/install | bash >/dev/null 2>&1 || warn "Bun install skipped"
+        tmpfile="$(mktemp)"
+        if curl -fsSL https://bun.sh/install -o "$tmpfile" && bash "$tmpfile" >/dev/null 2>&1; then
+            :
+        else
+            warn "Bun install skipped"
+        fi
+        rm -f "$tmpfile"
     else
         warn "Bun not found. Some optional MCP builds may remain best-effort."
     fi

@@ -109,23 +109,131 @@ ssh Administrator@172.16.220.54 "C:\Windows\System32\inetsrv\appcmd.exe stop app
 **Backend:** `scp -r ./publish/<Project>/* Administrator@172.16.220.54:"C:\inetpub\test-ftp\<SITE>\"`
 - Then restore appsettings: `ssh ... "copy C:\inetpub\test-ftp\<SITE>\appsettings-backup\* C:\inetpub\test-ftp\<SITE>\"`
 
-#### 2d. Start app pool
+#### 2d. Appsettings Reconciliation (backend only)
+
+Test environment appsettings are NOT overwritten — but they may be missing keys added in newer code. Reconcile by AI analysis:
+
+1. **Read both files:**
+   - Local (source of truth for structure): `./publish/<Project>/appsettings.json`
+   - Remote (source of truth for values): `ssh ... "type C:\inetpub\test-ftp\<SITE>\appsettings.json"`
+   - Also check `appsettings.Development.json` / `appsettings.Production.json` if present on either side
+
+2. **Deep-diff analysis — determine changes:**
+
+   | Scenario | Action |
+   |----------|--------|
+   | Key exists in local but NOT in remote | ADD to remote with local's default value |
+   | Key exists in remote but NOT in local | KEEP in remote (may be test-specific config) |
+   | Key exists in both, same value | No change |
+   | Key exists in both, different value | KEEP remote value (test environment override) |
+   | Structural change (object → array, type change) | ADD new structure, keep remote values where keys match |
+   | New section/block added in local | ADD entire block to remote with local defaults |
+
+3. **Merge rules:**
+   - Never delete existing remote keys/sections
+   - Never overwrite existing remote values (connection strings, URLs, credentials, feature flags)
+   - Only ADD missing keys/sections from local
+   - Preserve remote JSON formatting and key order where possible
+   - Result MUST be valid JSON — validate with `python3 -c "import json; json.load(open('...'))"`
+
+4. **Apply if changes needed:**
+   ```bash
+   # Write merged content to temp file, validate, then transfer
+   echo '<merged_json>' | python3 -c "import sys,json; json.dump(json.load(sys.stdin),sys.stdout,indent=2)" > /tmp/appsettings-merged.json
+   scp /tmp/appsettings-merged.json Administrator@172.16.220.54:"C:\inetpub\test-ftp\<SITE>\appsettings.json"
+   ```
+
+5. **Report changes made:**
+   ```
+   appsettings.json reconciliation for <SITE>:
+   + Added: Serilog.MinimumLevel.Override.Microsoft → "Warning"
+   + Added: FeatureFlags.NewPaymentFlow → false
+   = Kept: ConnectionStrings.DefaultConnection (remote value preserved)
+   No changes: appsettings.Development.json (already in sync)
+   ```
+
+6. **If no differences found**, skip silently — do not modify the file.
+
+#### 2e. Start app pool
 ```bash
 ssh Administrator@172.16.220.54 "C:\Windows\System32\inetsrv\appcmd.exe start apppool /apppool.name:<SITE>"
 ```
 
-### Step 3: Verify
+### Step 3: Verify App Pools
 
 1. Confirm app pool state: `appcmd list apppool /apppool.name:<SITE>` → must show "Started"
-2. For web projects: `curl -s -o /dev/null -w "%{http_code}" <URL>` → must return 200
+2. HTTP check:
+   - **React projects:** `curl -s -o /dev/null -w "%{http_code}" <URL>` → must return 200
+   - **Backend API projects:** root URL returns 404 (normal — no frontend served at root). Test a known endpoint (e.g., `/swagger` → 301, or any API endpoint → 401 auth required). 401 confirms API is running.
 3. If app pool won't start → STOP and report
 
-### Step 4: Report
+### Step 4: Smoke Test
 
-One-line summary per project:
+Run smoke tests for ALL deployed projects. Each test type applies based on project category.
+
+#### 4a. HTTP Reachability (all web-facing projects)
+```bash
+curl -sk -o /dev/null -w "%{http_code}" <URL>
 ```
-✓ panel (hakan.finekra.com) — deployed, app pool running, HTTP 200
-✓ api (hakan-api.finekra.com) — deployed, app pool running
+Expected: 200 (or 301/302 for redirect). 5xx or connection refused → FAIL.
+
+#### 4b. Content Validation
+
+| Project Type | Check | Pass Criteria |
+|-------------|-------|---------------|
+| panel, operation-panel | `curl -sk <URL>` body contains `<div id="root">` | React app mounted, not IIS error page |
+| api, operationapi | `curl -sk <URL>/swagger` returns 200 | Swagger UI accessible |
+| api, operationapi | `curl -sk <URL>/api/Health` or `<URL>/api/Account/GetLoginPageInfo` | Returns JSON (not HTML error) |
+| fileaccessapi | `curl -sk <URL>/swagger` returns 200 | Swagger accessible |
+
+#### 4c. API Connectivity (panel projects only)
+Verify the panel can reach its API backend:
+```bash
+# Extract apiUrl from deployed ApiforContext.js and test it
+curl -sk -o /dev/null -w "%{http_code}" <apiUrl>/api/Account/GetLoginPageInfo
+```
+Expected: 200 with JSON response. This confirms panel-to-API connectivity works.
+
+#### 4d. Process Health (backend services: job, scheduler, erp)
+Services without HTTP endpoints — verify the process is alive:
+```bash
+ssh Administrator@172.16.220.54 "tasklist /FI \"IMAGENAME eq dotnet.exe\" /FO CSV | findstr /I <ProjectDll>"
+```
+If no process found, check Windows Event Log for crash:
+```bash
+ssh Administrator@172.16.220.54 "powershell Get-EventLog -LogName Application -Newest 5 -Source '.NET Runtime' -ErrorAction SilentlyContinue | Select-Object TimeGenerated,Message"
+```
+
+#### 4e. Cross-Service Smoke (when both panel + api deployed)
+Open the login page endpoint through the full stack:
+```bash
+# API returns login config
+curl -sk https://hakan-api.finekra.com/api/Account/GetLoginPageInfo | python3 -c "import sys,json; d=json.load(sys.stdin); print('API OK' if 'data' in d or 'statusCode' in d else 'UNEXPECTED')"
+```
+
+#### Smoke Test Rules
+- Run ALL applicable tests — do not skip on first pass
+- Collect all results, then report as a table
+- FAIL threshold: any 5xx, connection refused, or missing expected content
+- On FAIL: report which test failed, show response body snippet (first 200 chars), suggest fix
+- On PASS: include response time in report
+
+### Step 5: Report
+
+Summary table:
+```
+| Project | Deploy | App Pool | Smoke Test | Notes |
+|---------|--------|----------|------------|-------|
+| panel   | OK     | Running  | PASS (3/3) | 200 in 0.4s |
+| api     | OK     | Running  | PASS (4/4) | swagger OK, health OK |
+| job     | OK     | Running  | PASS (1/1) | process alive |
+```
+
+If any smoke test failed:
+```
+SMOKE TEST FAILURES:
+- api: /api/Health returned 503 — "Service Unavailable" (first 200 chars of body)
+  Suggestion: Check appsettings.json DB connection string
 ```
 
 ## Critical Rules
@@ -135,9 +243,10 @@ One-line summary per project:
 3. **NEVER stop entire IIS** — only the specific application pool
 4. **Verify build/publish success** before any file transfer
 5. **Verify app pool restart** after every deploy
-6. **If any step fails** → stop immediately, do not continue to next project
-7. **Report each step** as it completes — user sees live progress
-8. **Continuous improvement** — when user feedback reveals a gap in this skill (missing steps, wrong flow, failed edge case, etc.), update the skill file immediately, verify the fix, then continue the task
+6. **If build/deploy fails** → stop immediately, do not continue to next project
+7. **Smoke test failures do NOT block** — report all results, let user decide
+8. **Report each step** as it completes — user sees live progress
+9. **Continuous improvement** — when user feedback reveals a gap in this skill, update the skill file immediately, verify, then continue
 
 ## Alternate Environments (--alt)
 

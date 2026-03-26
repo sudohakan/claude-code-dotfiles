@@ -16,13 +16,6 @@ Located in `~/.claude/agents/`:
 | doc-updater | Documentation | Updating docs |
 | rust-reviewer | Rust code review | Rust projects |
 
-## Immediate Agent Usage
-No user prompt needed:
-- Complex feature → planner
-- Code just written/modified → code-reviewer
-- Bug fix or new feature → tdd-guide
-- Architectural decision → architect
-
 ## Parallel Task Execution
 Always run independent agent tasks in parallel, not sequentially.
 

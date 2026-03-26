@@ -1,5 +1,5 @@
 ---
-description: "Work Sync — unified work synchronization: fetch Infoset CRM tickets + Azure DevOps tasks, cross-match, analyze, sync to Google Tasks (3 lists) + Calendar, generate DOCX report"
+description: "Work Sync — unified work synchronization: fetch Infoset CRM tickets + Azure DevOps tasks, cross-match, analyze, sync to Google Tasks + Calendar, generate DOCX report"
 ---
 
 # Work Sync
@@ -20,7 +20,7 @@ Parse `$ARGUMENTS`:
 | `-r` | `--report-only` | Full pipeline, generate DOCX report, but skip ALL Google writes (Tasks + Calendar). For analysis without side effects. |
 | `-h` | `--help` | Show usage help and alias descriptions |
 | `--status` | — | Show last sync status from status.json |
-| `--clean` | — | Clean mode: remove orphaned tasks/events from all 3 lists |
+| `--clean` | — | Clean mode: remove orphaned tasks/events from Work Plan list + calendar |
 | `--dry-run` | — | Full pipeline + Google writes, but show diff table first (NEW/UPDATED/CLOSED counts per source) and ask for confirmation before writing. Unlike `-r`, this DOES write if confirmed. |
 
 If `$ARGUMENTS` matches `-h` or `--help` → jump to **Help Mode**.
@@ -61,11 +61,11 @@ Display:
 /work-sync -r           Report only: tam pipeline ama Google write yok (Tasks + Calendar atlanır)
 /work-sync -h           Bu yardım mesajı
 /work-sync --status     Son sync durumunu göster
-/work-sync --clean      Orphan task/event temizliği (3 liste + calendar)
+/work-sync --clean      Orphan task/event temizliği (Work Plan + calendar)
 /work-sync --dry-run    Tam pipeline, diff tablosu göster, onay sonrası yaz
 
 Veri kaynakları: Infoset CRM + Azure DevOps (Fin_Dev26)
-Çıktılar: Google Tasks (3 liste) + Google Calendar + DOCX rapor
+Çıktılar: Google Tasks (Work Plan) + Google Calendar + DOCX rapor
 =============================
 ```
 Done — stop here.
@@ -222,7 +222,7 @@ Add the fetched ticket to `allInfosetTickets` with a flag `backfilled: true`. Th
 | One Infoset ticket in multiple DevOps items | One Work Plan entry per Infoset ticket. All linked DevOps IDs listed in notes. Primary DevOps ID = highest priority or most recently changed. |
 | No Infoset URL found | DevOps-only item, no matching attempted. |
 | Matched Infoset ticket is closed (status 3/4) | Still a valid match. Backfill ticket data. Work Plan entry: `source: "both"`, `infosetClosed: true`. Customer context preserved from the closed ticket. |
-| Matched Infoset ticket is in non-Yazılım stage | Still a valid match. Include it regardless of stage. |
+| Matched Infoset ticket is in non-sync stage (Test/Review/Prod Test/Tamamlandı) or different pipeline | Still a valid match. Include it regardless of stage or pipeline. |
 
 #### Output classifications
 
@@ -247,27 +247,296 @@ Sadece DevOps: {n} task
 
 ---
 
-### Step 2.5: Apply Stage Filter
+### Step 2.5: Apply Pipeline & Stage Filter
 
-**After matching is complete**, apply the stage filter to produce `currentInfosetTickets`:
+**After matching is complete**, apply the filter to produce `currentInfosetTickets`:
 
 Include tickets that match ANY of these conditions:
-1. `stageId: 91133` (Yazılım kolonu) — user's primary queue
-2. Ticket has a DevOps match (from Step 2) — regardless of stage or status
+1. `pipelineId: 25965` (Yazılım Destek) AND `stageId` in sync-eligible set: `108338` (Yeni), `108335` (Aktif), `108339` (Beklemede), `108341` (Deployment)
+2. Ticket has a DevOps match (from Step 2) — regardless of pipeline, stage, or status
 3. Ticket was backfilled (closed but matched) — `backfilled: true`
+
+Exclude tickets in non-sync stages (Test `108334`, Review `108336`, Prod Test `108337`, Tamamlandı `108340`) UNLESS they have a DevOps match (condition 2). Also exclude tickets in other pipelines (e.g., pipeline `18311` Destek) unless matched.
 
 Discard all other tickets from `allInfosetTickets`.
 
 Save as `currentInfosetTickets`.
 
-**Why this order matters:** Matching must run before stage filtering. Matched tickets often move to other stages (Üzerinde Çalışılıyor, resolved, etc.) while the DevOps task is still active. Filtering before matching would break the link and show 0 matches.
+**Why this order matters:** Matching must run before stage filtering. Matched tickets often move to other stages (Test, Review, etc.) while the DevOps task is still active. Filtering before matching would break the link and show 0 matches.
+
+**Stage mismatch detection:** For matched items, compare Infoset stage with DevOps state using the mapping table in Infoset Pipeline Configuration. If they don't match (e.g., DevOps is "Active" but Infoset is still "Yeni"), report in terminal output:
+```
+=== Stage Uyumsuzlukları ===
+  Infoset #{id} "{subject}" → Infoset: {currentInfosetStage}, DevOps: {devopsState} — Infoset'te {expectedInfosetStage}'e taşınmalı
+```
+`expectedInfosetStage` is derived from DevOps state via the Infoset Pipeline Configuration mapping table.
+DevOps state is master — never change DevOps state based on Infoset stage.
 
 ---
 
-### Step 3: Load State + Detect Changes
+### Step 2.7: Auto-Create DevOps Tasks for Unmatched Infoset Tickets
+
+**Skip this step if `-d` / `--devops-only` or `-r` / `--report-only` flag is set.**
+
+**`--dry-run` behavior:** Run the full detection logic but do NOT execute API calls. Instead, add planned creates to the dry-run diff table as `"WOULD CREATE: Infoset #{id} → DevOps (aktif sprint)"`. This ensures the dry-run report accurately reflects what a real run would do.
+
+After Step 2.5, identify "Infoset only" tickets in `currentInfosetTickets` that:
+1. Have NO DevOps match (from Step 2)
+2. Are in `pipelineId: 25965` AND `stageId: 108338` (Yeni kolonu)
+3. Are NOT already tracked in `state.autoCreated` (prevent duplicates across runs)
+
+For each qualifying ticket, create a DevOps work item:
+
+#### Determine active sprint
+
+From `currentDevOpsItems`, find the most common `System.IterationPath` value (the sprint most items are assigned to). This is the active sprint.
+
+Fallback: if no items exist, query DevOps for the current iteration:
+```
+GET https://polynomtech.visualstudio.com/Fin_Dev26/Fin_Dev26%20Team/_apis/work/teamsettings/iterations?$timeframe=current&api-version=7.1
+```
+Extract: `response.value[0].path` (e.g., `Fin_Dev26\Sprint6`). If response is empty, skip auto-creation entirely and report "Aktif sprint bulunamadı, otomatik task oluşturma atlandı".
+
+#### Create work item
+
+```
+POST https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/workitems/$Task?api-version=7.1
+Content-Type: application/json-patch+json
+Authorization: Bearer {accessToken}
+
+[
+  {"op": "add", "path": "/fields/System.Title", "value": "{infosetTicket.subject}"},
+  {"op": "add", "path": "/fields/System.Description", "value": "<div><a href=\"https://dashboard.infoset.app/tickets/{infosetTicketId}\">Infoset #{infosetTicketId}</a><br>Müşteri: {htmlEscape(infosetTicket.contact.company)}</div>"},
+  {"op": "add", "path": "/fields/System.IterationPath", "value": "{activeSprintPath}"},
+  {"op": "add", "path": "/fields/System.AreaPath", "value": "Fin_Dev26"},
+  {"op": "add", "path": "/fields/System.State", "value": "New"},
+  {"op": "add", "path": "/fields/Microsoft.VSTS.Common.Priority", "value": "{mappedPriority}"}
+]
+```
+
+#### Priority mapping (Infoset → DevOps)
+
+Infoset returns numeric priority values. Map both numeric and string forms:
+
+| Infoset numeric | Infoset label | DevOps Priority |
+|----------------|---------------|-----------------|
+| 4 | urgent / critical | 1 |
+| 3 | high | 2 |
+| 2 | normal / medium | 3 |
+| 1 | low | 4 |
+| (missing/null) | — | 3 (default) |
+
+#### Add Infoset URL as first comment
+
+```
+POST https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/workitems/{newWorkItemId}/comments?api-version=7.1-preview.4
+Content-Type: application/json
+Authorization: Bearer {accessToken}
+
+{"text": "Infoset ticket: https://dashboard.infoset.app/tickets/{infosetTicketId}"}
+```
+
+#### Post-create actions
+
+1. Add to `currentDevOpsItems` so subsequent steps see it
+2. Update match state: ticket is now matched (Infoset ↔ DevOps)
+3. Track in `state.autoCreated` array: `{"infosetId": {id}, "devopsId": {newId}, "createdAt": "{ISO date}", "sprint": "{activeSprintPath}"}` (creation-time snapshot — sprint value is immutable)
+4. **Cleanup on next run:** In Step 2, after matching completes, remove entries from `state.autoCreated` where `infosetId` now has a DevOps match (the URL comment was picked up). This prevents unbounded growth.
+4. Add to matching report: `"Otomatik oluşturuldu: Infoset #{id} → DevOps #{newId} ({activeSprintName})"`
+
+#### Safety limits
+
+- Max 5 auto-creates per sync run (prevent bulk mistakes)
+- If more than 5 unmatched: create first 5, report remaining count: `"{n} eşleşmemiş ticket kaldı, sonraki sync'te oluşturulacak"`
+- Never auto-create if ticket subject contains "test", "deneme", or "silme" (case-insensitive)
+
+#### Error handling
+
+If a DevOps work item POST fails (401, 422, etc.):
+- Do NOT count as successful create
+- Log the error: `"HATA: Infoset #{id} → DevOps oluşturulamadı: {statusCode} {errorMessage}"`
+- Continue with remaining tickets (do not abort the batch)
+- Do NOT add failed ticket to `state.autoCreated`
+
+#### Terminal output
+
+```
+=== Otomatik DevOps Task Oluşturma ===
+Oluşturulan: {successCount} task (aktif sprint: {sprintName})
+  - Infoset #{id} "{subject}" → DevOps #{newId}
+  - Infoset #{id} "{subject}" → DevOps #{newId}
+Başarısız: {failCount} task
+  - Infoset #{id} "{subject}" → {errorMessage}
+Kalan (limit): {n} ticket sonraki sync'te oluşturulacak
+```
+
+---
+
+### Step 2.75: Load State
 
 Read `/mnt/c/dev/infoset-mcp/data/state.json` via Read tool.
-If file doesn't exist → first run, all items are NEW.
+If file doesn't exist → first run, all items are NEW. Initialize empty state: `{ "workItems": {}, "relatedItems": {} }`.
+
+Save loaded state as `previousState` for use in Steps 2.8 and 3.
+
+---
+
+### Step 2.8: Discover Related Items
+
+Scan all items in `currentInfosetTickets` and `currentDevOpsItems` for references to other tickets/tasks. Fetch referenced items (1-level deep) to provide context during analysis.
+
+#### 2.8a: Scan for References
+
+Apply the following patterns (case-insensitive, Turkish locale) to ALL text fields of every item:
+
+**Infoset tickets — scan fields:**
+- Ticket description/content (from enriched data or list response)
+- Activity logs text (from `get_ticket_logs` if already fetched)
+- Email content if email type activity exists (fetch via `mcp__infoset__infoset_get_email` for email-type log entries)
+
+**DevOps work items — scan fields:**
+- `System.Description`
+- `Microsoft.VSTS.TCM.ReproSteps`
+- Comment text (already fetched in Step 1b)
+- `relations[]` array (already in response from `$expand=all`)
+
+**URL patterns (high confidence):**
+
+| Pattern | Extracts | relationType |
+|---|---|---|
+| `dashboard\.infoset\.app/tickets/(\d+)` | Infoset ticket ID | `url-reference` |
+| `polynomtech\.visualstudio\.com/.*_workitems/edit/(\d+)` | DevOps work item ID | `url-reference` |
+
+**Text patterns (4+ digit IDs only):**
+
+| Pattern | Extracts | relationType |
+|---|---|---|
+| `#(\d{4,})` | Generic ID | `text-reference` |
+| `ticket\s*(\d{4,})` | Infoset ticket ID | `text-reference` |
+| `task\s*(\d{4,})` | DevOps work item ID | `text-reference` |
+| `bug\s*(\d{4,})` | DevOps work item ID | `text-reference` |
+| `bkz\.?\s*(\d{4,})` | Generic ID | `text-reference` |
+| `ilgili\s*:?\s*(\d{4,})` | Generic ID | `text-reference` |
+| `aynı\s+sorun.*?(\d{4,})` | Generic ID | `text-reference` |
+
+**DevOps Relations API (zero-cost — already in `$expand=all` response):**
+
+Extract from `relations[]` array:
+- `System.LinkTypes.Hierarchy-Reverse` → parent → relationType: `devops-parent`
+- `System.LinkTypes.Hierarchy-Forward` → child → relationType: `devops-child`
+- `System.LinkTypes.Related` → related → relationType: `devops-related`
+- Extract work item ID from relation URL: `/workItems/(\d+)$`
+
+Collect all discovered references as: `{ sourceItemWpId, relatedId, relatedSource, relationType }`
+
+#### 2.8b: Disambiguate Generic IDs
+
+For IDs from `#(\d{4,})`, `bkz`, `ilgili`, `aynı sorun` patterns:
+
+| Condition | Classification |
+|---|---|
+| ID already in `currentDevOpsItems` | DevOps (known, no fetch needed) |
+| ID already in `currentInfosetTickets` | Infoset (known, no fetch needed) |
+| ID >= 1000000 (7+ digits) | Infoset ticket ID |
+| ID < 100000 (5 digits or less) | DevOps work item ID |
+| 100000-999999 (6 digits) | Ambiguous — try DevOps first, fallback to Infoset |
+
+Remove self-references (item referencing itself). Remove duplicates per source item.
+
+#### 2.8c: Check Cache & Filter
+
+For each discovered related ID not already in `currentInfosetTickets` or `currentDevOpsItems`:
+
+1. Check `previousState.relatedItems[id]`:
+   - Exists AND state is Closed → **cache hit**, skip fetch. Use cached data.
+   - Exists AND state is Open/Active → **must re-fetch** to check for changes.
+   - Not in cache → **must fetch** (new discovery).
+
+2. Group IDs to fetch by source: `infosetIdsToFetch[]` and `devopsIdsToFetch[]`.
+
+#### 2.8d: Batch Fetch Related Items
+
+**Infoset (if any):**
+```
+mcp__infoset__infoset_batch_get_tickets:
+  ticketIds: [infosetIdsToFetch]
+```
+
+**DevOps (if any):**
+```
+GET https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/workitems?ids={comma-separated devopsIdsToFetch}&$expand=all&api-version=7.1
+```
+(Max 200 per call, split into batches if needed.)
+
+Run Infoset and DevOps fetches in PARALLEL.
+
+For each fetched item, extract:
+- `id`, `source` (infoset/devops)
+- `title` or `subject`
+- `state` or `status`
+- `priority`
+- `assignedTo` (DevOps: `System.AssignedTo`, Infoset: owner)
+- `description` or `content` (first 500 chars — enough for context, not full text)
+- `sprint` (DevOps: `System.IterationPath`, Infoset: n/a)
+- `changedDate` or `updatedDate`
+- `contentHash`: SHA-256 of `JSON.stringify({ title, state, priority, assignedTo, description_first_500 })`
+- `fetchedAt`: current ISO timestamp
+
+#### 2.8e: Update Related Items Cache
+
+For each fetched related item:
+1. Compare `contentHash` with `previousState.relatedItems[id].contentHash`
+2. If different → update cache, mark all main items referencing this ID as needing re-analysis (set `relatedItemChanged: true`)
+3. If same → keep cached data
+
+Store/update in `state.relatedItems[id]`:
+```json
+{
+  "id": 13200,
+  "source": "devops",
+  "title": "ERP entegrasyon hatası",
+  "state": "Active",
+  "priority": 2,
+  "assignedTo": "Koray Kavruk",
+  "description": "ERP bağlantısı kopuyor...",
+  "sprint": "Sprint6",
+  "contentHash": "abc123...",
+  "fetchedAt": "2026-03-25T10:00:00Z"
+}
+```
+
+#### 2.8f: Build Related Items Map
+
+For each main item, store its related item references as `relatedItemIds` (top-level field on the work item, NOT inside cachedAnalysis):
+
+```json
+"relatedItemIds": [
+  { "relatedId": 13200, "source": "devops", "relationType": "url-reference" },
+  { "relatedId": 8750001, "source": "infoset", "relationType": "text-reference" }
+]
+```
+
+#### 2.8g: Cleanup Stale Related Items
+
+Remove entries from `state.relatedItems` where ALL of:
+- `fetchedAt` older than 30 days
+- Item state is Closed
+- No active main item in `currentInfosetTickets` or `currentDevOpsItems` references it
+
+#### 2.8h: Terminal Output
+
+```
+=== İlişkili İtem Keşfi ===
+Taranan: {n} Infoset ticket, {m} DevOps task
+Bulunan referans: {total} ({urlRef} URL, {textRef} metin, {relApi} Relations API)
+Fetch edilen: {fetched} yeni/güncellenen ({cached} cache hit, {skipped} kapalı/atlandı)
+Cache güncellenen: {updated} ({changed} değişmiş)
+Temizlenen: {cleaned} stale kayıt
+```
+
+---
+
+### Step 3: Detect Changes
 
 For each item in the current dataset (Infoset tickets, DevOps items, or both), compare against `state.workItems[workPlanId]`:
 
@@ -277,7 +546,25 @@ For each item in the current dataset (Infoset tickets, DevOps items, or both), c
 | In state, status/priority/subject/devopsState changed | **UPDATED** |
 | In state, but no longer in any source (ticket closed or work item closed) | **CLOSED** |
 | In state, was completed but now active again | **REOPENED** |
-| No changes | **SKIP** |
+| In state, `lastUpdatedDate` (Infoset) or `lastChangedDate` (DevOps) unchanged AND `relatedItemIds` unchanged AND no related item contentHash changed | **SKIP** |
+| In state, only related items changed (main item unchanged) | **UPDATED** (reclassified from SKIP) |
+
+**Change detection fields (stored per work item in state):**
+
+For Infoset tickets: compare `updatedDate` from list response against `state.workItems[wpId].lastUpdatedDate`.
+For DevOps items: compare `System.ChangedDate` from batch response against `state.workItems[wpId].lastChangedDate`.
+
+If dates match AND `relatedItemIds` array is unchanged AND no referenced related item's `contentHash` changed → SKIP.
+If only related items changed (main item dates unchanged) → reclassify as UPDATED.
+
+**Reclassification:** Items initially classified as SKIP may be reclassified to UPDATED if:
+- Any of their `relatedItemIds` entries have a changed `contentHash` in `state.relatedItems` (detected in Step 2.8e)
+- Their `relatedItemIds` list itself changed (new references discovered or old ones removed compared to `previousState`)
+- A NEW related item appeared that references this SKIP item (the SKIP item was previously unknown to the new item)
+
+Reclassified items receive full enrichment in Step 4a and full re-analysis in Step 4b.
+
+**previousAnalysis population:** For all UPDATED items (including reclassified), populate `previousAnalysis` from `previousState.workItems[wpId].cachedAnalysis` before passing to subagents in Step 4b. This gives agents reference context for consistency.
 
 Report counts: `NEW={n}, UPDATED={n}, CLOSED={n}, REOPENED={n}, SKIP={n}`
 
@@ -306,46 +593,71 @@ If user declines → skip Google writes, still generate DOCX report and terminal
 
 ### Step 4: Unified Analysis (2-Pass)
 
-**DO NOT use Claude CLI or any external process.** Analyze directly in THIS session.
+**Analysis is performed by parallel subagents (dispatched via Agent tool), NOT sequentially in the main session.** SKIP items use cached analysis from state.
 
 #### Step 4a: Enrich Data
 
 **For Infoset tickets (NEW + UPDATED):**
 
-Fetch in parallel where possible:
+Use batch tools to fetch all data in minimal MCP calls:
 
-**Detail:**
+**Step 4a-1: Batch fetch ticket details + logs (2 calls instead of 2N):**
 ```
-mcp__infoset__infoset_get_ticket:
-  ticketId: {ticketId}
-```
+mcp__infoset__infoset_batch_get_tickets:
+  ticketIds: [id1, id2, id3, ...]
 
-**Logs:**
-```
-mcp__infoset__infoset_get_ticket_logs:
-  ticketId: {ticketId}
+mcp__infoset__infoset_batch_get_ticket_logs:
+  ticketIds: [id1, id2, id3, ...]
   itemsPerPage: 15
 ```
+Run these two calls in PARALLEL.
 
-**Contact** (cache per contactId — don't re-fetch same contact):
+**Step 4a-2: Extract unique contactIds and companyIds from ticket details, then batch fetch (2 calls):**
 ```
-mcp__infoset__infoset_get_contact:
-  contactId: {contactId}
-```
+mcp__infoset__infoset_batch_get_contacts:
+  contactIds: [unique contactIds from tickets]
 
-**Company** (cache per companyId — don't re-fetch same company):
+mcp__infoset__infoset_batch_get_companies:
+  companyIds: [unique companyIds from tickets]
 ```
-mcp__infoset__infoset_get_company:
-  companyId: {companyId}
-```
+Run these two calls in PARALLEL. Auto-deduplication is built into the batch tools.
 
 Build enriched ticket with: id, subject, status, priority, companyName, contactName, content, source, createdDate, activities (last 3), slaStats.
 
 **For DevOps items:** Already enriched from Step 1b (all fields fetched). No additional enrichment needed.
 
-#### Step 4b: Pass 1 — Analyze
+**SKIP items:** Do NOT enrich SKIP items. Their cached analysis from `state.workItems[wpId].cachedAnalysis` will be used directly in Step 4b merge. Only NEW and UPDATED items need enrichment.
 
-For EVERY work item (from both sources), produce:
+#### Step 4a.5: Pre-Classify Analysis Tiers
+
+Before dispatching analysis subagents, perform a quick signal scan on each non-SKIP item to assign a tier. This determines which model analyzes the item.
+
+**Critical (→ opus agent):**
+Any of these signals present:
+- Infoset priority = 4 (Urgent) OR "ACIL"/"URGENT" in subject/content (case-insensitive)
+- SLA breach < 4 hours remaining
+- DevOps priority = 1
+- DevOps state = Deployment AND sprint overdue
+- Total outage keywords (case-insensitive, Turkish locale): "çalışmıyor", "hiç gelmiyor", "tamamen durdu", "calısmiyor"
+
+**Medium/High (→ sonnet agent):**
+Any of these signals present (and NOT critical):
+- Infoset priority = 3 (High)
+- DevOps priority = 2
+- Open > 14 days
+- DevOps state = Active or On Hold
+- SLA breach < 24 hours
+- Partial issue keywords
+
+**Low (→ haiku agent):**
+- Everything else
+
+Group items by tier: `criticalItems[]`, `mediumHighItems[]`, `lowItems[]`.
+Report: `"Tier dağılımı: {n} kritik (opus), {m} orta/yüksek (sonnet), {k} düşük (haiku), {s} SKIP (cached)"`
+
+#### Analysis Output Fields
+
+For EVERY work item (from both sources), the analysis must produce:
 
 | Field | Description |
 |-------|-------------|
@@ -367,6 +679,8 @@ For EVERY work item (from both sources), produce:
 | `ageDays` | Days since creation (earliest creation date if matched) |
 | `sprintsCarried` | Derived from current sprint number minus item's sprint number. E.g., item in Sprint3, current Sprint6 → carried 3 sprints. Uses `System.IterationPath` only. Items without sprint → 0. |
 | `needsCodebaseCheck` | true/false (from content analysis) |
+| `relatedItemsSummary` | One-line summary of related items for notes template |
+| `scoringBreakdown` | Object with score contribution per weight category |
 
 **Title format:**
 ```
@@ -375,9 +689,95 @@ For EVERY work item (from both sources), produce:
 - `primary_id` → Infoset varsa Infoset ID, sadece DevOps ise DevOps ID
 - `company_or_module` → Infoset varsa company, sadece DevOps ise AreaPath son segment veya title'dan çıkar
 
+#### Step 4b: Parallel Analysis (Subagent Dispatch)
+
+**DO NOT analyze items sequentially in the main session.** Dispatch parallel subagents by tier.
+
+**Agent allocation:**
+
+| Tier | Model | Max Agents | Split Rule |
+|---|---|---|---|
+| Critical | opus | 1 | All critical items (max ~3) |
+| Medium/High | sonnet | 2 | ceil(N/2) items each. If N=1, use 1 agent. |
+| Low | haiku | 4 | ceil(N/4) items each. If N<=4, use N agents with 1 each. |
+
+**Empty tier → no agent spawned.** Practical total: 3-7 agents.
+
+**SKIP items:** Do NOT send to subagents. Use `cachedAnalysis` from state directly.
+
+**Each subagent receives this prompt:**
+
+```
+You are a work item analysis agent. Analyze each item and return structured JSON.
+
+Items to analyze:
+{JSON array of items — each containing:}
+- workPlanId, source, infosetData (enriched), devopsData (enriched)
+- relatedItems (array of {id, source, title, state, priority, assignedTo, description, sprint, relationType})
+- previousAnalysis (null for NEW, cached analysis object for UPDATED)
+
+Scoring rules:
+{paste full scoring rules from "Unified Priority Score" section — Infoset weights, DevOps weights, combined scoring, AND the new related-items weights}
+
+Related-items scoring weights (apply AFTER Infoset + DevOps weights, BEFORE cap at 100):
+- Related item in blocker/On Hold state: +10
+- Related item from same customer and still open: +10
+- Related item carried across sprints (sprintsCarried > 0): +5
+- Related item Closed: +0 (context only)
+- Cap: max +20 from related items total
+
+Effort estimation guide:
+{paste full effort estimation section}
+
+Waiting party analysis rules:
+{paste full waiting party section}
+
+Current sprint: {currentSprint}
+Today: {today, YYYY-MM-DD}
+
+For EACH item, produce this JSON structure:
+{
+  "workPlanId": "wp-...",
+  "category": "...",
+  "priorityScore": 85,
+  "effortHours": 2.0,
+  "actionSummary": "Turkish, 2-3 sentences",
+  "title": "{emoji} [{score}] {company_or_module} - {subject} (#{primary_id})",
+  "tier": 1,
+  "waitingParty": "...",
+  "needsCodebaseCheck": true/false,
+  "relatedItemsSummary": "İlişkili: #id title (state, assignedTo) — relationType",
+  "scoringBreakdown": { "base": N, "sla": N, "age": N, "related": N, "state": N, "company": N, "impact": N, "module": N, "repeat": N, "multi": N }
+}
+
+Return ONLY valid JSON: { "analyses": [...] }
+```
+
+**Agent tool parameters:**
+- `subagent_type`: `"general-purpose"`
+- `model`: tier-appropriate (`"opus"`, `"sonnet"`, or `"haiku"`)
+- `description`: `"Analyze {n} {tier} work items"`
+
+Dispatch ALL agents in a SINGLE message (parallel tool calls). Do NOT wait for one before dispatching the next.
+
+**Error handling:**
+- Agent timeout: 120 seconds. If exceeded, log `"UYARI: {tier} agent timeout, main session fallback"` and analyze those items in the main session using sonnet.
+- Agent crash/empty result: retry once. If still fails, fall back to main session.
+- Partial results accepted: use successful agent results, only retry failed agent's items.
+
 #### Waiting Party Analysis
 
-**For Infoset tickets:**
+**For Infoset tickets (unmatched — no DevOps counterpart):**
+
+Two signals, combined:
+
+*Signal 1 — Stage-based (from Infoset pipeline column, sync-eligible only):*
+- Yeni (108338) → "Bizde bekliyor"
+- Aktif (108335) → "Üzerinde çalışılıyor"
+- Beklemede (108339) → "Bloke"
+- Deployment (108341) → "Deploy bekliyor"
+
+*Signal 2 — Conversation-based (from ticket activity logs):*
 **DO NOT simply check `isAgent` on the last log entry.** Read the full conversation flow (all fetched activities) and determine who actually needs to take the next action. Consider:
 
 - Agent may have sent the last message but asked the customer a question → **Müşteride bekliyor**
@@ -386,18 +786,19 @@ For EVERY work item (from both sources), produce:
 - Customer may have sent new information/request that needs action → **Bizde bekliyor**
 - Agent resolved the issue and customer hasn't confirmed → **Müşteride bekliyor**
 
-**For DevOps items:**
-Derive from `System.State`:
+*Combining signals:* Stage is structural context, conversation is real-time context. If they conflict, prefer conversation signal (more current).
+
+**For DevOps items (unmatched — no Infoset counterpart):**
+Derive from `System.State` (sync-eligible only — WIQL already excludes Test/Review/Prod Test/Closed):
 - New → "Bizde bekliyor" (yeni gelmiş iş)
 - Active → "Üzerinde çalışılıyor" (aktif geliştirme)
 - On Hold → "Bloke" (add reason from description if available)
-- Test → listeye dahil edilmez (sorumluluğumda değil, tester farklı kişi)
-- Review → listeye dahil edilmez (sorumluluğumda değil, PR açılmış)
 - Deployment → "Deploy bekliyor" (taşınması gerekiyor)
-- Prod Test → listeye dahil edilmez (benden çıkmış, sorun olursa tekrar açılır)
-- Closed → listeye dahil edilmez (tamamlanmış)
 
-**For matched items:** Combine both waiting parties into a single coherent assessment. If Infoset says "Müşteride bekliyor" but DevOps says "Bizde bekliyor" (e.g., code side still needs work), use "Bizde bekliyor" (take the more actionable one).
+**For matched items:** DevOps state is the primary signal for waiting party (it is more granular and is the master). Infoset conversation logs provide customer-side context. Combine:
+- DevOps state determines the structural waiting party
+- Infoset conversation refines it (e.g., DevOps "Active" + Infoset conversation shows customer sent new info → "Bizde bekliyor" not just "Üzerinde çalışılıyor")
+- If DevOps says "Bizde bekliyor" but Infoset conversation shows customer hasn't responded to a question → override to "Müşteride bekliyor"
 
 Output one of:
 - `"Bizde bekliyor"` — We need to take action
@@ -461,6 +862,13 @@ All weights are additive. Cap at 100.
 - IsOldBug = true: +10
 - IsUnplanned = true: +5
 - No EstimateTime set: +0 (no penalty, just note it in analysis)
+
+**Related-items weights (applied after Infoset + DevOps weights, before cap):**
+- Related item is in blocker/On Hold state: +10
+- Related item is from same customer and still open: +10
+- Related item has been carried across sprints (sprintsCarried > 0): +5
+- Related item is Closed: +0 (context only, no score impact)
+- Cap: max +20 total from related items (prevent score inflation from many relations)
 
 **Combined scoring for matched items:**
 When Infoset ticket AND DevOps task are matched, take the HIGHER score from each weight category (don't double-count). Cap at 100.
@@ -558,21 +966,26 @@ Authorization: Bearer {accessToken}
 - Log each update: "DevOps #{id} EstimateTime → {effortHours}s (tahmini)"
 - If the PATCH fails (403, 404, etc.), log warning and continue — do not stop the sync
 - Track updated IDs in terminal summary: "{n} DevOps iş için efor tahmini yazıldı"
-- This step runs AFTER analysis Pass 1 but BEFORE Pass 2 (so Pass 2 sees consistent data)
+- This step runs AFTER parallel analysis (Step 4b) but BEFORE the merge/Pass 2 step (Step 4b-merge), so Pass 2 sees consistent data
 
-#### Step 4c: Pass 2 — Self-Review
+#### Step 4b-merge: Collect Results & Pass 2
 
-After initial analysis, perform verification pass:
+**Runs in the main session (not in a subagent).**
 
-1. **Score consistency** — similar items should have similar scores. If two bugs with nearly identical severity/state have scores differing by >20, investigate and correct.
-2. **Tier assignment validation** — verify every tier assignment matches its score range (70+ = T1, 50-69 = T2, <50 = T3). Fix any mismatches.
-3. **Duplicate detection** — look for similar titles across sources that were NOT caught by URL matching. Flag potential duplicates. Check:
-   - Same company + similar subject keywords
-   - Same error description in both Infoset content and DevOps description
-   - Same module mentioned in both
-4. **Effort validation** — compare Claude effort estimates with DevOps `Custom.EstimateTime` where available. If Claude estimate differs from DevOps estimate by >50%, use the DevOps estimate and note the discrepancy.
-5. **Matched item coherence** — for matched pairs, ensure the combined score makes sense. The matched item should not score lower than either individual source would score alone.
-6. **Fix any inconsistencies found** before proceeding.
+1. **Collect** all subagent results. Parse JSON responses.
+2. **Merge** into a single list. Add SKIP items' `cachedAnalysis` from state.
+3. **Pass 2 — Self-Review:**
+   a. **Score consistency** — similar items should have similar scores. If two bugs with nearly identical severity/state have scores differing by >20, investigate and correct.
+   b. **Tier assignment validation** — verify every tier assignment matches its score range (70+ = T1, 50-69 = T2, <50 = T3). Fix any mismatches.
+   c. **Duplicate detection** — look for similar titles across sources that were NOT caught by URL matching. Check: same company + similar subject, same error description, same module.
+   d. **Effort validation** — compare Claude effort estimates with DevOps `Custom.EstimateTime` where available. If Claude estimate differs by >50%, use DevOps estimate.
+   e. **Matched item coherence** — for matched pairs, ensure combined score >= either individual source score.
+   f. **Cross-agent consistency** — same customer scored by different agents should have consistent baseline. Fix discrepancies.
+   g. **Scoring breakdown validation** — verify scoringBreakdown components sum to priorityScore (within ±5 tolerance for rounding).
+   h. **Related items verification** — ensure relatedItemsSummary accurately reflects the related items data.
+4. **Fix any inconsistencies** before proceeding.
+5. **Persist** each item's analysis as `cachedAnalysis` in state (with `scoringBreakdown`).
+6. **Persist** `lastUpdatedDate` (Infoset) / `lastChangedDate` (DevOps) for each item.
 
 ---
 
@@ -666,7 +1079,7 @@ mcp__claude_ai_Google_Calendar__gcal_list_events:
 6. If effort > single slot → split across multiple slots
 7. If no free slot → try bumping lowest-priority sync event (only events created by this sync, identified by state)
 
-**Calendar feeds from Work Plan list ONLY** — not from raw DevOps Tasks or Infoset Tickets lists.
+**Calendar feeds from Work Plan list ONLY.**
 
 **Full re-plan trigger conditions:**
 A FULL re-plan (delete all sync events, re-assign from scratch) is triggered when ANY of these are true:
@@ -680,14 +1093,14 @@ A FULL re-plan (delete all sync events, re-assign from scratch) is triggered whe
 When a full re-plan triggers:
 1. Delete ALL sync calendar events (past and future) for active items
 2. Delete ALL sync calendar events for CLOSED items (free their slots)
-3. **Clean up ALL old Google Tasks in all 3 lists** — before creating new tasks:
-   a. List ALL tasks in each list ("DevOps Tasks", "Infoset Tickets", "Work Plan") via `mcp__gtasks-mcp__list`
-   b. Delete EVERY existing task in each list via `mcp__gtasks-mcp__delete` — this is a HARD CLEANUP
-   c. The task lists should contain ONLY the tasks created in the current sync run, nothing else
-   d. **NEVER delete or recreate the task LISTS themselves** — only delete the TASKS inside them. Deleting and recreating lists changes their order in Google Tasks UI. Use `mcp__gtasks-mcp__delete` for individual tasks, NEVER `mcp__gtasks-mcp__delete-tasklist`.
+3. **Clean up ALL old Google Tasks in Work Plan list** — before creating new tasks:
+   a. List ALL tasks in "Work Plan" list via `mcp__gtasks-mcp__list`
+   b. Delete EVERY existing task via `mcp__gtasks-mcp__delete` — this is a HARD CLEANUP
+   c. The list should contain ONLY the tasks created in the current sync run, nothing else
+   d. **NEVER delete or recreate the task LIST itself** — only delete the TASKS inside it. Use `mcp__gtasks-mcp__delete` for individual tasks, NEVER `mcp__gtasks-mcp__delete-tasklist`.
 4. Re-plan ALL active Work Plan items from scratch — sort by priorityScore descending, assign to earliest available slots starting from NOW (never schedule in the past)
 5. Create new calendar events for ALL active items
-6. **Create ALL Google Tasks from scratch** in all 3 lists — for EVERY active item:
+6. **Create ALL Google Tasks from scratch** in Work Plan list — for EVERY active item:
    - Always use `mcp__gtasks-mcp__create` (not update) — since old tasks were deleted
    - Task `due` date MUST equal the new calendar event's start date (YYYY-MM-DD)
    - Task `title` and `notes` MUST reflect the latest analysis (score, effort, waiting party, calendar slot)
@@ -713,97 +1126,56 @@ Google Tasks `due` dates MUST always match the calendar event date. When ANY of 
 
 ---
 
-### Step 7: Execute — Google Tasks (3 Lists)
+### Step 7: Execute — Google Tasks (Work Plan)
 
 **Skip ALL Google Tasks writes if `-r` / `--report-only` flag is set.**
 **If `--dry-run`:** Show diff table first, ask for confirmation. Skip if not confirmed.
 
-#### 7a: Find or Create Task Lists
+#### 7a: Find or Create Work Plan List
 
 ```
 mcp__gtasks-mcp__list-tasklists
 ```
 
-Find task list IDs for:
-- **"DevOps Tasks"** — if not found, create it: `mcp__gtasks-mcp__create-tasklist` with title "DevOps Tasks"
-- **"Infoset Tickets"** — if not found, create it: `mcp__gtasks-mcp__create-tasklist` with title "Infoset Tickets"
-- **"Work Plan"** — if not found, create it: `mcp__gtasks-mcp__create-tasklist` with title "Work Plan"
+Find task list ID for **"Work Plan"**. If not found, create it: `mcp__gtasks-mcp__create-tasklist` with title "Work Plan".
 
-Save all three `taskListId` values.
+Save `workPlanTaskListId`.
 
-#### 7b: DevOps Tasks List
-
-**Skip if `-i` / `--infoset-only` flag is set.**
-
-Hard cleanup: delete all existing tasks in "DevOps Tasks" list, then recreate from scratch.
-
-For each DevOps work item in `currentDevOpsItems`:
-```
-mcp__gtasks-mcp__create:
-  taskListId: "{devopsTaskListId}"
-  title: "{analysis.title}"
-  notes: (see unified notes template below — REAL newlines)
-  due: "{scheduledDate}"
-```
-
-Save returned task `id` as `googleTaskId_devops` in state.
-
-#### 7c: Infoset Tickets List
-
-**Skip if `-d` / `--devops-only` flag is set.**
-
-Hard cleanup: delete all existing tasks in "Infoset Tickets" list, then recreate from scratch.
-
-For each Infoset ticket in `currentInfosetTickets`:
-```
-mcp__gtasks-mcp__create:
-  taskListId: "{infosetTaskListId}"
-  title: "{analysis.title}"
-  notes: (see unified notes template below — REAL newlines)
-  due: "{scheduledDate}"
-```
-
-Save returned task `id` as `googleTaskId_infoset` in state.
-
-#### 7d: Work Plan List
+#### 7b: Create Work Plan Tasks
 
 Hard cleanup: delete all existing tasks in "Work Plan" list, then recreate from scratch.
 
-For each item in the Work Plan (deduplicated, sorted by priority):
+Build all task items, then create in a single batch call:
 ```
-mcp__gtasks-mcp__create:
-  taskListId: "{workPlanTaskListId}"
-  title: "{analysis.title}"
-  notes: (see unified notes template below — REAL newlines)
-  due: "{scheduledDate}"
+mcp__gtasks-mcp__batch-create:
+  items: [
+    { taskListId: "{workPlanTaskListId}", title: "{analysis.title}", notes: "...", due: "{scheduledDate}" },
+    ...for each item in Work Plan (deduplicated, sorted by priority)
+  ]
 ```
 
-Save returned task `id` as `googleTaskId_workPlan` in state.
+Save returned task `id` values as `googleTaskId_workPlan` in state (match by index).
 
 Construct `uri` for each as: `https://www.googleapis.com/tasks/v1/lists/{taskListId}/tasks/{taskId}`
 
-#### For CLOSED items (that have googleTaskId in state):
-Mark as completed in Work Plan list:
+#### For CLOSED items (that have googleTaskId_workPlan in state):
+Mark as completed:
 ```
-mcp__gtasks-mcp__update:
-  id: "{state.workItems[wpId].googleTaskId_workPlan}"
-  uri: "{state.workItems[wpId].googleTaskUri_workPlan}"
-  taskListId: "{workPlanTaskListId}"
-  status: "completed"
+mcp__gtasks-mcp__batch-update:
+  items: [
+    { taskListId: "{workPlanTaskListId}", id: "{googleTaskId_workPlan}", status: "completed" },
+    ...for each CLOSED item
+  ]
 ```
 
-Also mark as completed in the source-specific list (DevOps Tasks or Infoset Tickets) if applicable.
-
-#### For REOPENED items (that have googleTaskId in state with completedAt set):
+#### For REOPENED items (that have googleTaskId_workPlan in state with completedAt set):
+Reactivate:
 ```
-mcp__gtasks-mcp__update:
-  id: "{state.workItems[wpId].googleTaskId_workPlan}"
-  uri: "{state.workItems[wpId].googleTaskUri_workPlan}"
-  taskListId: "{workPlanTaskListId}"
-  title: "{analysis.title}"
-  notes: (see unified notes template — REAL newlines)
-  status: "needsAction"
-  due: "{new scheduledDate}"
+mcp__gtasks-mcp__batch-update:
+  items: [
+    { taskListId: "{workPlanTaskListId}", id: "{googleTaskId_workPlan}", title: "...", notes: "...", status: "needsAction", due: "{date}" },
+    ...for each REOPENED item
+  ]
 ```
 Clear `completedAt` in state after reactivation.
 
@@ -834,6 +1206,9 @@ Notlar:
 - {uyarılar, terminler, blokajlar}
 - {teknik ipucu, ilişkili iş, müşteri davranışı}
 
+İlişkili:
+- #{id} {title} ({state}, {assignedTo}) — {relationType}
+
 Takvim: {DD.MM HH:MM-HH:MM}
 
 {Infoset URL — varsa: https://dashboard.infoset.app/tickets/{id}}
@@ -848,6 +1223,7 @@ Takvim: {DD.MM HH:MM-HH:MM}
 - **Tip** → DevOps: Bug/Task; Infoset: Ticket; matched: use DevOps type
 - **Efor** → DevOps `Custom.EstimateTime` if available, write source as "(DevOps)"; otherwise Claude estimate, write source as "(tahmini)"
 - **Notlar** → if no useful info, omit the entire Notlar section. Never write empty bullets.
+- **İlişkili** → from `relatedItemsSummary`. If no related items found, omit the entire İlişkili section. List each related item on a separate line with real newlines.
 - **URLs** → at the very end. For matched items, include both Infoset and DevOps URLs.
 
 ---
@@ -956,17 +1332,28 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
       "needsCodebaseCheck": false,
       "googleTaskId_workPlan": "...",
       "googleTaskUri_workPlan": "...",
-      "googleTaskId_infoset": "...",
-      "googleTaskUri_infoset": "...",
-      "googleTaskId_devops": "...",
-      "googleTaskUri_devops": "...",
       "calendarEventId": "...",
       "scheduledDate": "2026-03-24",
       "scheduledStart": "...",
       "scheduledEnd": "...",
       "createdBySync": true,
       "completedAt": null,
-      "syncedAt": "..."
+      "syncedAt": "...",
+      "emoji": "...",
+      "lastUpdatedDate": "2026-03-23T15:00:00Z",
+      "lastChangedDate": "2026-03-23T15:00:00Z",
+      "relatedItemIds": [
+        { "relatedId": 13200, "source": "devops", "relationType": "url-reference" }
+      ],
+      "cachedAnalysis": {
+        "category": "...",
+        "priorityScore": 92,
+        "effortHours": 4,
+        "actionSummary": "...",
+        "tier": 1,
+        "waitingParty": "...",
+        "scoringBreakdown": { "base": 40, "sla": 0, "age": 10, "related": 10, "state": 20, "company": 12, "impact": 0, "module": 0, "repeat": 0, "multi": 0 }
+      }
     },
     "wp-I8912273": {
       "workPlanId": "wp-I8912273",
@@ -990,10 +1377,6 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
       "needsCodebaseCheck": true,
       "googleTaskId_workPlan": "...",
       "googleTaskUri_workPlan": "...",
-      "googleTaskId_infoset": "...",
-      "googleTaskUri_infoset": "...",
-      "googleTaskId_devops": null,
-      "googleTaskUri_devops": null,
       "calendarEventId": "...",
       "scheduledDate": "2026-03-25",
       "scheduledStart": "...",
@@ -1024,10 +1407,6 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
       "needsCodebaseCheck": false,
       "googleTaskId_workPlan": "...",
       "googleTaskUri_workPlan": "...",
-      "googleTaskId_infoset": null,
-      "googleTaskUri_infoset": null,
-      "googleTaskId_devops": "...",
-      "googleTaskUri_devops": "...",
       "calendarEventId": "...",
       "scheduledDate": "2026-03-26",
       "scheduledStart": "...",
@@ -1043,6 +1422,20 @@ Write updated state to `/mnt/c/dev/infoset-mcp/data/state.json` via Write tool.
     ],
     "infosetOnly": [8912273, 8814847],
     "devopsOnly": [13351, 13355]
+  },
+  "relatedItems": {
+    "13200": {
+      "id": 13200,
+      "source": "devops",
+      "title": "ERP entegrasyon hatası",
+      "state": "Active",
+      "priority": 2,
+      "assignedTo": "Koray Kavruk",
+      "description": "ERP bağlantısı kopuyor...",
+      "sprint": "Sprint6",
+      "contentHash": "abc123...",
+      "fetchedAt": "2026-03-25T10:00:00Z"
+    }
   }
 }
 ```
@@ -1407,19 +1800,17 @@ If `--infoset-only`, show the old infoset-sync report format (table with ID/Firm
    - DevOps: WIQL query (same as Step 1b) for current open items
 3. Build current active set: items that still exist in their source system
 4. Identify orphans: items in state but no longer in any source
-5. List task lists via `mcp__gtasks-mcp__list-tasklists` → find IDs for "DevOps Tasks", "Infoset Tickets", "Work Plan"
-6. List all tasks in each list via `mcp__gtasks-mcp__list`
+5. List task lists via `mcp__gtasks-mcp__list-tasklists` → find ID for "Work Plan"
+6. List all tasks in Work Plan list via `mcp__gtasks-mcp__list`
 7. List calendar events via `gcal_list_events` (next 30 days)
 8. For each orphaned item in state:
    - Delete task from "Work Plan" list via `mcp__gtasks-mcp__delete` (if `googleTaskId_workPlan` exists)
-   - Delete task from "Infoset Tickets" list via `mcp__gtasks-mcp__delete` (if `googleTaskId_infoset` exists)
-   - Delete task from "DevOps Tasks" list via `mcp__gtasks-mcp__delete` (if `googleTaskId_devops` exists)
    - DELETE calendar event via `gcal_delete_event` (if `calendarEventId` exists)
 9. Update state for cleaned items:
-   - Set `googleTaskId_workPlan: null`, `googleTaskId_infoset: null`, `googleTaskId_devops: null`, `calendarEventId: null`, `completedAt: "{now ISO}"`
+   - Set `googleTaskId_workPlan: null`, `calendarEventId: null`, `completedAt: "{now ISO}"`
 10. Remove orphan state entries: items not in any source AND without `completedAt`
 11. Save updated state.json
-12. Report: "{n} Work Plan tasks deleted, {m} Infoset tasks deleted, {k} DevOps tasks deleted, {j} events deleted, {p} orphan state entries removed"
+12. Report: "{n} Work Plan tasks deleted, {j} events deleted, {p} orphan state entries removed"
 
 ---
 
@@ -1450,9 +1841,33 @@ If `--infoset-only`, show the old infoset-sync report format (table with ID/Firm
 - **Full analysis report on EVERY run** — no summary-only mode
 - **ALWAYS execute Google writes (Steps 7-8) on every full sync run** — even when change detection shows 0 NEW/UPDATED/CLOSED. The "no changes" optimization is ONLY valid for `--dry-run` mode. Full sync mode (`/work-sync` with no flags) MUST always delete all existing sync events/tasks and recreate them from scratch. This ensures Google Tasks notes, due dates, calendar colors, and scheduling stay correct even when the underlying data hasn't changed. Never skip Google writes based on change detection in full sync mode.
 - **Self-review pass (Pass 2) on analysis** before finalizing — always verify score consistency, tier assignments, duplicates, effort estimates, and matched item coherence
-- **3 Google Tasks lists** maintained in parallel: "DevOps Tasks" (raw), "Infoset Tickets" (raw), "Work Plan" (deduplicated)
+- **Single Google Tasks list: "Work Plan"** — deduplicated, single source of truth. "DevOps Tasks" and "Infoset Tickets" lists are not used.
 - **DOCX generation must not block sync** — if it fails, Google writes are still completed
 - **workPlanId is stable** — once assigned (wp-I, wp-D, or wp-M prefix), it does not change unless matching status changes. If an Infoset-only item becomes matched, it transitions from `wp-I{id}` to `wp-M{id}` — the old state entry is removed and a new one is created.
+
+---
+
+## Infoset Pipeline Configuration
+
+```
+Pipeline: Yazılım Destek
+Pipeline ID: 25965
+```
+
+| stageId | Infoset Kolon | DevOps State | Sync'e Dahil |
+|---------|--------------|--------------|--------------|
+| 108338 | Yeni | New | Yes — primary queue |
+| 108335 | Aktif | Active | Yes |
+| 108339 | Beklemede | On Hold | Yes |
+| 108334 | Test | Test | No (tester sorumlu) |
+| 108336 | Review | Review | No (PR açılmış) |
+| 108341 | Deployment | Deployment | Yes |
+| 108337 | Prod Test | Prod Test | No (benden çıkmış) |
+| 108340 | Tamamlandı | Closed | No (tamamlanmış) |
+
+**Sync-eligible stageIds:** 108338, 108335, 108339, 108341
+
+**Stage sync direction:** DevOps state is master. For matched items, Infoset stage follows DevOps state — never the reverse. DevOps state is NEVER changed based on Infoset stage. Infoset stage CAN be updated to match DevOps state, but the Infoset MCP API currently lacks a `stageId` update parameter, so this is manual until the API supports it. Report mismatches in terminal output instead.
 
 ---
 
@@ -1478,9 +1893,10 @@ Work Item URL: https://polynomtech.visualstudio.com/Fin_Dev26/_workitems/edit/{i
 
 These are explicitly deferred features — do NOT implement them now:
 
-- [ ] **Auto DevOps task creation:** When Infoset ticket has no DevOps match, auto-create DevOps task with Infoset URL in discussion. Requires proper matching validation first.
-- [ ] **Auto Infoset URL in discussion:** Combined with above — on task creation, write `https://dashboard.infoset.app/tickets/{id}` as first comment.
-- [ ] **Periodic auto sync:** Cron-based `/work-sync` execution (e.g., every morning 08:30)
+- [x] **Auto DevOps task creation:** Step 2.7 — unmatched Infoset tickets auto-create DevOps task in active sprint with URL in discussion. Max 5 per run.
+- [x] **Auto Infoset URL in discussion:** Included in Step 2.7 — first comment with Infoset ticket URL.
+- [x] **Periodic auto sync:** WSL crontab — weekdays 08:00 Istanbul. Log: ~/.claude/cache/work-sync-cron.log
+- [ ] **Infoset stage auto-sync:** When DevOps state changes, move Infoset ticket to matching stage. Blocked: Infoset MCP `update_ticket` lacks `stageId` parameter. Workaround: report mismatches in terminal output for manual action.
 - [ ] **Bidirectional status sync:** When DevOps task closes, check if Infoset ticket should also close
 - [ ] **Sprint change detection:** Alert when items move between sprints
 - [ ] **Slack/Teams notification:** Send summary to channel after sync

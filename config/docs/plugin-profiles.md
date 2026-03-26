@@ -11,4 +11,3 @@ Source of truth: `~/.claude/plugin-profiles.json`.
 | `dev` | General engineering work, broader tooling needed |
 | `security` | Explicit security review or audit tasks |
 
-Browser automation always routes through HakanMCP browser wrappers, not the direct Playwright plugin.

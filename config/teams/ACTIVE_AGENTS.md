@@ -28,6 +28,6 @@ Defines the core role set for Agent Teams. Purpose: keep role selection short, t
 
 ## Notes
 - This is the active library, not a favorites list.
-- These roles map to `/e2eteam`, `/buildteam`, `/opsteam`, `/growthteam`, `/researchteam` commands.
+- Use `/team` command for team creation (individual team commands deprecated).
 - Pick the nearest active role if an exact match is unavailable.
 - Role behavior is defined in `teams/agents/<role>.md`.

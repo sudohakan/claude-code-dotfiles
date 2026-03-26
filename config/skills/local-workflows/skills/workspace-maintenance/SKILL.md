@@ -1,3 +1,11 @@
+---
+name: Workspace Maintenance
+description: Review and maintain Claude or Codex workspace growth, generated artifacts, and local workflow hygiene.
+when_to_use: when auditing local agent workspace growth, stale generated artifacts, or configuration sprawl
+version: 1.0.0
+languages: all
+---
+
 # Workspace Maintenance
 
 Use this skill for recurring Claude workspace cleanup and maintenance tasks.

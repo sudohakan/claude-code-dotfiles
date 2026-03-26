@@ -31,6 +31,29 @@ Parse `<args>`:
 
 ## Full Sync Pipeline
 
+### Step 0: High-Priority Execution Gate
+
+Before starting fresh analysis, inspect the existing "Dev - Projects" list for **open `[HIGH]` subtasks**.
+
+**If any open HIGH subtasks exist:**
+
+1. Resolve the task list and fetch all current tasks/subtasks first.
+2. Group open HIGH subtasks by project.
+3. For each affected project, open the repo and investigate the cited finding from the subtask note (`File`, `Fix`, `Acceptance`).
+4. Implement the fix in the project immediately instead of creating a new analysis-only report.
+5. Verify the fix locally with the subtask acceptance criteria plus any relevant tests/builds.
+6. Update the corresponding Google Task:
+   - mark it complete if the fix is verified
+   - or keep it open and append a short blocker note if it cannot be completed safely in this run
+7. Continue until there are **no open HIGH subtasks left**, then proceed to Step 1 for fresh discovery/analysis/sync.
+
+**Execution rules for HIGH subtasks:**
+- Treat the existing HIGH queue as the top priority backlog for `dev-sync`
+- Do not create replacement tasks for the same HIGH issue if it is already open; resolve or update the existing task
+- Prefer finishing the real code change over generating more findings
+- If a HIGH task reveals adjacent critical breakage, fix that in the same pass and document it in the task notes
+- If `--check` is used, inspect and report open HIGH tasks but do **not** modify code or task state
+
 ### Step 1: Discover Projects
 
 ```bash
@@ -198,7 +221,16 @@ For each project with CI failure:
 
 **CI must be green for ALL projects before Step 4.** If any project is red after auto-fix attempts, flag it as `❌ UNRESOLVED` in the report.
 
-### Step 4: Report
+### Step 4: Re-Sync Post-Fix State
+
+After HIGH fixes and the normal analysis/sync pass:
+
+1. Re-read the "Dev - Projects" list
+2. Confirm completed HIGH subtasks are marked done
+3. Confirm any still-open HIGH subtasks include a blocker/update note
+4. Only then prepare the final report
+
+### Step 5: Report
 
 Show formatted summary:
 
@@ -214,6 +246,7 @@ Dev Sync complete — <n> projects analyzed, <m> issues found
 Ship: <n> projects shipped
 CI: <n>/<total> green (list any red with reason)
 Google Tasks: <n> parent tasks, <m> subtasks synced to "Dev - Projects"
+HIGH queue: <resolved>/<total> resolved this run (list blockers if any remain)
 ```
 
 ---
@@ -223,6 +256,7 @@ Google Tasks: <n> parent tasks, <m> subtasks synced to "Dev - Projects"
 - **Read code, don't guess** — every finding must cite file:line
 - **Parallel analysis** — use subagents for speed, max 4 concurrent
 - **Idempotent** — running twice produces same result, old tasks replaced
+- **Execution-first for HIGH** — open HIGH subtasks must be worked before creating fresh backlog
 - **Rube for subtasks** — `mcp__gtasks-mcp__create` cannot create subtasks, Rube required
 - **Repo name from git remote** — never assume dir name = repo name
 - **WSL paths** — all file operations use `/mnt/c/dev/`, display uses `C:\dev\`

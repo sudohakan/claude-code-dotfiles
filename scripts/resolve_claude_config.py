@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 
@@ -33,6 +34,20 @@ def replace_placeholders(value, dev_root, dev_root_posix, node_command):
     return value
 
 
+def resolve_magic_21st_api_key(server_config):
+    env = dict(server_config.get("env", {}))
+    key = os.environ.get("MAGIC_21ST_API_KEY") or os.environ.get("API_KEY")
+    if key:
+        env["API_KEY"] = key
+    elif env.get("API_KEY") in {"", "YOUR_API_KEY_HERE", "__MAGIC_21ST_API_KEY__"}:
+        env.pop("API_KEY", None)
+    if env:
+        server_config["env"] = env
+    else:
+        server_config.pop("env", None)
+    return server_config
+
+
 def main():
     parser = argparse.ArgumentParser(description="Resolve portable placeholders in the sanitized .claude.json template.")
     parser.add_argument("--template", required=True)
@@ -48,6 +63,13 @@ def main():
         to_posix_dev_root(args.dev_root),
         args.node_command,
     )
+    magic_21st = resolved.get("mcpServers", {}).get("magic-21st")
+    if isinstance(magic_21st, dict):
+        key = os.environ.get("MAGIC_21ST_API_KEY") or os.environ.get("API_KEY")
+        if key:
+            resolved["mcpServers"]["magic-21st"] = resolve_magic_21st_api_key(magic_21st)
+        else:
+            resolved["mcpServers"].pop("magic-21st", None)
 
     target_path = Path(args.target)
     if target_path.exists():

@@ -132,15 +132,20 @@ If task branch found → checkout. If not → determine environment before creat
 Based on classification:
 
 **Bug fix / Feature:**
-1. Read related code files based on work item description
-2. Understand the problem or requirement
-3. Present findings and proposed approach to user
-4. Wait for user confirmation
-5. Implement the fix/feature
+1. Set DevOps task state to **Active** before starting work
+2. Read related code files based on work item description
+3. Understand the problem or requirement
+4. Present findings and proposed approach to user
+5. Wait for user confirmation
+6. Implement the fix/feature
 6. Verify the change (build, review)
 7. Run `/code-review:code-review` to review the changes
 8. Fix any critical/high findings
 9. Inform user — do NOT commit unless asked
+10. If testable: deploy to test, set state to **Test**, add discussion comment with:
+    - Plain Turkish explanation of what was done (no technical jargon)
+    - Test environment URL
+    - Which screen/module to test (NOT step-by-step instructions — tester decides how to test)
 
 **Analysis / Info:**
 1. Research the topic in the codebase
@@ -156,18 +161,16 @@ Based on classification:
 
 After commit and push, if work is on a separate task branch, create a PR:
 
+**IMPORTANT:** Do NOT use `az repos pr create` CLI — it corrupts Turkish characters (ö→o, ş→s, ü→u, etc.). Always use REST API:
+
 ```bash
-# Azure DevOps PR creation
-az repos pr create \
-  --organization https://dev.azure.com/polynomtech \
-  --project "<project-name>" \
-  --repository "<repo-name>" \
-  --source-branch "Task-<DevOpsID>" \
-  --target-branch "<target-branch>" \
-  --title "<commit message>" \
-  --description "<brief description>" \
-  --work-items <DevOpsID> \
-  --labels "<project-tag>"
+# Step 1: Create PR via REST API (preserves Turkish chars)
+TOKEN=$(az account get-access-token --resource "499b84ac-1321-427f-aa17-267ca6975798" --query accessToken -o tsv)
+curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  "https://polynomtech.visualstudio.com/<project>/_apis/git/repositories/<repo>/pullrequests?api-version=7.1" \
+  -d '{"sourceRefName":"refs/heads/Task-<ID>","targetRefName":"refs/heads/<target>","title":"<Turkish title>","description":"<Turkish desc>","workItemRefs":[{"id":"<DevOpsID>"}],"labels":[{"name":"<project-tag>"}]}'
 ```
 
 **PR Rules:**
@@ -183,11 +186,13 @@ az repos pr create \
   - Burak Biçkioğlu: `793f1d07-a40d-4951-a188-a6f2947443f4`
   - Kemal Erol: `f657daa6-8400-4b21-9c5c-c3416ffa770c`
 - **PR is optional** — user decides whether to create one. Some work goes directly to the target branch.
-- **After PR:** Add a comment to the DevOps work item discussion explaining what was done in plain Turkish — no technical jargon, understandable by non-technical people (analysts, testers, managers). Use the comments API:
+- **After PR:** Add a comment to the DevOps work item discussion explaining what was done in plain Turkish — no technical jargon, understandable by non-technical people (analysts, testers, managers). Use REST API with `-d` and single-quoted JSON to preserve Turkish chars:
+  ```bash
+  curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    "https://polynomtech.visualstudio.com/Fin_Dev26/_apis/wit/workitems/{id}/comments?api-version=7.1-preview.4" \
+    -d '{"text":"<Türkçe açıklama>"}'
   ```
-  POST _apis/wit/workitems/{id}/comments?api-version=7.1-preview.4
-  {"text": "<plain language explanation>"}
-  ```
+- **Turkish character rule:** NEVER use `az` CLI for creating PRs, comments, or any text content — it corrupts Turkish characters. Always use REST API with `curl` and single-quoted JSON body.
 
 ### Step 5: DevOps Task Management
 
@@ -207,7 +212,7 @@ Every task MUST have a corresponding DevOps work item with all fields properly f
 | Repro Steps | `Microsoft.VSTS.TCM.ReproSteps` | Detailed problem description, steps to reproduce |
 | Estimate Time | `Custom.EstimateTime` | Estimated effort in hours (double) — how long a human developer would take WITHOUT AI assistance (analysis + coding + testing). NOT how long AI took. |
 | Development Time | `Custom.DevelopmentTime` | Should reflect realistic human effort — close to estimate. Minor variance OK, large deviation not. |
-| Tester | `Custom.Tester` | Usually the analyst who created the task. Ask user if unclear |
+| Tester | `Custom.Tester` | Usually the analyst who created the task. Ask user if unclear. Known testers: Hilal Arslankaya, Gülnihal Çetinkaya |
 | Estimate Complete Date | TBD | Expected completion date |
 | Work Item Type | `System.WorkItemType` | Bug or Task based on nature of work |
 

@@ -4,32 +4,32 @@
       "source": "github",
       "repo": "anthropics/claude-plugins-official"
     },
-    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\claude-plugins-official",
-    "lastUpdated": "2026-03-24T06:40:49.838Z"
+    "installLocation": "/home/hakan/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-03-25T20:17:11.253Z"
   },
   "claude-code-plugins": {
     "source": {
       "source": "github",
       "repo": "anthropics/claude-code"
     },
-    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\claude-code-plugins",
-    "lastUpdated": "2026-03-23T09:51:11.696Z"
+    "installLocation": "/home/hakan/.claude/plugins/marketplaces/claude-code-plugins",
+    "lastUpdated": "2026-03-26T02:00:18.920Z"
   },
   "trailofbits": {
     "source": {
       "source": "github",
       "repo": "trailofbits/skills"
     },
-    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\trailofbits",
-    "lastUpdated": "2026-03-24T13:33:49.564Z"
+    "installLocation": "/home/hakan/.claude/plugins/marketplaces/trailofbits",
+    "lastUpdated": "2026-03-25T20:17:15.375Z"
   },
   "anthropic-agent-skills": {
     "source": {
       "source": "github",
       "repo": "anthropics/skills"
     },
-    "installLocation": "C:\\Users\\Hakan\\.claude\\plugins\\marketplaces\\anthropic-agent-skills",
-    "lastUpdated": "2026-03-24T13:33:56.468Z"
+    "installLocation": "/home/hakan/.claude/plugins/marketplaces/anthropic-agent-skills",
+    "lastUpdated": "2026-03-25T20:17:17.365Z"
   },
   "everything-claude-code": {
     "source": {
@@ -37,6 +37,6 @@
       "url": "https://github.com/affaan-m/everything-claude-code.git"
     },
     "installLocation": "/home/hakan/.claude/plugins/marketplaces/everything-claude-code",
-    "lastUpdated": "2026-03-24T06:40:42.879Z"
+    "lastUpdated": "2026-03-25T20:17:23.770Z"
   }
 }

@@ -168,6 +168,35 @@ The agent will stop and report if:
 - `/kotlin-review` - Review code quality
 - `/verify` - Full verification loop
 
+### Android/KMP Specifics
+
+For Android and Kotlin Multiplatform projects, detect the project type first:
+
+| Indicator | Build Command |
+|-----------|---------------|
+| `build.gradle.kts` + `composeApp/` (KMP) | `./gradlew composeApp:compileKotlinMetadata 2>&1` |
+| `build.gradle.kts` + `app/` (Android) | `./gradlew app:compileDebugKotlin 2>&1` |
+| `settings.gradle.kts` with modules | `./gradlew assemble 2>&1` |
+| Detekt configured | `./gradlew detekt 2>&1` |
+
+Also check `gradle.properties` and `local.properties` for configuration.
+
+Common Android/KMP errors:
+
+| Error | Fix |
+|-------|-----|
+| Unresolved reference in `commonMain` | Check if the dependency is in `commonMain.dependencies {}` |
+| Expect declaration without actual | Add `actual` implementation in each platform source set |
+| Compose compiler version mismatch | Align Kotlin and Compose compiler versions in `libs.versions.toml` |
+| Duplicate class | Check for conflicting dependencies with `./gradlew dependencies` |
+| KSP error | Run `./gradlew kspCommonMainKotlinMetadata` to regenerate |
+| Configuration cache issue | Check for non-serializable task inputs |
+
+Stop and ask the user if:
+- Error requires adding new dependencies or changing module structure
+- Gradle sync itself fails (configuration-phase error)
+- Error is in generated code (Room, SQLDelight, KSP)
+
 ## Related
 
 - Agent: `agents/kotlin-build-resolver.md`

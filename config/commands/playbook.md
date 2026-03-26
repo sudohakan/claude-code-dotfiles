@@ -189,7 +189,7 @@ After: display findings, recommend full assessment if issues found. Skip Phase 2
 17. Active data collection. Whenever accessible data is found, save it immediately — do not wait for instruction. Exposed files → `exposed-files/`, extracted data → `extracted/`. Files returning 200 are downloaded in real-time.
 18. Self-improving playbook. When a new technique, tool, or vector is discovered not already in the playbook, add it to the relevant `pentest-*.md` file before continuing. At engagement end, review operations.json for ad-hoc techniques and formalize them.
 
-    Auto-integration protocol:
+    Auto-integration protocol (includes NotebookLM — see Rule 21):
     - Research output → classify target file: new CVE → `pentest-advanced-attacks.md`; new path → `pentest-discovery-paths.md`; new chain → `pentest-exploitation.md`; new post-exploit → `pentest-post-exploit-ops.md`
     - Format per technique: `## 2XX — Name (CVE-YYYY-NNNNN)` / Added date / When to use / Auth required / Detection command / Exploitation command / Affected versions
     - Cross-reference new technique ID in exploit decision engine in `pentest-exploitation.md`
@@ -280,6 +280,23 @@ After: display findings, recommend full assessment if issues found. Skip Phase 2
 
     Re-evaluation triggers: new credential, new endpoint/panel, successful exploit, phase transition, every 10 operations.
 
+21. **NotebookLM integration.** Dynamic research and source management via notebook `<NOTEBOOK_ID>`.
+
+    Prerequisite: `bash ~/.claude/scripts/nlm-cookie-sync.sh` once per session before first call.
+
+    Engagement-time research (when blocked):
+    - Follow the Research Escalation Ladder in `pentest-operations.md`: playbook docs → NotebookLM query → web search → feedback loop.
+    - Query with specific technique names, CVEs, or bypass context. Vague queries waste tokens.
+
+    Source management:
+    - When web search or engagement yields a high-quality, reusable resource: add via `source_add(source_type="url", url=<URL>, notebook_id="<NOTEBOOK_ID>")`.
+    - Max 1-2 sources per session. Curate; never bulk-add.
+    - Priority categories: WAF bypass, framework exploits, OPSEC tradecraft, post-exploitation, credential attacks.
+
+    Playbook development:
+    - Before adding new attack modules or updating techniques, query NotebookLM for current state-of-the-art in that area.
+    - Cross-reference with existing playbook content. Add only what is missing with exact commands/payloads.
+
 ---
 
 ## Phase 0: Target Init
@@ -321,6 +338,18 @@ run("/opt/opsec/preflight.sh")
 Load OPSEC profile based on flags (stealth / balanced / noisy). Configure stealth_session.py if profile is stealth or balanced.
 
 If tools missing: list them, ask user to skip or install.
+
+### 0.0.8 — Mandatory OPSEC Initialization
+
+Execute in order before any target interaction:
+
+1. Load OPSEC profile: read `/opt/opsec/profile.json`, select stealth/balanced/noisy
+2. Initialize stealth session: `python3 /opt/opsec/stealth_session.py --profile <PROFILE> --init`
+3. Verify Tor/proxy routing (stealth/balanced): `bash /opt/opsec/preflight.sh <PROFILE>`
+4. DNS leak test: `bash /opt/opsec/dns_leak_test.sh` -- abort if leak detected
+5. TLS fingerprint check: `bash /opt/opsec/tls_fingerprint.sh https://<TARGET>`
+
+If any check fails, do not proceed to Phase 1. Fix the issue or escalate to user.
 
 ### 0.1 — Parse Target
 

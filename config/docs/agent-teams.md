@@ -48,9 +48,7 @@ Teammates writing/editing source code: `isolation: "worktree"`.
 - `/resume` and `/rewind` do not restore in-process teammates.
 
 ## Lead Role
-- Creates tasks, monitors progress, reviews output, resolves conflicts, reports to user.
-- Small fixes directly (config, 1-2 lines). Delegates substantial work.
-- Escalates to user for: git commit/push, deploy, external service changes, irreversible decisions.
+- Creates tasks, monitors progress, resolves conflicts, reports to user.
 
 ## Quality Gates
 - Verify before marking task completed (tests, build, review).
@@ -72,7 +70,6 @@ Teammates writing/editing source code: `isolation: "worktree"`.
 - Shutdown order: teammates first (reverse dependency), then leader. Only leader runs cleanup.
 
 ## Local Rules
-- Create teams only via `/team` on explicit user request. Never auto-create.
 - Don't use Agent Teams as a blanket replacement for subagents.
 - Default: Sonnet teammates. Haiku for read-only roles.
 - Start with fewest agents that can finish the work.

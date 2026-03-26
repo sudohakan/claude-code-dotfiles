@@ -18,7 +18,12 @@ echo "[1/7] Installing Node.js LTS..."
 if command -v node &>/dev/null; then
   echo "  Node.js already installed: $(node --version)"
 else
-  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  tmpfile="$(mktemp)"
+  trap 'rm -f "$tmpfile"' EXIT
+  curl -fsSL https://deb.nodesource.com/setup_22.x -o "$tmpfile"
+  sudo -E bash "$tmpfile"
+  rm -f "$tmpfile"
+  trap - EXIT
   sudo apt-get install -y nodejs
   echo "  Installed: $(node --version)"
 fi
@@ -175,7 +180,12 @@ echo "[6/7] Installing Tailscale..."
 if command -v tailscale &>/dev/null; then
   echo "  Tailscale already installed."
 else
-  curl -fsSL https://tailscale.com/install.sh | sh
+  tmpfile="$(mktemp)"
+  trap 'rm -f "$tmpfile"' EXIT
+  curl -fsSL https://tailscale.com/install.sh -o "$tmpfile"
+  sh "$tmpfile"
+  rm -f "$tmpfile"
+  trap - EXIT
   echo "  Tailscale installed."
 fi
 echo ""

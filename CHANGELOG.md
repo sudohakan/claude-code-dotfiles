@@ -3,6 +3,48 @@
 
 **Related projects:** [HakanMCP](https://github.com/sudohakan/HakanMCP), [gtasks-mcp](https://github.com/sudohakan/gtasks-mcp), [infoset-mcp](https://github.com/sudohakan/infoset-mcp), [kali-mcp](https://github.com/sudohakan/kali-mcp-server), [pentest-framework](README.md#portable-local-dependencies)
 
+## [3.5.7] - 2026-03-26
+
+### Changed
+- Shared Claude+Codex mode now treats `~/.claude` as the canonical live source of truth, points Codex at that live Claude tree, and leaves the dotfiles repo as a sync/export target instead of the runtime authority
+
+## [3.5.6] - 2026-03-26
+
+### Changed
+- `dev-sync` now treats existing open `[HIGH]` subtasks in "Dev - Projects" as an execution queue: it must investigate, fix, verify, and update those tasks before generating fresh backlog output
+
+## [3.5.5] - 2026-03-26
+
+### Changed
+- Shared `workspace-maintenance` skill now uses Codex-compatible YAML frontmatter so the shared Claude/Codex skill tree loads cleanly in Codex child sessions
+
+### Fixed
+- Removed a stale local `MCP_DOCKER` Codex server entry that pointed at an invalid Docker CLI plugin and caused repeated MCP startup handshake failures
+
+## [3.5.4] - 2026-03-25
+
+### Changed
+- Codex shared mode now writes `model_instructions_file = '~/.codex/CLAUDE.md'` into `config.toml` and keeps `~/.codex/CLAUDE_GLOBAL.md` as a compatibility alias to the same shared file
+- Generated Codex `AGENTS.md` is now a minimal bootstrap file instead of an embedded copy of the full Claude global policy
+
+### Fixed
+- Reduced instruction drift between Codex bootstrap metadata and the shared Claude global instruction file
+
+## [3.5.3] - 2026-03-25
+
+### Added
+- Shared Claude+Codex home sync script: `scripts/enable-shared-claude-codex.ps1`
+- Missing live Claude parity assets promoted into the shared config layer: `fix-plugin-root.js`, `token-guard.js`, `/finekra-deploy-onprem`, `/playbook-extract`, and `docs/pentest-opsec-layers.md`
+
+### Changed
+- Codex parity can now switch from copy-based mirroring to junction/hardlink-based shared mode
+- Shared mode points both `~/.claude` and `~/.codex` at `claude-code-dotfiles/config` for common commands, docs, hooks, skills, rules, MCP configs, and GSD assets
+- Codex prompt files now hardlink directly to the shared command markdown sources while preserving Codex-only `.system` skills and generated `AGENTS.md`
+
+### Fixed
+- Reduced drift between the live Claude tree, the dotfiles repo, and Codex parity snapshots
+- Preserved local-only runtime surfaces such as `~/.claude/hooks/dippy` and `~/.codex/skills/.system` while sharing the common content layer
+
 ## [3.5.0] - 2026-03-23
 
 ### Added

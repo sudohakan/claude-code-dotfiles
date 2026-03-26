@@ -25,14 +25,17 @@
 - WSL+NTFS `.sh` files: force LF endings. Add `*.sh text eol=lf` to `.gitattributes`.
 - WSL large files: NTFS driver cannot read back files >~1MB with shell escape sequences. Write to `/home/` and symlink.
 - Dotfiles sync: after any `~/.claude/` change, sync the dotfiles repo before task is complete. Use `/dotfiles-sync`.
-- Writing style for all directive files (CLAUDE.md, rules, docs, commands, skills, agent definitions): no emoji, no decorative separators (===, ***), no verbose explanations when a table/list suffices, no "NOTE/IMPORTANT/CRITICAL" prefixes, plain markdown only (##/### headers, bullets, tables, code blocks). Every line must be actionable. This applies to new files and edits to existing files.
+- Writing style for all directive files (CLAUDE.md, rules, docs, commands, skills, agent definitions):
+  - No emoji, no decorative separators (===, ***), no "NOTE/IMPORTANT/CRITICAL" prefixes
+  - Tables/lists over verbose prose. Plain markdown only (##/### headers, bullets, tables, code blocks)
+  - Every line must be actionable. Applies to new files and edits to existing files.
 
 ## 2. Model Selection
 
 | Model | Use |
 |-------|-----|
 | `sonnet` (default) | Main development, orchestration, complex coding |
-| `haiku` | Research/exploration subagents, read-only roles |
+| `haiku` | Research/exploration subagents, read-only roles, worker agents in multi-agent systems |
 | `opus` | Team leader, complex architectural decisions (2+ services, irreversible) |
 
 Current versions: Haiku 4.5, Sonnet 4.6, Opus 4.6. Always pass `model` explicitly when spawning agents.
@@ -152,8 +155,9 @@ updated: YYYY-MM-DD
 | typescript-lsp | TypeScript type checking. |
 | claude-md-management | Audit or improve CLAUDE.md files. |
 
-### ECC-Only Capabilities
-- `/save-session` `/resume-session` — session persistence
+### ECC and Standalone Commands
+- `/save-session` `/resume-session` — session persistence (standalone)
+- `/build-fix` — build error resolution (standalone)
 - `/aside` — side question without context pollution
 - `/security-scan` — AgentShield config audit (102 rules)
 - `/instinct-status` `/evolve` `/learn` — continuous learning
@@ -170,8 +174,6 @@ updated: YYYY-MM-DD
 | TDD | `test-driven-development` | `/tdd` | Either |
 | Code review | `requesting-code-review` | `/code-review` | Either |
 | Verification | `verification-before-completion` | `/verify` | Superpowers — always mandatory |
-
-ECC hook profile: `strict` (all hooks active including continuous learning).
 
 ### 21st.dev Magic MCP
 UI component generation. React+Tailwind. Signal: `/ui ...` prefix.
@@ -192,7 +194,8 @@ Browser: HakanMCP wrappers first → HakanMCP `mcp_callTool` → alternatives on
 | gtasks-mcp | Task lists |
 | infoset | CRM data — tickets, contacts, companies |
 | container-use | Docker containers |
-| kali-mcp | Offensive security, recon, vuln scanning (36 tools). Ref: `pentest-playbook.md` |
+| kali-mcp | Offensive security, recon, vuln scanning (50+ tools). Ref: `docs/pentest-playbook.md` |
+| n8n | Workflow automation, event-driven pipelines, scheduled tasks. Docker on WSL :5678 |
 | linkedin | People, companies, jobs on LinkedIn |
 | magic-21st | UI components (`/ui` prefix) — React+Tailwind |
 | Rube (Composio) | 600+ apps. Use `RUBE_SEARCH_TOOLS` first |
@@ -206,25 +209,35 @@ MCP errors: investigate and retry within same MCP first. Fall back only after re
 Config: `/home/hakan/.claude.json` (WSL) and `/mnt/c/Users/Hakan/.claude.json` (Windows). Keep in sync. Changes: `/add-mcp` or `~/.claude/docs/mcp-usage-guide.md`.
 
 ## 8. References
+
 `~/.claude/` → WSL: `/home/hakan/.claude/` | Windows: `C:\Users\Hakan\.claude\`
 
-| Resource | Path |
-|----------|------|
-| GSD workflow | `~/.claude/get-shit-done/` and `~/.claude/commands/gsd/` |
-| Superpowers specs (archive) | `~/.claude/docs/superpowers/specs/` |
-| Dippy hooks | `~/.claude/docs/dippy.md` |
-| UI/UX guidance | `~/.claude/docs/ui-ux.md` |
-| Decision matrix | `~/.claude/docs/decision-matrix.md` |
-| Tools reference | `~/.claude/docs/tools-reference.md` |
-| MCP guide | `~/.claude/docs/mcp-usage-guide.md` |
-| MCP on-demand | `~/.claude/docs/mcp-on-demand.md` |
-| Agent teams | `~/.claude/docs/agent-teams.md` |
-| Ralph Loop | `~/.claude/docs/review-ralph.md` |
-| .claudeignore templates | `~/.claude/docs/claudeignore-templates.md` |
-| Pentest playbook | `~/.claude/docs/pentest-playbook.md` + `/playbook` + `/mnt/c/dev/pentest-framework/` |
-| Dotfiles repo | `/mnt/c/dev/claude-code-dotfiles` |
-| Rules (common) | `~/.claude/rules/common/` |
-| Hook standards | `~/.claude/docs/hook-standards.md` |
-| Agent favorites | `~/.claude/docs/agent-favorites.md` |
-| Plan naming | `~/.claude/docs/plan-naming.md` |
-| Plugin profiles | `~/.claude/docs/plugin-profiles.md` |
+When you need to find a doc, use this table. Each row points directly to the file you need — no intermediate indexes.
+
+| I need to... | Read this |
+|--------------|-----------|
+| Run a pentest | `docs/pentest-playbook.md` (hub — loads all sub-docs) |
+| Use `/playbook` command | `commands/playbook.md` (routes to recon/assessment/exploit/reporting) |
+| Check OPSEC rules | `docs/pentest-operations.md` (preflight, profiles, tool usage by phase) |
+| Find a kali-mcp tool | `docs/kali-mcp/tool-inventory.md` |
+| Create an agent team | `commands/team.md` → `docs/agent-teams.md` + `teams/agents/` |
+| Set up MCP server | `docs/mcp-usage-guide.md` |
+| Connect on-demand MCP | `docs/mcp-on-demand.md` (9 auth-free servers) |
+| Do GSD project | `get-shit-done/` and `commands/gsd/` |
+| Use Ralph Loop | `docs/review-ralph.md` |
+| Configure hooks | `docs/hook-standards.md` |
+| Browser automation | `docs/browser-cdp-setup.md` |
+| UI/UX component | `docs/ui-ux.md` |
+| Ignore patterns | `docs/claudeignore-templates.md` |
+| Resume prior session | `commands/resume-session.md` |
+| Resume prior pentest | `docs/pentest-targets/<domain>.md` (per-target state) |
+| Find engagement data | `/mnt/c/dev/pentest-framework/data/<domain>/` |
+| Use OPSEC scripts | `docs/pentest-operations.md` (per-phase tool usage table) |
+| Deploy to test server | `commands/finekra-deploy-test.md` |
+| Work sync (Infoset/DevOps) | `commands/work-sync.md` |
+| Investigate a Finekra task | `commands/finekra-task.md` |
+| Create a new skill | `commands/skill-create.md` |
+| Sync dotfiles | `commands/dotfiles-sync.md` → `/mnt/c/dev/claude-code-dotfiles` |
+| Manage n8n workflows | `commands/n8n.md` |
+| Check Claude Code updates | `commands/claude-news.md` |
+| Full structure map | `docs/INDEX.md` (cross-reference of all 160+ files) |
